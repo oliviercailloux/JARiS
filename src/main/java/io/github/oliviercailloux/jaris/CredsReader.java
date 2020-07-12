@@ -85,9 +85,9 @@ public class CredsReader {
 	Map<String, String> env = System.getenv();
 
 	/**
-	 * @param usernameKey the given environment value for the username key.
-	 * @param passwordKey the given environment value for the password key.
-	 * @param filePath    the given environment value for the file path.
+	 * @param usernameKey the username key.
+	 * @param passwordKey the password key.
+	 * @param filePath    the file path.
 	 * @return a CredsReader instance that will read from the given parameters.
 	 */
 	public static CredsReader given(String usernameKey, String passwordKey, Path filePath) {
@@ -96,8 +96,8 @@ public class CredsReader {
 	}
 
 	/**
-	 * @return a CredsReader instance that will read from the default environment
-	 *         values DEFAULT_USERNAME_KEY, DEFAULT_PASSWORD_KEY, DEFAULT_FILE_NAME.
+	 * @return a CredsReader instance that will read from the default values
+	 *         DEFAULT_USERNAME_KEY, DEFAULT_PASSWORD_KEY, DEFAULT_FILE_NAME.
 	 */
 	public static CredsReader defaultCreds() {
 		CredsReader credsReader = new CredsReader(DEFAULT_USERNAME_KEY, DEFAULT_PASSWORD_KEY, DEFAULT_FILE_NAME);
@@ -127,7 +127,8 @@ public class CredsReader {
 	 * @throws IllegalStateException if information is missing from all three
 	 *                               sources.
 	 * @throws UncheckedIOException  if an I/O error occurs reading from the file or
-	 *                               a malformed orunmappable byte sequence is read.
+	 *                               a malformed or unmappable byte sequence is read
+	 *                               from the file.
 	 * @see CredsReader
 	 */
 	public Credentials getCredentials() throws IllegalStateException, UncheckedIOException {
