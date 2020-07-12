@@ -1,13 +1,12 @@
-package io.github.oliviercailloux.creds_read;
+package io.github.oliviercailloux.jaris;
 
+import static io.github.oliviercailloux.jaris.CredsReader.DEFAULT_FILE_NAME;
+import static io.github.oliviercailloux.jaris.CredsReader.DEFAULT_PASSWORD_KEY;
+import static io.github.oliviercailloux.jaris.CredsReader.DEFAULT_USERNAME_KEY;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import static io.github.oliviercailloux.creds_read.CredsReader.DEFAULT_USERNAME_KEY;
-import static io.github.oliviercailloux.creds_read.CredsReader.DEFAULT_PASSWORD_KEY;
-import static io.github.oliviercailloux.creds_read.CredsReader.DEFAULT_FILE_NAME;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -26,8 +25,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.jimfs.Jimfs;
 
-import io.github.oliviercailloux.creds_read.CredsOpt;
-import io.github.oliviercailloux.creds_read.CredsReader;
+import io.github.oliviercailloux.jaris.CredsOpt;
+import io.github.oliviercailloux.jaris.CredsReader;
 
 class CredsReaderTests {
 	@SuppressWarnings("unused")

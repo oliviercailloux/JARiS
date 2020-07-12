@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.creds_read;
+package io.github.oliviercailloux.jaris;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

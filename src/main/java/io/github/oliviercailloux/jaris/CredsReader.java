@@ -1,11 +1,9 @@
-package io.github.oliviercailloux.creds_read;
+package io.github.oliviercailloux.jaris;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
@@ -47,8 +45,8 @@ import org.slf4j.LoggerFactory;
  * error.</li>
  * </ol>
  * <p>
- * Best login information: The source used to return information is the one that has the highest
- * informational value, as determined by
+ * Best login information: The source used to return information is the one that
+ * has the highest informational value, as determined by
  * {@link CredsOpt#getInformationalValue()} (meaning that sources are ordered by
  * increasing number of pieces of information missing), and, in case of ex-æquo,
  * the order of priority displayed in the previous paragraph determines which
@@ -126,8 +124,10 @@ public class CredsReader {
 
 	/**
 	 * @return the best login information found, or an exception.
-	 * @throws IllegalStateException if information is missing from all three sources.
-	 * @throws UncheckedIOException if an I/O error occurs reading from the file or a malformed orunmappable byte sequence is read.
+	 * @throws IllegalStateException if information is missing from all three
+	 *                               sources.
+	 * @throws UncheckedIOException  if an I/O error occurs reading from the file or
+	 *                               a malformed orunmappable byte sequence is read.
 	 * @see CredsReader
 	 */
 	public Credentials getCredentials() throws IllegalStateException, UncheckedIOException {
@@ -161,7 +161,7 @@ public class CredsReader {
 	 *                               line content after the second line.
 	 * @see CredsReader
 	 * @see CredsOpt
-	 * 
+	 *
 	 */
 	CredsOpt readCredentials() throws IOException, IllegalStateException {
 		final CredsOpt propertyAuthentication;
