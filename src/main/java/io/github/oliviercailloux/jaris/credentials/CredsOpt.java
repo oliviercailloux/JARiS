@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.jaris;
+package io.github.oliviercailloux.jaris.credentials;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
