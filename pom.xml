@@ -19,11 +19,13 @@
 	</properties>
 	<dependencyManagement>
 		<dependencies>
+			<!-- For junit-pioneer -->
 			<dependency>
 				<groupId>org.junit.jupiter</groupId>
 				<artifactId>junit-jupiter-api</artifactId>
 				<version>5.6.2</version>
 			</dependency>
+			<!-- For junit-pioneer -->
 			<dependency>
 				<groupId>org.junit.jupiter</groupId>
 				<artifactId>junit-jupiter-params</artifactId>
