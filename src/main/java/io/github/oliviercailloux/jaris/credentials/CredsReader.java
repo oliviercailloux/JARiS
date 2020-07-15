@@ -20,38 +20,36 @@ import org.slf4j.LoggerFactory;
  * Immutable.
  * </p>
  * <p>
- * Allows to read the credentials: username and password. For each piece of
- * information, distinguishes <em>missing information</em> and <em>empty
- * string</em>. Considers the following possible sources (displayed here by
- * order of priority).
+ * Allows to read the credentials: username and password. For each of these two
+ * pieces of information, distinguishes <em>missing information</em> and
+ * <em>empty string</em>. Considers the following possible sources (displayed
+ * here by order of priority).
  * </p>
  * <ol>
- * <li>Properties {@value #usernameKey} and {@value #passwordKey}. Each property
- * may be set, including to the empty string, or not set. An information is
+ * <li>Properties usernameKey (default value {@value #DEFAULT_USERNAME_KEY}) and
+ * passwordKey (default value {@value #DEFAULT_PASSWORD_KEY}). Each property may
+ * be set, including to the empty string, or not set. An information is
  * considered missing (from the properties source) iff the corresponding
  * property is not set.</li>
- * <li>Environment variables {@value #usernameKey} and {@value #passwordKey}.
+ * <li>Environment variables usernameKey and passwordKey (same default values).
  * Each variable may be set, including to the empty string, or not set. An
  * information is considered missing (from the environment variables source) iff
  * the corresponding environment variable is not set.</li>
- * <li>File {@value #filePath}. The two pieces of information are considered
- * missing (from the files source) iff the file does not exist. If the file
- * exists, no piece of information is considered missing. The first line of the
- * file gives the username, the second one gives the password. If the file has
- * only one line, the password (from the files source) is set to the empty
- * string. If the file is empty, both pieces of information (from the files
- * source) are set to the empty string. Empty lines are not considered at all.
- * If the file has non empty line content after the second line, it is an
- * error.</li>
+ * <li>File filePath. The two pieces of information are considered missing (from
+ * the files source) iff the file does not exist. If the file exists, no piece
+ * of information is considered missing. The first line of the file gives the
+ * username, the second one gives the password. If the file has only one line,
+ * the password (from the files source) is set to the empty string. If the file
+ * is empty, both pieces of information (from the files source) are set to the
+ * empty string. Empty lines are not considered at all. If the file has non
+ * empty line content after the second line, it is an error.</li>
  * </ol>
  * <p>
  * Best login information: The source used to return information is the one that
- * has the highest informational value, as determined by
- * {@link CredsOpt#getInformationalValue()} (meaning that sources are ordered by
- * increasing number of pieces of information missing), and, in case of ex-æquo,
- * the order of priority displayed in the previous paragraph determines which
- * source wins.
- * </p>
+ * has the highest number of pieces of information present (meaning, not
+ * missing, thus an empty string counts as a piece of information that is
+ * present), and, in case of ex-æquo, the order of priority displayed in the
+ * previous paragraph determines which source wins.
  * </p>
  */
 public class CredsReader {
