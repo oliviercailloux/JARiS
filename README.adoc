@@ -3,6 +3,6 @@
 :artifactId: jaris
 :repository: JARiS
 
-image:https://github.com/oliviercailloux/{artifactId}/workflows/Maven%20CI/badge.svg["Maven CI"]
+image:https://github.com/oliviercailloux/{artifactId}/workflows/Maven%20CI/badge.svg["Maven CI", link="https://github.com/oliviercailloux/{repository}/actions"]
 image:https://maven-badges.herokuapp.com/maven-central/{groupId}/{artifactId}/badge.svg["Artifact on Maven Central", link="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22{groupId}%22%20a%3A%22{artifactId}%22"]
 image:http://www.javadoc.io/badge/{groupId}/{artifactId}.svg["Javadocs", link="http://www.javadoc.io/doc/{groupId}/{artifactId}"]
