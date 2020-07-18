@@ -1,6 +1,6 @@
 package io.github.oliviercailloux.jaris.credentials;
 
-import static io.github.oliviercailloux.jaris.credentials.CredsReader.DEFAULT_FILE_NAME;
+import static io.github.oliviercailloux.jaris.credentials.CredsReader.DEFAULT_FILE_PATH;
 import static io.github.oliviercailloux.jaris.credentials.CredsReader.DEFAULT_PASSWORD_KEY;
 import static io.github.oliviercailloux.jaris.credentials.CredsReader.DEFAULT_USERNAME_KEY;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -39,7 +39,7 @@ class CredsReaderTests {
 	}
 
 	Path createApiLoginFile(String... lines) throws IOException {
-		Path filePath = jimfs.getPath(DEFAULT_FILE_NAME.toString());
+		Path filePath = jimfs.getPath(DEFAULT_FILE_PATH.toString());
 		/** If lines is empty, an empty file gets created. */
 		Files.write(filePath, ImmutableList.copyOf(lines));
 		return filePath;

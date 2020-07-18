@@ -18,12 +18,17 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 
 import com.google.common.collect.ImmutableList;
 
+/**
+ * @author olivier
+ *
+ */
 public class XmlUtils {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(XmlUtils.class);
@@ -69,35 +74,58 @@ public class XmlUtils {
 		}
 	}
 
-	public static ImmutableList<Node> toList(NodeList n) {
-		return ImmutableList.copyOf(new NodeListWrapper(n));
+	/**
+	 * Returns a copy of the given list of nodes, using a proper generic collection.
+	 */
+	public static ImmutableList<Node> toList(NodeList nodes) {
+		return ImmutableList.copyOf(new NodeListWrapper(nodes));
 	}
 
-	public static ImmutableList<Element> toElements(NodeList n) {
-		return ImmutableList.copyOf(new NodeListToElementsWrapper(n));
+	/**
+	 * Returns a copy of the given list of nodes as a list of elements, using a
+	 * proper generic collection.
+	 *
+	 * @throws ClassCastException if some node in the provided list cannot be cast
+	 *                            to an element.
+	 */
+	public static ImmutableList<Element> toElements(NodeList nodes) throws ClassCastException {
+		return ImmutableList.copyOf(new NodeListToElementsWrapper(nodes));
 	}
 
-	public static void logContent(NodeList childNodes) {
-		for (Node node : toList(childNodes)) {
-			LOGGER.info("Node type {}, Local {}, NS {}, Value {}, Name {}.", node.getNodeType(), node.getLocalName(),
-					node.getNamespaceURI(), node.getNodeValue(), node.getNodeName());
+	/**
+	 * Returns the node type, its local name, its namespace, its value, and its
+	 * name.
+	 */
+	public static String toDebugString(Node node) {
+		return String.format("Node type %s, Local %s, NS %s, Value %s, Name %s.", node.getNodeType(),
+				node.getLocalName(), node.getNamespaceURI(), node.getNodeValue(), node.getNodeName());
+	}
+
+	/**
+	 * Returns a pretty-printed textual representation of the node.
+	 */
+	public static String toString(Node node) {
+//		final DOMImplementationLS impl = (DOMImplementationLS) node.getOwnerDocument().getImplementation()
+//				.getFeature("LS", "3.0");
+		final DOMImplementationRegistry registry;
+		try {
+			registry = DOMImplementationRegistry.newInstance();
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | ClassCastException e) {
+			throw new IllegalStateException(e);
 		}
-	}
-
-	public static String toString(Document document) {
-		final DOMImplementationLS impl = (DOMImplementationLS) document.getImplementation().getFeature("LS", "3.0");
+		final DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("LS");
 		final LSSerializer ser = impl.createLSSerializer();
-		/**
-		 * But see
-		 * <a href="https://bugs.openjdk.java.net/browse/JDK-7150637">7150637</a> and
-		 * <a href="https://bugs.openjdk.java.net/browse/JDK-8054115">8054115</a>:
-		 * LSSerializer remove a '\n' following the xml declaration
-		 */
 		ser.getDomConfig().setParameter("format-pretty-print", true);
 		final StringWriter writer = new StringWriter();
 		final LSOutput output = impl.createLSOutput();
 		output.setCharacterStream(writer);
-		ser.write(document, output);
+		ser.write(node, output);
+		/**
+		 * See <a href="https://bugs.openjdk.java.net/browse/JDK-7150637">7150637</a>
+		 * and <a href="https://bugs.openjdk.java.net/browse/JDK-8054115">8054115 -
+		 * LSSerializer remove a '\n' following the xml declaration</a>. I tried to file
+		 * a bug about this as well in July 2020.
+		 */
 		return writer.toString();
 	}
 

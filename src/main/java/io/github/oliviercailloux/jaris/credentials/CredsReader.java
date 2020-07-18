@@ -17,39 +17,45 @@ import org.slf4j.LoggerFactory;
 
 /**
  * <p>
- * Immutable.
+ * This class permits to read a user’s credentials (authentication information),
+ * meaning, a username and a password, from various sources.
  * </p>
  * <p>
- * Allows to read the credentials: username and password. For each of these two
- * pieces of information, distinguishes <em>missing information</em> and
- * <em>empty string</em>. Considers the following possible sources (displayed
- * here by order of priority).
+ * Instances of this class will read from the following three sources of
+ * information, and return the credentials from the first <em>valid</em> source
+ * it found (following the order of priority displayed here). A source is valid
+ * iff it provides the two pieces of information required: username and
+ * password. Be aware that a piece of information may be provided and empty.
  * </p>
  * <ol>
- * <li>Properties usernameKey (default value {@value #DEFAULT_USERNAME_KEY}) and
- * passwordKey (default value {@value #DEFAULT_PASSWORD_KEY}). Each property may
- * be set, including to the empty string, or not set. An information is
- * considered missing (from the properties source) iff the corresponding
- * property is not set.</li>
- * <li>Environment variables usernameKey and passwordKey (same default values).
- * Each variable may be set, including to the empty string, or not set. An
- * information is considered missing (from the environment variables source) iff
- * the corresponding environment variable is not set.</li>
- * <li>File filePath. The two pieces of information are considered missing (from
- * the files source) iff the file does not exist. If the file exists, no piece
- * of information is considered missing. The first line of the file gives the
- * username, the second one gives the password. If the file has only one line,
- * the password (from the files source) is set to the empty string. If the file
- * is empty, both pieces of information (from the files source) are set to the
- * empty string. Empty lines are not considered at all. If the file has non
- * empty line content after the second line, it is an error.</li>
+ * <li>System properties <code>usernameKey</code> and <code>passwordKey</code>.
+ * Each property may be set, including to the empty string, or not set. This
+ * source is valid iff both properties are set.</li>
+ * <li>Environment variables <code>usernameKey</code> and
+ * <code>passwordKey</code>. Each variable may be set, including to the empty
+ * string, or not set. This source is valid iff both environment variables are
+ * set.</li>
+ * <li>File <code>filePath</code>. This source is valid iff the file exists. The
+ * first line of the file gives the username, the second one gives the password.
+ * If the file has only one line, the password is considered to be the empty
+ * string. If the file is empty, the username and the password are both
+ * considered to be the empty string. Empty lines are not considered at all. If
+ * the file has non empty line content after the second line, it is an error.
+ * Both classical end of line marks (<code>\r</code> and <code>\r\n</code>) are
+ * considered as end of lines, and the file is considered as encoded in
+ * UTF-8.</li>
  * </ol>
  * <p>
- * Best login information: The source used to return information is the one that
- * has the highest number of pieces of information present (meaning, not
- * missing, thus an empty string counts as a piece of information that is
- * present), and, in case of ex-æquo, the order of priority displayed in the
- * previous paragraph determines which source wins.
+ * This class also permits to configure the sources that it attempts to read
+ * from, at instance creation time (using the factory methods). If not provided,
+ * the default value for <code>usernameKey</code> is
+ * {@value #DEFAULT_USERNAME_KEY}; the default value for
+ * <code>passwordKey</code> is {@value #DEFAULT_PASSWORD_KEY} (both for system
+ * properties and environment); and the default value for <code>filePath</code>
+ * is <code>"API_login.txt"</code> in the current directory.
+ * </p>
+ * <p>
+ * Instances of this class are immutable.
  * </p>
  */
 public class CredsReader {
@@ -69,10 +75,9 @@ public class CredsReader {
 	public static final String DEFAULT_PASSWORD_KEY = "API_password";
 
 	/**
-	 * The default value of the file path used in
-	 * <code>CredsReader.defaultCreds()</code>.
+	 * The default value of the file path.
 	 */
-	public static final Path DEFAULT_FILE_NAME = Path.of("API_login.txt");
+	public static final Path DEFAULT_FILE_PATH = Path.of("API_login.txt");
 
 	private final String usernameKey;
 
@@ -83,10 +88,16 @@ public class CredsReader {
 	Map<String, String> env = System.getenv();
 
 	/**
-	 * @param usernameKey the username key.
-	 * @param passwordKey the password key.
-	 * @param filePath    the file path.
-	 * @return a CredsReader instance that will read from the given parameters.
+	 * Returns an instance that will read from the sources configured with the given
+	 * parameters.
+	 *
+	 * @param usernameKey the username key to use for reading from system properties
+	 *                    and the environment.
+	 * @param passwordKey the password key to use for reading from system properties
+	 *                    and the environment.
+	 * @param filePath    the file path to use for reading from the file.
+	 * @return a configured instance.
+	 * @see #defaultCreds()
 	 */
 	public static CredsReader given(String usernameKey, String passwordKey, Path filePath) {
 		CredsReader credsReader = new CredsReader(usernameKey, passwordKey, filePath);
@@ -94,11 +105,15 @@ public class CredsReader {
 	}
 
 	/**
-	 * @return a CredsReader instance that will read from the default values
-	 *         DEFAULT_USERNAME_KEY, DEFAULT_PASSWORD_KEY, DEFAULT_FILE_NAME.
+	 * Returns an instance that will use the default values
+	 * {@link #DEFAULT_USERNAME_KEY}, {@link #DEFAULT_PASSWORD_KEY},
+	 * {@link #DEFAULT_FILE_PATH}.
+	 *
+	 * @return a default instance.
+	 * @see #given(String, String, Path)
 	 */
 	public static CredsReader defaultCreds() {
-		CredsReader credsReader = new CredsReader(DEFAULT_USERNAME_KEY, DEFAULT_PASSWORD_KEY, DEFAULT_FILE_NAME);
+		CredsReader credsReader = new CredsReader(DEFAULT_USERNAME_KEY, DEFAULT_PASSWORD_KEY, DEFAULT_FILE_PATH);
 		return credsReader;
 	}
 
@@ -108,22 +123,36 @@ public class CredsReader {
 		this.filePath = checkNotNull(filePath);
 	}
 
+	/**
+	 * Returns the username key, used to read from the system properties and the
+	 * environment.
+	 */
 	public String getUsernameKey() {
 		return usernameKey;
 	}
 
+	/**
+	 * Returns the password key, used to read from the system properties and the
+	 * environment.
+	 */
 	public String getPasswordKey() {
 		return passwordKey;
 	}
 
+	/**
+	 * Returns the file path that is read from, considering the file source.
+	 */
 	public Path getFilePath() {
 		return filePath;
 	}
 
 	/**
-	 * @return the best login information found, or an exception.
-	 * @throws IllegalStateException if information is missing from all three
-	 *                               sources.
+	 * Returns the credentials found from the first valid source, unless an
+	 * exception is raised.
+	 *
+	 * @throws IllegalStateException if no valid source is found, or if the file
+	 *                               source has non empty line content after the
+	 *                               second line.
 	 * @throws UncheckedIOException  if an I/O error occurs reading from the file or
 	 *                               a malformed or unmappable byte sequence is read
 	 *                               from the file.
@@ -152,35 +181,33 @@ public class CredsReader {
 
 	/**
 	 * <p>
-	 * Returns the best authentication information it could find, throwing no error
-	 * if some is missing.
+	 * Returns the best credentials it could find, throwing no error if some is
+	 * missing.
 	 * </p>
 	 *
 	 * @throws IllegalStateException if a file source is provided but has non empty
 	 *                               line content after the second line.
-	 * @see CredsReader
-	 * @see CredsOpt
 	 *
 	 */
 	CredsOpt readCredentials() throws IOException, IllegalStateException {
 		final CredsOpt propertyAuthentication;
 		{
-			final String username = System.getProperty(this.usernameKey);
-			final String password = System.getProperty(this.passwordKey);
+			final String username = System.getProperty(usernameKey);
+			final String password = System.getProperty(passwordKey);
 			propertyAuthentication = CredsOpt.given(Optional.ofNullable(username), Optional.ofNullable(password));
 			final int informationalValue = propertyAuthentication.getInformationalValue();
 			LOGGER.info(
-					"Found {} piece" + (informationalValue >= 2 ? "s" : "") + " of login information in properties.",
+					"Found {} piece" + (informationalValue == 2 ? "s" : "") + " of login information in properties.",
 					informationalValue);
 		}
 
 		final CredsOpt envAuthentication;
 		{
-			final String username = env.get(this.usernameKey);
-			final String password = env.get(this.passwordKey);
+			final String username = env.get(usernameKey);
+			final String password = env.get(passwordKey);
 			envAuthentication = CredsOpt.given(Optional.ofNullable(username), Optional.ofNullable(password));
 			final int informationalValue = envAuthentication.getInformationalValue();
-			LOGGER.info("Found {} piece" + (informationalValue >= 2 ? "s" : "")
+			LOGGER.info("Found {} piece" + (informationalValue == 2 ? "s" : "")
 					+ " of login information in environment variables.", informationalValue);
 		}
 
@@ -214,7 +241,7 @@ public class CredsReader {
 			}
 			fileAuthentication = CredsOpt.given(optUsername, optPassword);
 			final int informationalValue = fileAuthentication.getInformationalValue();
-			LOGGER.info("Found {} piece" + (informationalValue >= 2 ? "s" : "") + " of login information in file.",
+			LOGGER.info("Found {} piece" + (informationalValue == 2 ? "s" : "") + " of login information in file.",
 					informationalValue);
 		}
 
