@@ -55,7 +55,7 @@ void testRunnableDoesNotThrow() {
 
 Note that calling `runnableNotThrowing` normally requires to deal with the (possible) https://docs.oracle.com/en/java/javase/12/docs/api/java.sql/java/sql/SQLException.html[`SQLException`], as it is a checked exception declared by `runnableNotThrowing`. We see that the method `testRunnableDoesNotThrow`, however, does nothing to deal with it, and does not declare it either. This is because the `unchecker` will transform the `SQLException`, if thrown when calling `runnableNotThrowing`, into an unchecked exception, here, an `IllegalStateException`. The transformation is done thanks to the wrapper given as a parameter to the `wrappingWith` factory method.
 
-Use directly `Unchecker.https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/exceptions/Unchecker.html[IO_UNCHECKER]` when desiring to transform https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/io/IOException.html[`IOException`] instances to https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/io/UncheckedIOException.html[`UncheckedIOException`] ones.
+Use directly `Unchecker.link:https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/exceptions/Unchecker.html[IO_UNCHECKER]` when desiring to transform https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/io/IOException.html[`IOException`] instances to https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/io/UncheckedIOException.html[`UncheckedIOException`] ones.
 
 == Xml
 https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/xml/XmlUtils.html[`XmlUtils`] is a simple utility class that eases managing a W3C DOM document.
