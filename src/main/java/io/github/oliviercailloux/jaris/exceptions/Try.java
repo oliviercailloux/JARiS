@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.exceptions;
+package io.github.oliviercailloux.jaris.exceptions;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
