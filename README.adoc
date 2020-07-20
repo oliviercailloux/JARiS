@@ -6,3 +6,58 @@
 image:https://github.com/oliviercailloux/{artifactId}/workflows/Maven%20CI/badge.svg["Maven CI", link="https://github.com/oliviercailloux/{repository}/actions"]
 image:https://maven-badges.herokuapp.com/maven-central/{groupId}/{artifactId}/badge.svg["Artifact on Maven Central", link="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22{groupId}%22%20a%3A%22{artifactId}%22"]
 image:http://www.javadoc.io/badge/{groupId}/{artifactId}.svg["Javadocs", link="http://www.javadoc.io/doc/{groupId}/{artifactId}"]
+
+Various utilities that complement those found in https://guava.dev/[Guava].
+
+This library focuses on code and API quality, not on performance. Open an issue if this creates a problem for some of your use cases.
+
+This project adheres to the https://github.com/classgraph/classgraph/blob/master/Zero-Bugs-Commitment.md[Zero Bugs Commitment].
+
+The following sections list the utilities that this library provides (by package).
+
+== Credentials
+https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/credentials/CredsReader.html[`CredsReader`] and https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/credentials/Credentials.html[`Credentials`] permit to read a set of user’s credentials (meaning a username and a password). This is useful, for example, to access some online API where your application requires some credentials that you do not want to include directly in the source code. They can be read from system properties; from environment variables; or from a file (using https://docs.oracle.com/javase/tutorial/essential/io/fileio.html[NIO.2], so “file” here should be understood in an enlarged sense).
+
+The focus is on ease of use.
+
+Consider the following code.
+
+[source, java]
+----
+CredsReader credsReader = CredsReader.given("my-username-key", "my-password-key", Path.of("my-file.txt"));
+Credentials credentials = credsReader.getCredentials();
+----
+
+Assume the user has set the https://stackoverflow.com/a/7054981[system property] `my-username-key` to the value `ausername` and the system property `my-password-key` to the value `mypassword` (for example, using the `-D` command line argument when starting java): these two values will then be held in the returned `credentials` instance.
+
+Assume these system properties are not set, but the environment variables `my-username-key` and `my-password-key` are set: the values set to these variables will then be held in the returned `credentials` instance.
+
+Assume that neither these system properties nor these environment variables are set, but a file `my-file.txt` exists, containing two lines of text: in this case, the returned `credentials` instance will contain as username the first line of the file, and as password, the second line.
+
+This mechanism is particularly appropriate for developing open source projects, where you do not want the credentials (for example, those used for testing the software) to be committed in the version control system. In such a situation, a classical problem is that such private credentials will also not be directly available from the continuous integration server. To solve this, put the credentials in a file on your own machine, so that they are available while you develop (it is easier and cleaner than configuring environment variables), and store the credentials in environment variables on the continuous integration server (which is usually made easy by the continuous integration web interface). The code above will make your application adapt automatically and find the credentials in both situations. Note that you can also override them manually when starting the application, using system properties, if necessary.
+
+== Exceptions
+Objects to deal with code that declare checked exceptions; or that throw exceptions.
+
+The https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/exceptions/Try.html[`Try`] class permits to call code that you suspect may throw an exception when you’re only interested in storing the result of the call or the exception, rather than desiring that the exception propagates and the control be lost. This is mostly useful when running some code whose correctness you want to test, for example, when grading student’s code. It is a simplified version of, and is heavily inspired by, its Vavr https://www.vavr.io/vavr-docs/[counterpart]. (I https://github.com/oliviercailloux/java-course/blob/master/Libs.adoc[do not use] Vavr personnally because it uses sneaky-throws, but this is only a personal preference.)
+
+For example, having a method in the class `SomeClass` declared as `public static Something getSomething()`, you can use the instruction `Try<Something> t = Try.of(SomeClass::getSomething);`, and `t` will contain either the instance of `Something` that was returned by `getSomething`, or the exception it threw, if it threw an exception.
+
+The https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/exceptions/Unchecker.html[`Unchecker`] class permits to reduce some annoyances coming with code that throws checked exceptions, in particular, when trying to use it as lambda exceptions. See the following example, where the method `runnableNotThrowing` is declared as follows: `void runnableNotThrowing() throws SQLException`.
+
+[source, java]
+----
+void testRunnableDoesNotThrow() {
+	Unchecker<SQLException, IllegalStateException> unchecker = Unchecker.wrappingWith(IllegalStateException::new);
+	unchecker.call(this::runnableNotThrowing);
+}
+----
+
+Note that calling `runnableNotThrowing` normally requires to deal with the (possible) https://docs.oracle.com/en/java/javase/12/docs/api/java.sql/java/sql/SQLException.html[`SQLException`], as it is declared by the method and is a checked exception. We see that the method `testRunnableDoesNotThrow`, however, does nothing to deal with it, and does not declare it either. This is because the `unchecker` will transform the `SQLException`, if thrown when calling `runnableNotThrowing`, into an unchecked exception, here, an `IllegalStateException`. The transformation is done thanks to the wrapper given as a parameter to the `wrappingWith` factory method.
+
+Use directly `Unchecker.https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/exceptions/Unchecker.html#IO_UNCHECKER[IO_UNCHECKER]` when desiring to transform https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/io/IOException.html[`IOException`] instances to https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/io/UncheckedIOException.html[`UncheckedIOException`] ones.
+
+== Xml
+https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/xml/XmlUtils.html[`XmlUtils`] is a simple utility class that eases managing a W3C DOM document.
+
+I like to use Java’s W3C library for manipulating the DOM because this API is a W3C standard (hence, will be similar in other languages and is well-designed); and it is included in the JRE. That said, it is now quite old, as illustrates the need for a method in `XmlUtils` to deal with a list of nodes as a real, generic Java `List` rather than the more cumbersome `NodeList` provided by the standard. So if you have much to do with Xml or Html documents, you’d probably https://github.com/oliviercailloux/java-course/blob/master/Libs.adoc[better use a dedicated library].
