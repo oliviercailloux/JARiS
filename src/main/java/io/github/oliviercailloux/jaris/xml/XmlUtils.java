@@ -1,5 +1,7 @@
 package io.github.oliviercailloux.jaris.xml;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.StringWriter;
 import java.util.AbstractList;
 import java.util.RandomAccess;
@@ -26,8 +28,9 @@ import org.w3c.dom.ls.LSSerializer;
 import com.google.common.collect.ImmutableList;
 
 /**
- * @author olivier
- *
+ * A few helper methods to deal with XML, especially using the <a href=
+ * "https://github.com/oliviercailloux/java-course/blob/master/DOM.adoc">Document
+ * Object Model</a>.
  */
 public class XmlUtils {
 	@SuppressWarnings("unused")
@@ -105,8 +108,7 @@ public class XmlUtils {
 	 * Returns a pretty-printed textual representation of the node.
 	 */
 	public static String toString(Node node) {
-//		final DOMImplementationLS impl = (DOMImplementationLS) node.getOwnerDocument().getImplementation()
-//				.getFeature("LS", "3.0");
+		checkNotNull(node);
 		final DOMImplementationRegistry registry;
 		try {
 			registry = DOMImplementationRegistry.newInstance();
@@ -129,7 +131,7 @@ public class XmlUtils {
 		return writer.toString();
 	}
 
-	static String toStringTransformer(Document document) {
+	static String toStringUsingTransformer(Document document) {
 		final StringWriter writer = new StringWriter();
 
 		TransformerFactory tf = TransformerFactory.newDefaultInstance();

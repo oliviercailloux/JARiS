@@ -14,12 +14,12 @@ import com.google.common.base.VerifyException;
 /**
  * <p>
  * An object able to transform functional interfaces that throw checked
- * exceptions to functional interfaces that throw only runtime exceptions; and
- * able to invoke function interfaces that throw checked exceptions.
+ * exceptions into functional interfaces that throw only runtime exceptions; and
+ * able to invoke functional interfaces that throw checked exceptions.
  * </p>
  * <p>
  * Instances of this class hold a function that transforms any checked exception
- * to unchecked exceptions.
+ * to an unchecked exception.
  * </p>
  * <p>
  * Instances of this class are immutable.
