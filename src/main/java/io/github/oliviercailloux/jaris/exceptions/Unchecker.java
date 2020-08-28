@@ -29,9 +29,12 @@ import com.google.common.base.VerifyException;
  * <a href="https://github.com/diffplug/durian">durian</a> library.
  * </p>
  *
- * @param <EF> the checked exception type that this object will accept
- * @param <ET> the type of unchecked exception that this object will throw in
- *             place of the checked exception
+ * @param <EF> the type of checked exception that this object accepts (EF stands
+ *             for Exception-From); <i>must</i> be a checked exception type (may
+ *             not extend {@link RuntimeException}), otherwise the wrapper will
+ *             never be used (and hence such an object has no use)
+ * @param <ET> the type of unchecked exception that this object throws in place
+ *             of the checked exception (ET stands for Exception-To)
  */
 public class Unchecker<EF extends Exception, ET extends RuntimeException> {
 	/**
