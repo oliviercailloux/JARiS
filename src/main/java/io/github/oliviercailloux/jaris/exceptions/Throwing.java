@@ -21,9 +21,9 @@ package io.github.oliviercailloux.jaris.exceptions;
  * subclass of Throwable.
  * </p>
  * <p>
- * Copied from
- * https://github.com/diffplug/durian/blob/99100976d27a5ebec74a0a7df48fc23de822fa00/src/com/diffplug/common/base/Throwing.java
- * and simplified.
+ * Copied from the <a href=
+ * "https://github.com/diffplug/durian/blob/99100976d27a5ebec74a0a7df48fc23de822fa00/src/com/diffplug/common/base/Throwing.java">durian</a>
+ * library and simplified.
  * </p>
  */
 public interface Throwing {

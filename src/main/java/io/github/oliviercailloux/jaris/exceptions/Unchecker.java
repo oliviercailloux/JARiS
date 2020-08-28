@@ -24,6 +24,10 @@ import com.google.common.base.VerifyException;
  * <p>
  * Instances of this class are immutable.
  * </p>
+ * <p>
+ * Heavily inspired by the
+ * <a href="https://github.com/diffplug/durian">durian</a> library.
+ * </p>
  *
  * @param <EF> the checked exception type that this object will accept
  * @param <ET> the type of unchecked exception that this object will throw in
