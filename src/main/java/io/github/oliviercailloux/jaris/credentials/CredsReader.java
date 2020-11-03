@@ -64,15 +64,21 @@ public class CredsReader {
 
 	/**
 	 * The default value of the username key used in
-	 * <code>CredsReader.defaultCreds()</code>.
+	 * <code>CredsReader.defaultCreds()</code>. (All uppercase to follow the usual
+	 * <a href=
+	 * "https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html">convention</a>
+	 * when used as an environment variable.)
 	 */
-	public static final String DEFAULT_USERNAME_KEY = "API_username";
+	public static final String DEFAULT_USERNAME_KEY = "API_USERNAME";
 
 	/**
 	 * The default value of the password key used in
-	 * <code>CredsReader.defaultCreds()</code>.
+	 * <code>CredsReader.defaultCreds()</code>. (All uppercase to follow the usual
+	 * <a href=
+	 * "https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html">convention</a>
+	 * when used as an environment variable.)
 	 */
-	public static final String DEFAULT_PASSWORD_KEY = "API_password";
+	public static final String DEFAULT_PASSWORD_KEY = "API_PASSWORD";
 
 	/**
 	 * The default value of the file path.
