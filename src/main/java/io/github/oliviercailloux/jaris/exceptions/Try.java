@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
@@ -42,7 +41,7 @@ public class Try<T> {
 	 *         a failure encapsulating the exception if the supplier throws an
 	 *         exception
 	 */
-	public static <T> Try<T> of(Supplier<T> supplier) {
+	public static <T> Try<T> of(Throwing.Supplier<T, Throwable> supplier) {
 		try {
 			return success(supplier.get());
 		} catch (Throwable t) {
