@@ -203,8 +203,9 @@ public class CredsReader {
 			propertyAuthentication = CredsOpt.given(Optional.ofNullable(username), Optional.ofNullable(password));
 			final int informationalValue = propertyAuthentication.getInformationalValue();
 			LOGGER.info(
-					"Found {} piece" + (informationalValue == 2 ? "s" : "") + " of login information in properties.",
-					informationalValue);
+					"Found {} piece" + (informationalValue == 2 ? "s" : "")
+							+ " of login information in properties {} and {}.",
+					informationalValue, usernameKey, passwordKey);
 		}
 
 		final CredsOpt envAuthentication;
@@ -213,8 +214,10 @@ public class CredsReader {
 			final String password = env.get(passwordKey);
 			envAuthentication = CredsOpt.given(Optional.ofNullable(username), Optional.ofNullable(password));
 			final int informationalValue = envAuthentication.getInformationalValue();
-			LOGGER.info("Found {} piece" + (informationalValue == 2 ? "s" : "")
-					+ " of login information in environment variables.", informationalValue);
+			LOGGER.info(
+					"Found {} piece" + (informationalValue == 2 ? "s" : "")
+							+ " of login information in environment variables {} and {}.",
+					informationalValue, usernameKey, passwordKey);
 		}
 
 		final CredsOpt fileAuthentication;
