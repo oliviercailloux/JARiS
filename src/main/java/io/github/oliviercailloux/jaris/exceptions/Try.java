@@ -115,7 +115,7 @@ public class Try<T> {
 		return result;
 	}
 
-	public T getOrElse(T other) {
+	public T orElse(T other) {
 		checkState(isSuccess());
 		return result != null ? result : other;
 	}
