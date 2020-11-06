@@ -20,7 +20,14 @@ import com.google.common.base.MoreObjects.ToStringHelper;
  * Instances of this class are immutable.
  * </p>
  * <p>
- * Heavily inspired by https://github.com/vavr-io/vavr.
+ * Heavily inspired by <a href="https://github.com/vavr-io/vavr">Vavr</a>. One
+ * notable difference is that this class (and this library) does not sneaky
+ * throw. In particular, {@link #get()} does not throw the original cause if
+ * this object is a failure (compare with the contract of Vavr’s
+ * <code>Try#<a href=
+ * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L629">get()</a></code>
+ * and its <a href=
+ * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L1305">implementation</a>).
  * </p>
  *
  * @param <T> the type of result possibly kept in this object.
@@ -106,6 +113,11 @@ public class Try<T> {
 	public T get() throws IllegalStateException {
 		checkState(isSuccess());
 		return result;
+	}
+
+	public T getOrElse(T other) {
+		checkState(isSuccess());
+		return result != null ? result : other;
 	}
 
 	/**
