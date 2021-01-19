@@ -29,41 +29,53 @@ package io.github.oliviercailloux.jaris.exceptions;
 public interface Throwing {
 	@FunctionalInterface
 	public interface Runnable<E extends Throwable> {
-		void run() throws E;
+		public void run() throws E;
 	}
 
 	@FunctionalInterface
 	public interface Supplier<T, E extends Throwable> {
-		T get() throws E;
+		public T get() throws E;
 	}
 
 	@FunctionalInterface
 	public interface Consumer<T, E extends Throwable> {
-		void accept(T t) throws E;
+		public void accept(T t) throws E;
 	}
 
 	@FunctionalInterface
 	public interface Function<T, R, E extends Throwable> {
-		R apply(T t) throws E;
+		public R apply(T t) throws E;
 	}
 
 	@FunctionalInterface
 	public interface Predicate<T, E extends Throwable> {
-		boolean test(T t) throws E;
+		public boolean test(T t) throws E;
+
+		public default <E2 extends E> Predicate<T, E> and(Predicate<? super T, E2> p2) {
+			return t -> test(t) && p2.test(t);
+		}
+
+		public default <E2 extends E> Predicate<T, E> or(Predicate<? super T, E2> p2) {
+			return t -> test(t) || p2.test(t);
+		}
+
+		public default Predicate<T, E> negate() {
+			return t -> !test(t);
+		}
 	}
 
 	@FunctionalInterface
 	public interface BiConsumer<T, U, E extends Throwable> {
-		void accept(T t, U u) throws E;
+		public void accept(T t, U u) throws E;
 	}
 
 	@FunctionalInterface
 	public interface BiFunction<T, U, R, E extends Throwable> {
-		R apply(T t, U u) throws E;
+		public R apply(T t, U u) throws E;
 	}
 
 	@FunctionalInterface
 	public interface BiPredicate<T, U, E extends Throwable> {
-		boolean accept(T t, U u) throws E;
+		public boolean accept(T t, U u) throws E;
 	}
 }
