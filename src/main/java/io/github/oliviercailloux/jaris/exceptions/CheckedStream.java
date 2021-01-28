@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
-public class ThrowingStream<T, X extends Exception> {
+public class CheckedStream<T, X extends Exception> {
 	@SuppressWarnings("serial")
 	private static class InternalException extends RuntimeException {
 		public InternalException(Exception e) {
@@ -29,28 +29,28 @@ public class ThrowingStream<T, X extends Exception> {
 	private static final Unchecker<Exception, InternalException> UNCHECKER = Unchecker
 			.wrappingWith(InternalException::new);
 
-	public static <E, X extends Exception> ThrowingStream<E, X> wrapping(Stream<E> delegate) {
-		return new ThrowingStream<>(delegate);
+	public static <E, X extends Exception> CheckedStream<E, X> wrapping(Stream<E> delegate) {
+		return new CheckedStream<>(delegate);
 	}
 
 	private final Stream<T> delegate;
 
-	private ThrowingStream(Stream<T> delegate) {
+	private CheckedStream(Stream<T> delegate) {
 		this.delegate = checkNotNull(delegate);
 	}
 
-	public ThrowingStream<T, X> distinct() {
-		return new ThrowingStream<>(delegate.distinct());
+	public CheckedStream<T, X> distinct() {
+		return new CheckedStream<>(delegate.distinct());
 	}
 
-	public ThrowingStream<T, X> dropWhile(Throwing.Predicate<? super T, ? extends X> predicate) {
+	public CheckedStream<T, X> dropWhile(Throwing.Predicate<? super T, ? extends X> predicate) {
 		final Predicate<? super T> wrapped = UNCHECKER.wrapPredicate(predicate);
-		return new ThrowingStream<>(delegate.dropWhile(wrapped));
+		return new CheckedStream<>(delegate.dropWhile(wrapped));
 	}
 
-	public ThrowingStream<T, X> filter(Throwing.Predicate<? super T, ? extends X> predicate) {
+	public CheckedStream<T, X> filter(Throwing.Predicate<? super T, ? extends X> predicate) {
 		final Predicate<? super T> wrapped = UNCHECKER.wrapPredicate(predicate);
-		return new ThrowingStream<>(delegate.filter(wrapped));
+		return new CheckedStream<>(delegate.filter(wrapped));
 	}
 
 	public <R, A> R collect​(Collector<? super T, A, R> collector) throws X {
