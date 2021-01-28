@@ -169,7 +169,7 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
 	 * returned predicate as an unchecked exception, applying the wrapper to
 	 * transform it.
 	 */
-	public <F> Predicate<F> wrapPredicate(Throwing.Predicate<F, EF> predicate) {
+	public <F> Predicate<F> wrapPredicate(Throwing.Predicate<F, ? extends EF> predicate) {
 		return (arg) -> {
 			try {
 				return predicate.test(arg);
