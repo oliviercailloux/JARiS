@@ -48,6 +48,11 @@ public class ThrowingStream<T, X extends Exception> {
 		return new ThrowingStream<>(delegate.dropWhile(wrapped));
 	}
 
+	public ThrowingStream<T, X> filter(Throwing.Predicate<? super T, ? extends X> predicate) {
+		final Predicate<? super T> wrapped = UNCHECKER.wrapPredicate(predicate);
+		return new ThrowingStream<>(delegate.filter(wrapped));
+	}
+
 	public <R, A> R collect​(Collector<? super T, A, R> collector) throws X {
 		try {
 			return delegate.collect(collector);
