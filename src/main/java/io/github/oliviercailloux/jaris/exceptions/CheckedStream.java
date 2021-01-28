@@ -6,6 +6,14 @@ import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
+/**
+ *
+ * Heavily inspired by <a href=
+ * "https://github.com/JeffreyFalgout/ThrowingStream/">ThrowingStream</a>.
+ *
+ * @param <T>
+ * @param <X>
+ */
 public class CheckedStream<T, X extends Exception> {
 	@SuppressWarnings("serial")
 	private static class InternalException extends RuntimeException {
