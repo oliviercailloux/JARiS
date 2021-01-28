@@ -15,21 +15,21 @@ public class UncheckerTests {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(UncheckerTests.class);
 
-	private void runnableThrowing() throws SQLException {
+	private static void runnableThrowing() throws SQLException {
 		throw new SQLException();
 	}
 
 	@SuppressWarnings("unused")
-	private void runnableNotThrowing() throws SQLException {
+	private static void runnableNotThrowing() throws SQLException {
 		/** Do nothing. */
 	}
 
-	private int supplierThrowing() throws SQLException {
+	private static int supplierThrowing() throws SQLException {
 		throw new SQLException();
 	}
 
 	@SuppressWarnings("unused")
-	private int supplierNotThrowing() throws SQLException {
+	private static int supplierNotThrowing() throws SQLException {
 		return 4;
 	}
 
@@ -38,7 +38,7 @@ public class UncheckerTests {
 		final Unchecker<SQLException, IllegalStateException> unchecker = Unchecker
 				.wrappingWith(IllegalStateException::new);
 		final IllegalStateException e = assertThrows(IllegalStateException.class,
-				() -> unchecker.call(this::runnableThrowing));
+				() -> unchecker.call(UncheckerTests::runnableThrowing));
 		assertTrue(e.getCause() instanceof SQLException);
 	}
 
@@ -46,21 +46,21 @@ public class UncheckerTests {
 	void testRunnableDoesNotThrow() {
 		final Unchecker<SQLException, IllegalStateException> unchecker = Unchecker
 				.wrappingWith(IllegalStateException::new);
-		unchecker.call(this::runnableNotThrowing);
+		unchecker.call(UncheckerTests::runnableNotThrowing);
 	}
 
 	@Test
 	void testSupplierDoesNotThrow() {
 		final Unchecker<SQLException, IllegalStateException> unchecker = Unchecker
 				.wrappingWith(IllegalStateException::new);
-		assertEquals(4, unchecker.getUsing(this::supplierNotThrowing));
+		assertEquals(4, unchecker.getUsing(UncheckerTests::supplierNotThrowing));
 	}
 
 	@Test
 	void testToSupplier() {
 		final Unchecker<SQLException, IllegalStateException> unchecker = Unchecker
 				.wrappingWith(IllegalStateException::new);
-		final Supplier<Integer> uncheckedSupplier = unchecker.wrapSupplier(this::supplierThrowing);
+		final Supplier<Integer> uncheckedSupplier = unchecker.wrapSupplier(UncheckerTests::supplierThrowing);
 		assertThrows(IllegalStateException.class, uncheckedSupplier::get);
 	}
 }
