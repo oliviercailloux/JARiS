@@ -2,7 +2,13 @@ package io.github.oliviercailloux.jaris.exceptions;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -61,7 +67,38 @@ public class CheckedStream<T, X extends Exception> {
 		return new CheckedStream<>(delegate.filter(wrapped));
 	}
 
-	public <R, A> R collect​(Collector<? super T, A, R> collector) throws X {
+	public <R> CheckedStream<R, X> flatMap(
+			Throwing.Function<? super T, ? extends Stream<? extends R>, ? extends X> mapper) {
+		final Function<? super T, ? extends Stream<? extends R>> wrapped = UNCHECKER.wrapFunction(mapper);
+		return new CheckedStream<>(delegate.flatMap(wrapped));
+	}
+
+	public CheckedStream<T, X> limit(long maxSize) {
+		return new CheckedStream<>(delegate.limit(maxSize));
+	}
+
+	public <R> CheckedStream<R, X> map(Throwing.Function<? super T, ? extends R, ? extends X> mapper) {
+		final Function<? super T, ? extends R> wrapped = UNCHECKER.wrapFunction(mapper);
+		return new CheckedStream<>(delegate.map(wrapped));
+	}
+
+	public <R> R collect(Throwing.Supplier<R, ? extends X> supplier,
+			Throwing.BiConsumer<R, ? super T, ? extends X> accumulator, Throwing.BiConsumer<R, R, ? extends X> combiner)
+			throws X {
+		final Supplier<R> wrappedSupplier = UNCHECKER.wrapSupplier(supplier);
+		final BiConsumer<R, ? super T> wrappedAccumulator = UNCHECKER.wrapBiConsumer(accumulator);
+		final BiConsumer<R, R> wrappedCombiner = UNCHECKER.wrapBiConsumer(combiner);
+		try {
+			return delegate.collect(wrappedSupplier, wrappedAccumulator, wrappedCombiner);
+		} catch (InternalException e) {
+			final Exception cause = e.getCause();
+			@SuppressWarnings("unchecked")
+			final X castedCause = (X) cause;
+			throw castedCause;
+		}
+	}
+
+	public <R, A> R collect(Collector<? super T, A, R> collector) throws X {
 		try {
 			return delegate.collect(collector);
 		} catch (InternalException e) {
@@ -94,6 +131,86 @@ public class CheckedStream<T, X extends Exception> {
 		final Predicate<? super T> wrapped = UNCHECKER.wrapPredicate(predicate);
 		try {
 			return delegate.anyMatch(wrapped);
+		} catch (InternalException e) {
+			final Exception cause = e.getCause();
+			@SuppressWarnings("unchecked")
+			final X castedCause = (X) cause;
+			throw castedCause;
+		}
+	}
+
+	public long count() throws X {
+		try {
+			return delegate.count();
+		} catch (InternalException e) {
+			final Exception cause = e.getCause();
+			@SuppressWarnings("unchecked")
+			final X castedCause = (X) cause;
+			throw castedCause;
+		}
+	}
+
+	public Optional<T> findAny() throws X {
+		try {
+			return delegate.findAny();
+		} catch (InternalException e) {
+			final Exception cause = e.getCause();
+			@SuppressWarnings("unchecked")
+			final X castedCause = (X) cause;
+			throw castedCause;
+		}
+	}
+
+	public Optional<T> findFirst() throws X {
+		try {
+			return delegate.findFirst();
+		} catch (InternalException e) {
+			final Exception cause = e.getCause();
+			@SuppressWarnings("unchecked")
+			final X castedCause = (X) cause;
+			throw castedCause;
+		}
+	}
+
+	public void forEach(Throwing.Consumer<? super T, ? extends X> action) throws X {
+		final Consumer<? super T> wrapped = UNCHECKER.wrapConsumer(action);
+		try {
+			delegate.forEach(wrapped);
+		} catch (InternalException e) {
+			final Exception cause = e.getCause();
+			@SuppressWarnings("unchecked")
+			final X castedCause = (X) cause;
+			throw castedCause;
+		}
+	}
+
+	public void forEachOrdered(Throwing.Consumer<? super T, ? extends X> action) throws X {
+		final Consumer<? super T> wrapped = UNCHECKER.wrapConsumer(action);
+		try {
+			delegate.forEachOrdered(wrapped);
+		} catch (InternalException e) {
+			final Exception cause = e.getCause();
+			@SuppressWarnings("unchecked")
+			final X castedCause = (X) cause;
+			throw castedCause;
+		}
+	}
+
+	public Optional<T> max(Throwing.Comparator<? super T, ? extends X> comparator) throws X {
+		final Comparator<? super T> wrapped = UNCHECKER.wrapComparator(comparator);
+		try {
+			return delegate.max(wrapped);
+		} catch (InternalException e) {
+			final Exception cause = e.getCause();
+			@SuppressWarnings("unchecked")
+			final X castedCause = (X) cause;
+			throw castedCause;
+		}
+	}
+
+	public Optional<T> min(Comparator<? super T> comparator) throws X {
+		try {
+			return delegate.min(comparator);
 		} catch (InternalException e) {
 			final Exception cause = e.getCause();
 			@SuppressWarnings("unchecked")

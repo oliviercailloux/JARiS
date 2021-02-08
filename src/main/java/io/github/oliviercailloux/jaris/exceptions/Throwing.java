@@ -37,6 +37,14 @@ public interface Throwing {
 		public T get() throws E;
 	}
 
+	/**
+	 * TODO add default methods.
+	 */
+	@FunctionalInterface
+	public interface Comparator<T, E extends Throwable> {
+		public int compare(T o1, T o2) throws E;
+	}
+
 	@FunctionalInterface
 	public interface Consumer<T, E extends Throwable> {
 		public void accept(T t) throws E;
