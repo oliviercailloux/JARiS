@@ -213,12 +213,6 @@
 			<message key="name.invalidPattern"
 				value="Pattern variable name ''{0}'' must match pattern ''{1}''." />
 		</module>
-		<module name="ClassTypeParameterName">
-			<property name="format"
-				value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)" />
-			<message key="name.invalidPattern"
-				value="Class type name ''{0}'' must match pattern ''{1}''." />
-		</module>
 		<module name="RecordComponentName">
 			<property name="format"
 				value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$" />
@@ -230,12 +224,6 @@
 				value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)" />
 			<message key="name.invalidPattern"
 				value="Record type name ''{0}'' must match pattern ''{1}''." />
-		</module>
-		<module name="MethodTypeParameterName">
-			<property name="format"
-				value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)" />
-			<message key="name.invalidPattern"
-				value="Method type name ''{0}'' must match pattern ''{1}''." />
 		</module>
 		<module name="InterfaceTypeParameterName">
 			<property name="format"
@@ -318,14 +306,19 @@
 			<property name="allowSamelineMultipleAnnotations"
 				value="true" />
 		</module>
-		<module name="NonEmptyAtclauseDescription" />
+		<module name="NonEmptyAtclauseDescription">
+			<property name="severity" value="warning" />
+		</module>
 		<module name="InvalidJavadocPosition" />
+
 		<module name="JavadocTagContinuationIndentation" />
 		<module name="SummaryJavadoc">
 			<property name="forbiddenSummaryFragments"
 				value="^@return the *|^This method returns |^A [{]@code [a-zA-Z0-9]+[}]( is a )" />
 		</module>
-		<module name="JavadocParagraph" />
+		<module name="JavadocParagraph">
+			<property name="severity" value="warning" />
+		</module>
 		<module name="RequireEmptyLineBeforeBlockTagGroup" />
 		<module name="AtclauseOrder">
 			<property name="tagOrder"
@@ -348,6 +341,7 @@
 			<property name="tokens"
 				value="METHOD_DEF, CTOR_DEF, ANNOTATION_FIELD_DEF,
                                    COMPACT_CTOR_DEF" />
+			<property name="severity" value="warning" />
 		</module>
 		<module name="MissingJavadocType">
 			<property name="scope" value="protected" />

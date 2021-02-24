@@ -27,7 +27,7 @@
 					</dependency>
 				</dependencies>
 				<configuration>
-					<configLocation>dev_google_style.xml</configLocation>
+					<configLocation>relaxed_google_style.xml</configLocation>
 				</configuration>
 				<executions>
 					<execution>
