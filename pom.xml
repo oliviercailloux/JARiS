@@ -28,6 +28,7 @@
 				</dependencies>
 				<configuration>
 					<configLocation>relaxed_google_style.xml</configLocation>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
 				</configuration>
 				<executions>
 					<execution>
