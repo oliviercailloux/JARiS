@@ -28,7 +28,7 @@ public class XmlUtilsTests {
 		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		final DocumentBuilder builder = factory.newDocumentBuilder();
 		document = builder.newDocument();
-	
+
 		html = document.createElementNS(XmlUtils.XHTML_NAME_SPACE, "html");
 		html.setAttribute("lang", "en");
 		document.appendChild(html);
