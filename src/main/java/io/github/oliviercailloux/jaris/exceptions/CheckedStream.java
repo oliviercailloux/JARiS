@@ -139,6 +139,18 @@ public class CheckedStream<T, X extends Exception> {
     }
   }
 
+  public CheckedStream<T, X> peek(Throwing.Consumer<? super T, ? extends X> action) throws X {
+    final Consumer<? super T> wrapped = UNCHECKER.wrapConsumer(action);
+    try {
+      return new CheckedStream<>(delegate.peek(wrapped));
+    } catch (InternalException e) {
+      final Exception cause = e.getCause();
+      @SuppressWarnings("unchecked")
+      final X castedCause = (X) cause;
+      throw castedCause;
+    }
+  }
+
   public long count() throws X {
     try {
       return delegate.count();
