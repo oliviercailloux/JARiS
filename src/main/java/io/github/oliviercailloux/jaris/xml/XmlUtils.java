@@ -122,7 +122,11 @@ public class XmlUtils {
     /*
      * See <a href="https://bugs.openjdk.java.net/browse/JDK-7150637">7150637</a> and <a
      * href="https://bugs.openjdk.java.net/browse/JDK-8054115">8054115 - LSSerializer remove a '\n'
-     * following the xml declaration</a>. I tried to file a bug about this as well in July 2020.
+     * following the xml declaration</a>. I filed bug
+     * https://bugs.openjdk.java.net/browse/JDK-8249867 in July 2020.
+     *
+     * I got an email on the 10th of March, 2021 about JDK-8249867/Incident Report 9153520, stating
+     * that the incident has been fixed at https://jdk.java.net/17/. I have not checked.
      */
     return writer.toString();
   }
