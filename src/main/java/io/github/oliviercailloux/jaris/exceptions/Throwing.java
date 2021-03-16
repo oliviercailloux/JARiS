@@ -26,62 +26,62 @@ package io.github.oliviercailloux.jaris.exceptions;
  */
 public interface Throwing {
   @FunctionalInterface
-  public interface Runnable<E extends Throwable> {
-    public void run() throws E;
+  public interface Runnable<X extends Throwable> {
+    public void run() throws X;
   }
 
   @FunctionalInterface
-  public interface Supplier<T, E extends Throwable> {
-    public T get() throws E;
+  public interface Supplier<T, X extends Throwable> {
+    public T get() throws X;
   }
 
   /**
    * TODO add default methods.
    */
   @FunctionalInterface
-  public interface Comparator<T, E extends Throwable> {
-    public int compare(T o1, T o2) throws E;
+  public interface Comparator<T, X extends Throwable> {
+    public int compare(T o1, T o2) throws X;
   }
 
   @FunctionalInterface
-  public interface Consumer<T, E extends Throwable> {
-    public void accept(T t) throws E;
+  public interface Consumer<T, X extends Throwable> {
+    public void accept(T t) throws X;
   }
 
   @FunctionalInterface
-  public interface Function<T, R, E extends Throwable> {
-    public R apply(T t) throws E;
+  public interface Function<T, R, X extends Throwable> {
+    public R apply(T t) throws X;
   }
 
   @FunctionalInterface
-  public interface Predicate<T, E extends Throwable> {
-    public boolean test(T t) throws E;
+  public interface Predicate<T, X extends Throwable> {
+    public boolean test(T t) throws X;
 
-    public default <E2 extends E> Predicate<T, E> and(Predicate<? super T, E2> p2) {
+    public default <E2 extends X> Predicate<T, X> and(Predicate<? super T, E2> p2) {
       return t -> test(t) && p2.test(t);
     }
 
-    public default <E2 extends E> Predicate<T, E> or(Predicate<? super T, E2> p2) {
+    public default <E2 extends X> Predicate<T, X> or(Predicate<? super T, E2> p2) {
       return t -> test(t) || p2.test(t);
     }
 
-    public default Predicate<T, E> negate() {
+    public default Predicate<T, X> negate() {
       return t -> !test(t);
     }
   }
 
   @FunctionalInterface
-  public interface BiConsumer<T, U, E extends Throwable> {
-    public void accept(T t, U u) throws E;
+  public interface BiConsumer<T, U, X extends Throwable> {
+    public void accept(T t, U u) throws X;
   }
 
   @FunctionalInterface
-  public interface BiFunction<T, U, R, E extends Throwable> {
-    public R apply(T t, U u) throws E;
+  public interface BiFunction<T, U, R, X extends Throwable> {
+    public R apply(T t, U u) throws X;
   }
 
   @FunctionalInterface
-  public interface BiPredicate<T, U, E extends Throwable> {
-    public boolean accept(T t, U u) throws E;
+  public interface BiPredicate<T, U, X extends Throwable> {
+    public boolean accept(T t, U u) throws X;
   }
 }
