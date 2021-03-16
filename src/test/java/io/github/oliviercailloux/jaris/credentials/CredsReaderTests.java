@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 class CredsReaderTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(CredsReaderTests.class);
+
   private FileSystem jimfs;
 
   @BeforeEach
