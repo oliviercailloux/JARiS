@@ -27,7 +27,7 @@
 					</dependency>
 				</dependencies>
 				<configuration>
-					<configLocation>relaxed_google_style.xml</configLocation>
+					<configLocation>Relaxed google checks.xml</configLocation>
 					<includeTestSourceDirectory>true</includeTestSourceDirectory>
 				</configuration>
 				<executions>
