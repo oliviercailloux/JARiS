@@ -30,14 +30,13 @@ import java.util.function.Supplier;
  * Heavily inspired by the <a href="https://github.com/diffplug/durian">durian</a> library.
  * </p>
  *
- * @param <EF> the type of checked exception that this object accepts (EF stands for
- *        Exception-From); <i>must</i> be a checked exception type (may not extend
- *        {@link RuntimeException}), otherwise the wrapper will never be used (and hence such an
- *        object has no use)
- * @param <ET> the type of unchecked exception that this object throws in place of the checked
- *        exception (ET stands for Exception-To)
+ * @param <X> the type of checked exception that this object accepts; <i>must</i> be a checked
+ *        exception type (may not extend {@link RuntimeException}), otherwise the wrapper will never
+ *        be used (and hence such an object has no use)
+ * @param <Y> the type of unchecked exception that this object throws in place of the checked
+ *        exception
  */
-public class Unchecker<EF extends Exception, ET extends RuntimeException> {
+public class Unchecker<X extends Exception, Y extends RuntimeException> {
   /**
    * An object that accepts functional interfaces that throw {@link IOException} instances; and that
    * will throw {@link UncheckedIOException} instances instead.
@@ -56,14 +55,14 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
    * Returns an object that will use the given wrapper function to transform checked exceptions to
    * unchecked ones, if any checked exception happens.
    */
-  public static <EF extends Exception, ET extends RuntimeException> Unchecker<EF, ET> wrappingWith(
-      Function<EF, ET> wrapper) {
+  public static <X extends Exception, Y extends RuntimeException> Unchecker<X, Y> wrappingWith(
+      Function<X, Y> wrapper) {
     return new Unchecker<>(wrapper);
   }
 
-  private final Function<EF, ET> wrapper;
+  private final Function<X, Y> wrapper;
 
-  private Unchecker(Function<EF, ET> wrapper) {
+  private Unchecker(Function<X, Y> wrapper) {
     this.wrapper = checkNotNull(wrapper);
   }
 
@@ -72,14 +71,14 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
    * instead, applying the wrapper; if the runnable throws an unchecked exception, the exception is
    * thrown unchanged.
    */
-  public void call(Throwing.Runnable<EF> runnable) {
+  public void call(Throwing.Runnable<X> runnable) {
     try {
       runnable.run();
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
       @SuppressWarnings("unchecked")
-      final EF ef = (EF) e;
+      final X ef = (X) e;
       throw wrapper.apply(ef);
     }
   }
@@ -89,14 +88,14 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
    * exception, throws an unchecked exception instead, applying the wrapper; if the supplier throws
    * an unchecked exception, the exception is thrown unchanged.
    */
-  public <T> T getUsing(Throwing.Supplier<T, ? extends EF> supplier) {
+  public <T> T getUsing(Throwing.Supplier<T, ? extends X> supplier) {
     try {
       return supplier.get();
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
       @SuppressWarnings("unchecked")
-      final EF ef = (EF) e;
+      final X ef = (X) e;
       throw wrapper.apply(ef);
     }
   }
@@ -106,7 +105,7 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
    * thrown by the given runnable is instead thrown by the returned runnable as an unchecked
    * exception, applying the wrapper to transform it.
    */
-  public Runnable wrapRunnable(Throwing.Runnable<? extends EF> runnable) {
+  public Runnable wrapRunnable(Throwing.Runnable<? extends X> runnable) {
     return () -> {
       try {
         runnable.run();
@@ -114,7 +113,7 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
         throw e;
       } catch (Exception e) {
         @SuppressWarnings("unchecked")
-        final EF ef = (EF) e;
+        final X ef = (X) e;
         throw wrapper.apply(ef);
       }
     };
@@ -125,7 +124,7 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
    * exception thrown by the given supplier is instead thrown by the returned supplier as an
    * unchecked exception, applying the wrapper to transform it.
    */
-  public <T> Supplier<T> wrapSupplier(Throwing.Supplier<T, ? extends EF> supplier) {
+  public <T> Supplier<T> wrapSupplier(Throwing.Supplier<T, ? extends X> supplier) {
     return () -> {
       try {
         return supplier.get();
@@ -133,7 +132,7 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
         throw e;
       } catch (Exception e) {
         @SuppressWarnings("unchecked")
-        final EF ef = (EF) e;
+        final X ef = (X) e;
         throw wrapper.apply(ef);
       }
     };
@@ -144,7 +143,7 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
    * exception thrown by the given comparator is instead thrown by the returned comparator as an
    * unchecked exception, applying the wrapper to transform it.
    */
-  public <T> Comparator<T> wrapComparator(Throwing.Comparator<T, ? extends EF> comparator) {
+  public <T> Comparator<T> wrapComparator(Throwing.Comparator<T, ? extends X> comparator) {
     return (t1, t2) -> {
       try {
         return comparator.compare(t1, t2);
@@ -152,7 +151,7 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
         throw e;
       } catch (Exception e) {
         @SuppressWarnings("unchecked")
-        final EF ef = (EF) e;
+        final X ef = (X) e;
         throw wrapper.apply(ef);
       }
     };
@@ -163,7 +162,7 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
    * exception thrown by the given consumer is instead thrown by the returned consumer as an
    * unchecked exception, applying the wrapper to transform it.
    */
-  public <T> Consumer<T> wrapConsumer(Throwing.Consumer<T, ? extends EF> consumer) {
+  public <T> Consumer<T> wrapConsumer(Throwing.Consumer<T, ? extends X> consumer) {
     return t -> {
       try {
         consumer.accept(t);
@@ -171,7 +170,7 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
         throw e;
       } catch (Exception e) {
         @SuppressWarnings("unchecked")
-        final EF ef = (EF) e;
+        final X ef = (X) e;
         throw wrapper.apply(ef);
       }
     };
@@ -182,7 +181,7 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
    * exception thrown by the given function is instead thrown by the returned function as an
    * unchecked exception, applying the wrapper to transform it.
    */
-  public <F, T> Function<F, T> wrapFunction(Throwing.Function<F, T, ? extends EF> function) {
+  public <F, T> Function<F, T> wrapFunction(Throwing.Function<F, T, ? extends X> function) {
     return arg -> {
       try {
         return function.apply(arg);
@@ -190,7 +189,7 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
         throw e;
       } catch (Exception e) {
         @SuppressWarnings("unchecked")
-        final EF ef = (EF) e;
+        final X ef = (X) e;
         throw wrapper.apply(ef);
       }
     };
@@ -201,7 +200,7 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
    * exception thrown by the given predicate is instead thrown by the returned predicate as an
    * unchecked exception, applying the wrapper to transform it.
    */
-  public <F> Predicate<F> wrapPredicate(Throwing.Predicate<F, ? extends EF> predicate) {
+  public <F> Predicate<F> wrapPredicate(Throwing.Predicate<F, ? extends X> predicate) {
     return (arg) -> {
       try {
         return predicate.test(arg);
@@ -209,7 +208,7 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
         throw e;
       } catch (Exception e) {
         @SuppressWarnings("unchecked")
-        final EF ef = (EF) e;
+        final X ef = (X) e;
         throw wrapper.apply(ef);
       }
     };
@@ -220,7 +219,7 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
    * exception thrown by the given consumer is instead thrown by the returned consumer as an
    * unchecked exception, applying the wrapper to transform it.
    */
-  public <T, U> BiConsumer<T, U> wrapBiConsumer(Throwing.BiConsumer<T, U, ? extends EF> consumer) {
+  public <T, U> BiConsumer<T, U> wrapBiConsumer(Throwing.BiConsumer<T, U, ? extends X> consumer) {
     return (t, u) -> {
       try {
         consumer.accept(t, u);
@@ -228,7 +227,7 @@ public class Unchecker<EF extends Exception, ET extends RuntimeException> {
         throw e;
       } catch (Exception e) {
         @SuppressWarnings("unchecked")
-        final EF ef = (EF) e;
+        final X ef = (X) e;
         throw wrapper.apply(ef);
       }
     };
