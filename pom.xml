@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>io.github.oliviercailloux</groupId>
 		<artifactId>pom</artifactId>
-		<version>0.0.9-SNAPSHOT</version>
+		<version>0.0.9</version>
 	</parent>
 	<artifactId>jaris</artifactId>
 	<version>0.0.8-SNAPSHOT</version>
@@ -15,7 +15,6 @@
 	<url>https://github.com/oliviercailloux/JARiS</url>
 
 	<properties>
-		<maven.compiler.release>11</maven.compiler.release>
 		<checkstyle.consoleOutput>true</checkstyle.consoleOutput>
 	</properties>
 	
