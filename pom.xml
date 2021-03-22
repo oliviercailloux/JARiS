@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>io.github.oliviercailloux</groupId>
 		<artifactId>pom</artifactId>
-		<version>0.0.8</version>
+		<version>0.0.9-SNAPSHOT</version>
 	</parent>
 	<artifactId>jaris</artifactId>
 	<version>0.0.8-SNAPSHOT</version>
@@ -14,30 +14,15 @@
 	<description>Various utilities that complement those found in Guava.</description>
 	<url>https://github.com/oliviercailloux/JARiS</url>
 
+	<properties>
+		<checkstyle.consoleOutput>true</checkstyle.consoleOutput>
+		<maven.compiler.release>11</maven.compiler.release>
+	</properties>
+	
 	<build>
 		<plugins>
 			<plugin>
 				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>3.1.2</version>
-				<dependencies>
-					<dependency>
-						<groupId>com.puppycrawl.tools</groupId>
-						<artifactId>checkstyle</artifactId>
-						<version>8.40</version>
-					</dependency>
-				</dependencies>
-				<configuration>
-					<configLocation>https://raw.githubusercontent.com/oliviercailloux/Relaxed-google-style/v0.1/Relaxed%20google%20checks.xml</configLocation>
-					<includeTestSourceDirectory>true</includeTestSourceDirectory>
-					<consoleOutput>true</consoleOutput>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>
