@@ -29,6 +29,7 @@
 				<configuration>
 					<configLocation>https://raw.githubusercontent.com/oliviercailloux/Relaxed-google-style/v0.1/Relaxed%20google%20checks.xml</configLocation>
 					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					<consoleOutput>true</consoleOutput>
 				</configuration>
 				<executions>
 					<execution>
