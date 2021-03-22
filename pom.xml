@@ -15,8 +15,8 @@
 	<url>https://github.com/oliviercailloux/JARiS</url>
 
 	<properties>
-		<checkstyle.consoleOutput>true</checkstyle.consoleOutput>
 		<maven.compiler.release>11</maven.compiler.release>
+		<checkstyle.consoleOutput>true</checkstyle.consoleOutput>
 	</properties>
 	
 	<build>
