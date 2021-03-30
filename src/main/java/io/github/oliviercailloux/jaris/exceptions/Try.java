@@ -1,16 +1,20 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
+import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * <p>
- * An instance of this class keeps either a result (in which case it is called a “success”) or a
+ * An instance of this class contains either a result (in which case it is called a “success”) or a
  * cause of type {@link Throwable} (in which case it is called a “failure”).
  * </p>
  * <p>
@@ -24,20 +28,137 @@ import java.util.function.Function;
  * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L629">get()</a></code>
  * and its <a href=
  * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L1305">implementation</a>).
- * </p>
+ * <p>
+ * TODO specific that this library is <code>null</code> hostile
+ * <p>
+ * <ul>
+ * <li>TRun => TryVoid
+ * <li>TSupp => Try
+ * <li>r TCons => r ; r TCons => c' ; c TCons => c. andCons [if success, merge with a TryVoid; oth.
+ * unch.]
+ * <li>r TFct => r' ; r TFct => c' ; c TFct => c. andMap [if success, merge with a Try; oth. unch.]
+ * <li>r TRun => r ; r TRun => c'; c TRun c. andRun [if success, merge with a TryVoid; oth. unch.]
+ * <li>r TSupp => r'; r TSupp => c'; c TSupp c. TryVoid#andGet [if success, merge with a Try; oth.
+ * unch.]
+ * <li>r TSupp r; c TSupp r'; c TSupp c'. orGet [if failure, merge with a Try; oth. unch.]
+ * <li>r TSupp r; c TSupp r'; c TSupp c. orGet+merge exc function keep original exc [if failure,
+ * merge with a Try but keep left; oth. unch.]
+ * </ul>
+ * <p>
+ * Terminal operations (no more a try)
+ * <ul>
+ * <li>r/c (TCons, TCons). consume
+ * <li>r TFct r; c TFct r'; c TFct c'. orMapCause
+ * <li>TryVoid#consumeCause.
+ * </ul>
+ * <p>
+ * Merge
+ * <ul>
+ * TODO
+ * </ul>
+ * <p>
+ * TryVoid
+ * <ul>
+ * <li>andGet => Try
+ * <li>andRun => TryVoid
+ * <li>orRun => TryVoid [+ merge exc function?]
+ * </ul>
+ * <p>
+ * Optional
+ * <ul>
+ * <li>filter
+ * <li>flatMap
+ * <li>ifPresent
+ * <li>ifPresentOrElse
+ * <li>map
+ * <li>or(supp<opt>)
+ * <li>orElse(T)
+ * <li>orElseGet(supp)
+ * <li>orElseThrow
+ * <li>stream
+ * </ul>
+ * <h2>Axiomatics</h2> Let (s, f) designate a try that contains either s or f. Consider the merge
+ * operation given two tries: (s, f) and (s', f'). One such operation is defined by four behaviors.
+ * <ul>
+ * <li>s, s' → F (a user-provided merge function that indicates the result of the merge); s or s'
+ * <li>s, f' → s or f'
+ * <li>f, s' → f or s'
+ * <li>f, f' → F; f or f'.
+ * </ul>
+ * That’s 3 × 2 × 2 × 3 = 36 possible operations, too much. To reduce it, let’s decide that (R1) s,
+ * f' → s ⇔ f, s' → s', thus, in presence of both a success and a failure, either we keep the
+ * success (or-based or recovery logic), or we keep the failure (and-based or fail-fast logic),
+ * irrespective of their ordering.
+ * <p>
+ * We are now left with 18 possibilities. We can write each such operation with three letters, e.g.
+ * FsF means {s, s' → F; s, f' and f, s' → s; f, f' → F}. We also discuss whether it makes sense
+ * when the second try is produced by a function (try-fct) or by a supplier (try-sup) or given. When
+ * for a try-sup, there is no point in also providing a version for given.
+ * <ul>
+ * <li>Fs. Hard to find a use case: we’re considering two tries, but only one of them need to be a
+ * success to succeed (so we’re seemingly attempting twice something and discarding a possible
+ * failure), but if this succeeds twice, we need to merge the result using a specified merge
+ * function. Why would we want to do this, instead of just being happy with any success (say, the
+ * first one)? Seems like we don’t care which attempt succeeded or whether one or both succeeded;
+ * but we do care to specify how to merge if they both succeed. [Previously I had considered:
+ * orMerge(F, F), making sense for given, try-sup.]
+ * <li>Fff Better provided by s'ff when failing-fast. and, for given.
+ * <li>Fff' can’t fail fast as we may want the second failure. Can’t be a function as has to work
+ * also when first failed. No try-sup as has to run anyway. When given, provided by Fff, reversing
+ * arguments.
+ * <li>ssF or with short-circuit, for try-sup
+ * <li>ssf either provided by ssF, alternative: orAttempt for try-sup<Opt>?
+ * <li>ssf' the first failure is ignored, so is in fact a merge of an optional with a try. Provide
+ * constructor either(Optional, try-sup), or make it possible to transform a try-sup to a
+ * Supplier<Try> and use the normal Optional#or.
+ * <li>sff Never uses s' thus it’s not really a merge of two tries. andConsume. andRun.
+ * <li>sff' Never uses s' thus it’s not really a merge of two tries. can’t fail fast as we may want
+ * the second failure. Can’t be a function as has to work also when first failed. No try-sup (or
+ * try-run) as has to run anyway. Use tryVoid#andGet with s'ff semantics, reversing arguments.
+ * <li>s's. provided by ss. if we don’t care which success we keep, otherwise see Fs.
+ * <li>s'ff and with fail-fast, makes sense for try-fct, not for try-sup as not using s ever; rather
+ * tryVoid#andGet.
+ * <li>s'ff' can’t fail fast as we may want the second failure. Can’t be a function as has to work
+ * also when first failed. No try-sup as has to run anyway. Use andRun, with sff semantics,
+ * reversing arguments.
+ * </ul>
+ * <p>
+ * Summary. Always keep first failure (except for either.)
+ * <ul>
+ * <li>Fff and(Try, BiFunction)
+ * <li>ssf orGet(Supplier); or(Try)
+ * <li>ssf' either(Opt, Supplier)
+ * <li>sff andIfPresent(Consumer)
+ * <li>s'ff flatMap(Function)
+ * </ul>
+ * <p>
+ * TryVoid.
+ * <ul>
+ * <li>s'ff andGet
+ * <li>andRun
+ * <li>orRun
+ * </ul>
+ * <p>
+ * TrySafe, no type for the throwable, catch every throwable. Try<T, W extends Exception>, type for
+ * the exception, the cause is always a checked exception, catches only this.
  *
  * @param <T> the type of result possibly kept in this object.
  */
 public class Try<T> {
   /**
    * Attempts to get and encapsulate a result from the given supplier.
+   * <p>
+   * This method returns a failure iff the given supplier throws, irrespective of whether the
+   * supplier throws some <code>X</code> or anything else.
    *
-   * @param <T> the type of result supplied by this supplier
+   * @param <T> the type that parameterizes the returned instance
+   * @param <U> the type of result supplied by this supplier
+   * @param <X> a sort of exception that the supplier may throw
    * @param supplier the supplier to get a result from
-   * @return a success encapsulating the result if the supplier returns a result; a failure
-   *         encapsulating the exception if the supplier throws an exception
+   * @return a success containing the result if the supplier returns a result; a failure containing
+   *         the throwable if the supplier throws anything
    */
-  public static <T> Try<T> of(Throwing.Supplier<T, Throwable> supplier) {
+  public static <T, U extends T, X extends Exception> Try<T> of(Throwing.Supplier<U, X> supplier) {
     try {
       return success(supplier.get());
     } catch (Throwable t) {
@@ -46,21 +167,21 @@ public class Try<T> {
   }
 
   /**
-   * Returns a success encapsulating the given result.
+   * Returns a success containing the given result.
    *
-   * @param <T> the type of result to encapsulate
-   * @param t the result to encapsulate
+   * @param <T> the type that parameterizes the returned instance
+   * @param t the result to contain
    */
   public static <T> Try<T> success(T t) {
     return new Try<>(t, null);
   }
 
   /**
-   * Returns a failure encapsulating the given cause.
+   * Returns a failure containing the given cause.
    *
-   * @param <T> the type that parameterize the returned instance (unused, as it only determines
-   *        which result this instance can hold, but it holds none)
-   * @param cause the cause to encapsulate
+   * @param <T> the type that parameterizes the returned instance (mostly irrelevant, as it only
+   *        determines which result this instance can hold, but it holds none)
+   * @param cause the cause to contain
    */
   public static <T> Try<T> failure(Throwable cause) {
     return new Try<>(null, cause);
@@ -70,15 +191,15 @@ public class Try<T> {
   private final Throwable cause;
 
   private Try(T t, Throwable cause) {
-    final boolean thrown = t == null;
-    final boolean resulted = cause == null;
+    final boolean thrown = cause != null;
+    final boolean resulted = t != null;
     checkArgument(resulted == !thrown);
     this.cause = cause;
     this.result = t;
   }
 
   /**
-   * Returns <code>true</code> iff this object encapsulates a result (and not a cause).
+   * Returns <code>true</code> iff this object contains a result (and not a cause).
    *
    * @return <code>true</code> iff {@link #isFailure()} returns <code>false</code>
    */
@@ -87,7 +208,7 @@ public class Try<T> {
   }
 
   /**
-   * Return <code>true</code> iff this object encapsulates a cause (and not a result).
+   * Return <code>true</code> iff this object contains a cause (and not a result).
    *
    * @return <code>true</code> iff {@link #isSuccess()} returns <code>false</code>
    */
@@ -95,55 +216,173 @@ public class Try<T> {
     return cause != null;
   }
 
+  private <T2> Try<T2> castFailure() {
+    checkState(isFailure());
+    @SuppressWarnings("unchecked")
+    final Try<T2> casted = (Try<T2>) this;
+    return casted;
+  }
+
   /**
-   * If this instance is a success, returns the result it encapsulates.
+   * If this instance is a success, returns the result it contains.
    *
-   * @throws IllegalStateException if this instance is a failure, thus, encapsulates a cause but not
-   *         a result.
+   * @throws IllegalStateException if this instance is a failure, thus, contains a cause but no
+   *         result.
    * @see #isSuccess()
    */
-  public T get() throws IllegalStateException {
+  public T getDepr() throws IllegalStateException {
     checkState(isSuccess());
     return result;
   }
 
-  public T orElse(T other) {
-    checkState(isSuccess());
-    return result != null ? result : other;
-  }
-
   /**
-   * If this object is a failure, returns the cause it encapsulates.
+   * If this object is a failure, returns the cause it contains.
    *
-   * @throws IllegalStateException if this object is a success, thus, encapsulates a result but not
-   *         a cause.
+   * @throws IllegalStateException if this object is a success, thus, contains a result but no
+   *         cause.
    * @see #isFailure()
    */
-  public Throwable getCause() {
+  public Throwable getCauseDepr() {
     checkState(isFailure());
     return cause;
   }
 
   /**
-   * If this instance is a success, returns a {@link Try} that encapsulates the result of applying
-   * the given transformation to the result this instance encapsulates. If this instance is a
-   * failure, returns this instance.
+   * If this instance is a success, returns a {@link Try} that contains its result transformed by
+   * the given transformation. If this instance is a failure, returns this instance.
+   * <p>
+   * If the given function throws while applying it to this instance’s result, the throwable is
+   * thrown by this method in turn.
    *
-   * @param <E2> the type of result the transformation produces.
-   * @param transformation the function to apply to the result this instance holds, if it is a
-   *        success
+   * @param <T2> the type of result the transformation produces
+   * @param transformation the function to apply to the result contained in this instance
    * @return a success iff this instance is a success
+   * @see #flatMap(Throwing.Function)
    */
-  public <E2> Try<E2> map(Function<T, E2> transformation) {
-    final Try<E2> newResult;
+  public <T2> Try<T2> mapDepr(Function<T, T2> transformation) {
+    final Try<T2> newResult;
     if (isFailure()) {
       @SuppressWarnings("unchecked")
-      final Try<E2> casted = (Try<E2>) this;
+      final Try<T2> casted = (Try<T2>) this;
       newResult = casted;
+    } else {
+      newResult = Try.success(transformation.apply(result));
+    }
+    return newResult;
+  }
+
+  /**
+   * TODO in general we need to transform using: left fct or left supplier ; right fct or right
+   * supplier.
+   */
+  public <U extends T> Try<T> or(Supplier<Optional<U>> t2) {
+    if (isSuccess()) {
+      return this;
+    }
+    final Optional<U> o2 = t2.get();
+    return o2.map(Try::<T>success).orElse(this);
+  }
+
+  public <X extends Exception> Try<T> and(Throwing.Consumer<T, X> consumer) {
+    if (isFailure()) {
+      return this;
+    }
+    final TryVoid t2 = TryVoid.run(() -> consumer.accept(result));
+    if (t2.isFailure()) {
+      return failure(t2.getCause());
+    }
+    return this;
+  }
+
+  /**
+   * If this instance is a success, returns a {@link Try} that contains its result transformed by
+   * the given transformation or a cause thrown by the given transformation. If this instance is a
+   * failure, returns this instance.
+   * <p>
+   * This method does not throw. If the given function throws while applying it to this instance’s
+   * result, the throwable is returned in the resulting try instance.
+   *
+   * @param <T2> the type of result the transformation produces.
+   * @param transformation the function to apply to the result contained in this instance
+   * @return a success iff this instance is a success and the transformation function did not throw
+   * @see #map(Function)
+   */
+  public <T2, X extends Exception> Try<T2> flatMap(Throwing.Function<T, T2, X> transformation) {
+    final Try<T2> newResult;
+    if (isFailure()) {
+      newResult = castFailure();
     } else {
       newResult = Try.of(() -> transformation.apply(result));
     }
     return newResult;
+  }
+
+  public <X extends Exception> TryVoid ifPresentTry(Throwing.Consumer<T, X> consumer) {
+    if (isSuccess()) {
+      return TryVoid.run(() -> consumer.accept(result));
+    }
+    return TryVoid.failure(cause);
+  }
+
+  public <T2, X extends Exception, Y extends X, Z extends X> T2 map(
+      Throwing.Function<T, T2, Y> transformation,
+      Throwing.Function<Throwable, T2, Z> causeTransformation) throws X {
+    if (isSuccess()) {
+      return transformation.apply(result);
+    }
+    return causeTransformation.apply(cause);
+  }
+
+  /**
+   * Returns the result contained in this instance if it is a success; otherwise, returns the result
+   * of applying the given transformation to the cause contained in this instance, or throws if the
+   * function threw.
+   *
+   * @param <X> a sort of exception that the given function may throw
+   * @param causeTransformation the function to apply to the cause
+   * @return the result contained in this instance or the transformed cause
+   * @throws X if the given function throws while being applied to the cause contained in this
+   *         instance
+   */
+  public <X extends Exception> T orMapCause(Throwing.Function<Throwable, T, X> causeTransformation)
+      throws X {
+    checkNotNull(causeTransformation);
+    if (isSuccess()) {
+      return result;
+    }
+    return causeTransformation.apply(cause);
+  }
+
+  public T orElseThrow() {
+    if (isFailure()) {
+      throw new NoSuchElementException("This try contains no result");
+    }
+    return result;
+  }
+
+  public <U, R, X extends Exception> Try<R> merge(Try<U> t2,
+      Throwing.BiFunction<T, U, R, X> merger) {
+    if (isSuccess()) {
+      if (t2.isSuccess()) {
+        return Try.of(() -> merger.apply(result, t2.result));
+      }
+      return t2.castFailure();
+    }
+    return castFailure();
+  }
+
+  public Optional<T> toOptional() {
+    if (isSuccess()) {
+      return Optional.of(result);
+    }
+    return Optional.empty();
+  }
+
+  public TryVoid toTryVoid() {
+    if (isFailure()) {
+      return TryVoid.failure(cause);
+    }
+    return TryVoid.success();
   }
 
   /**

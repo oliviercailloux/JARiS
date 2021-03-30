@@ -5,24 +5,27 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.MoreObjects;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * <p>
- * An instance of this class represents either a “success” or a “failure”, in which case it
- * encapsulates a cause of type {@link Throwable}.
+ * An instance of this class represents either a “success” or a “failure”, in which case it contains
+ * a cause of type {@link Throwable}.
  * </p>
  * <p>
  * Instances of this class are immutable.
  * </p>
  */
 public class TryVoid {
+  private static final TryVoid SUCCESS = new TryVoid(null);
+
   /**
    * Attempts to run the given runnable, and returns a success if it succeeds; or a failure
-   * encapsulating the exception thrown by the runnable if it threw one.
+   * containing the exception thrown by the runnable if it threw one.
    *
    * @return a success iff the given runnable did not throw an exception.
    */
-  public static TryVoid run(Throwing.Runnable<Throwable> runnable) {
+  public static <X extends Exception> TryVoid run(Throwing.Runnable<X> runnable) {
     try {
       runnable.run();
       return success();
@@ -32,14 +35,14 @@ public class TryVoid {
   }
 
   /**
-   * Returns a success.
+   * Returns the instance that represents a success.
    */
   public static TryVoid success() {
-    return new TryVoid(null);
+    return SUCCESS;
   }
 
   /**
-   * Returns a failure encapsulating the given cause.
+   * Returns a failure containing the given cause.
    */
   public static TryVoid failure(Throwable cause) {
     return new TryVoid(checkNotNull(cause));
@@ -79,6 +82,17 @@ public class TryVoid {
   public Throwable getCause() throws IllegalStateException {
     checkState(isFailure());
     return cause;
+  }
+
+  public <T, X extends Exception> Try<T> andGet(Throwing.Supplier<T, X> supplier) {
+    if (isSuccess()) {
+      return Try.of(supplier);
+    }
+    return Try.failure(cause);
+  }
+
+  public Optional<Throwable> asOptional() {
+    return Optional.ofNullable(cause);
   }
 
   /**
