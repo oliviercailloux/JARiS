@@ -14,8 +14,8 @@ import static com.google.common.base.Preconditions.checkState;
  * @param <X> the type of cause possibly kept in this object; if this instance is a catch-all, must
  *        equal <code>Throwable</code>; otherwise, must be at least an <code>Exception</code>.
  */
-abstract class TryGeneral<T, X extends Throwable> {
-  public static <T> TryGeneral<T, Throwable> successCatchingAll(T t) {
+abstract class TryVeryGeneral<T, X extends Throwable> {
+  public static <T> TryVeryGeneral<T, Throwable> successCatchingAll(T t) {
     return new TryGeneralSuccess<>(t, true);
   }
 
@@ -27,7 +27,7 @@ abstract class TryGeneral<T, X extends Throwable> {
    *        returned instance.
    * @param cause the cause to contain
    */
-  public static <T> TryGeneral<T, Throwable> failureCatchingAll(Throwable cause) {
+  public static <T> TryVeryGeneral<T, Throwable> failureCatchingAll(Throwable cause) {
     return new TryGeneralFailure<>(cause, true);
   }
 
@@ -44,7 +44,7 @@ abstract class TryGeneral<T, X extends Throwable> {
    * @return a success containing the result if the supplier returns a result; a failure containing
    *         the throwable if the supplier throws anything
    */
-  public static <T, U extends T, Y extends Exception> TryGeneral<T, Throwable> catchingAll(
+  public static <T, U extends T, Y extends Exception> TryVeryGeneral<T, Throwable> catchingAll(
       Throwing.Supplier<U, Y> supplier) {
     try {
       return successCatchingAll(supplier.get());
@@ -53,7 +53,7 @@ abstract class TryGeneral<T, X extends Throwable> {
     }
   }
 
-  private static class TrySafely<T> extends TryGeneral<T, Throwable> {
+  private static class TrySafely<T> extends TryVeryGeneral<T, Throwable> {
 
     private static class Success<T> extends TrySafely<T> {
 
@@ -73,13 +73,13 @@ abstract class TryGeneral<T, X extends Throwable> {
         return false;
       }
 
-      public <U extends T, Y extends Exception> TryGeneral<T, X> orGet(
+      public <U extends T, Y extends Exception> TryVeryGeneral<T, X> orGet(
           Throwing.Supplier<U, Y> supplier) {
         return this;
       }
     }
 
-    private static class Failure<T, X extends Throwable> extends TryGeneral<T, X> {
+    private static class Failure<T, X extends Throwable> extends TryVeryGeneral<T, X> {
       private final X cause;
 
       private Failure(X cause) {
@@ -96,16 +96,16 @@ abstract class TryGeneral<T, X extends Throwable> {
         return true;
       }
 
-      public <U extends T, Y extends Exception> TryGeneral<T, X> orGet(
+      public <U extends T, Y extends Exception> TryVeryGeneral<T, X> orGet(
           Throwing.Supplier<U, Y> supplier) {
         if (catchAll) {
-          final TryGeneral<T, Throwable> t2 = TryGeneral.catchingAll(supplier);
+          final TryVeryGeneral<T, Throwable> t2 = TryVeryGeneral.catchingAll(supplier);
           if (t2.isSuccess()) {
             return t2.castSuccessAll();
           }
           return this;
         }
-        final TryGeneral<T, Y> t2 = TryGeneral.catchingChecked(supplier);
+        final TryVeryGeneral<T, Y> t2 = TryVeryGeneral.catchingChecked(supplier);
         if (t2.isSuccess()) {
           return t2;
         }
@@ -119,7 +119,7 @@ abstract class TryGeneral<T, X extends Throwable> {
 
   }
 
-  protected TryGeneral() {
+  protected TryVeryGeneral() {
     /* Reducing visibility. */
   }
 
@@ -137,32 +137,32 @@ abstract class TryGeneral<T, X extends Throwable> {
    */
   public abstract boolean isFailure();
 
-  TryGeneral<T, Throwable> castSuccessAll() {
+  TryVeryGeneral<T, Throwable> castSuccessAll() {
     checkState(isSuccess());
     checkState(catchAll);
     @SuppressWarnings("unchecked")
-    final TryGeneral<T, Throwable> casted = (TryGeneral<T, Throwable>) this;
+    final TryVeryGeneral<T, Throwable> casted = (TryVeryGeneral<T, Throwable>) this;
     return casted;
   }
 
-  private <Y extends Throwable> TryGeneral<T, X> castSuccessClearer(TryGeneral<T, Y> t2) {
+  private <Y extends Throwable> TryVeryGeneral<T, X> castSuccessClearer(TryVeryGeneral<T, Y> t2) {
     checkState(t2.isSuccess());
     @SuppressWarnings("unchecked")
-    final TryGeneral<T, X> casted = (TryGeneral<T, X>) t2;
+    final TryVeryGeneral<T, X> casted = (TryVeryGeneral<T, X>) t2;
     return casted;
   }
 
-  private <Y extends Throwable> TryGeneral<T, Y> castSuccess() {
+  private <Y extends Throwable> TryVeryGeneral<T, Y> castSuccess() {
     checkState(isSuccess());
     @SuppressWarnings("unchecked")
-    final TryGeneral<T, Y> casted = (TryGeneral<T, Y>) this;
+    final TryVeryGeneral<T, Y> casted = (TryVeryGeneral<T, Y>) this;
     return casted;
   }
 
-  private <U> TryGeneral<U, X> castFailure() {
+  private <U> TryVeryGeneral<U, X> castFailure() {
     checkState(isFailure());
     @SuppressWarnings("unchecked")
-    final TryGeneral<U, X> casted = (TryGeneral<U, X>) this;
+    final TryVeryGeneral<U, X> casted = (TryVeryGeneral<U, X>) this;
     return casted;
   }
 
