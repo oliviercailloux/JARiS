@@ -17,7 +17,7 @@ import java.util.stream.Stream;
  * In all these interfaces, <code>X</code> designates a type of (typically, checked) exception that
  * (some of) the methods may throw. These methods may throw other throwable instances, but the
  * <em>only</em> sort of <em>checked</em> exception it can throw should be of type <code>X</code>.
- * This will be guaranteed by the compiler, unless sneaky-throw is used.
+ * By the rules of Java, this will be guaranteed by the compiler, unless sneaky-throw is used.
  * <p>
  * This library assumes no sneaky-throw is used, otherwise, the behavior of any method related to
  * the throwing functional interfaces is unspecified.

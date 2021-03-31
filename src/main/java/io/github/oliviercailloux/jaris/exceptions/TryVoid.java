@@ -84,11 +84,11 @@ public class TryVoid {
     return cause;
   }
 
-  public <T, X extends Exception> Try<T> andGet(Throwing.Supplier<T, X> supplier) {
+  public <T, X extends Exception> TrySafe<T> andGet(Throwing.Supplier<T, X> supplier) {
     if (isSuccess()) {
-      return Try.of(supplier);
+      return TrySafe.of(supplier);
     }
-    return Try.failure(cause);
+    return TrySafe.failure(cause);
   }
 
   public Optional<Throwable> asOptional() {
@@ -96,7 +96,7 @@ public class TryVoid {
   }
 
   /**
-   * Returns <code>true</code> iff the given object is a {@link Try} and, either: this object and
+   * Returns <code>true</code> iff the given object is a {@link TrySafe} and, either: this object and
    * the given object are both successes; or this object and the given object are both failures and
    * they encapsulate equal causes.
    */
