@@ -1,33 +1,57 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Consumer;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Function;
+import java.util.function.BiFunction;
 
-/**
- * @param <T> the type of result possibly kept in this object.
- */
-public class Try<T, X extends Exception> {
+
+abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
+
   /**
-   * Attempts to get and encapsulate a result from the given supplier.
-   * <p>
-   * This method returns a failure iff the given supplier throws, irrespective of whether the
-   * supplier throws some <code>X</code> or anything else.
+   * Returns a success containing the given result and that will catch only checked exceptions when
+   * provided a functional (this matters for the and-based methods).
    *
-   * @param <T> the type that parameterizes the returned instance
+   * @param <T> the type of result declared to be possibly (and effectively) kept in the returned
+   *        instance.
+   * @param <X> the type of cause declared to be possibly (but effectively not) kept in the returned
+   *        instance.
+   * @param t the result to contain
+   */
+  public static <T, X extends Exception> Try<T, X> success(T t) {
+    return new Success<>(t);
+  }
+
+  /**
+   * Returns a failure containing the given cause and that will catch only checked exceptions when
+   * provided a functional (this matters for the or-based methods).
+   *
+   * @param <T> the type of result declared to be possibly (but effectively not) kept in the
+   *        returned instance.
+   * @param <X> the type of cause declared to be possibly (and effectively) kept in the returned
+   *        instance.
+   * @param cause the cause to contain
+   */
+  public static <T, X extends Exception> Try<T, X> failure(X cause) {
+    return new Failure<>(cause);
+  }
+
+  /**
+   * Attempts to wrap a result from the given supplier.
+   * <p>
+   * This method returns a failure iff the given supplier throws a checked exception and rethrows
+   * the throwable thrown by the supplier if it throws anything else than a checked exception.
+   *
+   * @param <T> the type of result possibly kept in the returned instance.
    * @param <U> the type of result supplied by this supplier
-   * @param <X> a sort of exception that the supplier may throw
+   * @param <X> the type of cause possibly kept in the returned instance.
+   * @param <Y> a sort of exception that the supplier may throw
    * @param supplier the supplier to get a result from
    * @return a success containing the result if the supplier returns a result; a failure containing
-   *         the throwable if the supplier throws anything
+   *         the throwable if the supplier throws a checked exception
    */
-  public static <T, U extends T, X extends Exception, Y extends X> Try<T, X> of(
+  public static <T, U extends T, X extends Exception, Y extends X> Try<T, X> get(
       Throwing.Supplier<U, Y> supplier) {
     try {
       return success(supplier.get());
@@ -36,198 +60,154 @@ public class Try<T, X extends Exception> {
     } catch (Exception e) {
       @SuppressWarnings("unchecked")
       final Y exc = (Y) e;
-      return Try.failure(exc);
+      return failure(exc);
     }
   }
 
-  /**
-   * Returns a success containing the given result.
-   *
-   * @param <T> the type that parameterizes the returned instance
-   * @param t the result to contain
-   */
-  public static <T, X extends Exception> Try<T, X> success(T t) {
-    return new Try<>(t, null);
+  static <T, X extends Exception, U extends T, Y extends X> Try<T, X> cast(Try<U, Y> t) {
+    @SuppressWarnings("unchecked")
+    final Try<T, X> casted = (Try<T, X>) t;
+    return casted;
   }
 
-  /**
-   * Returns a failure containing the given cause.
-   *
-   * @param <T> the type that parameterizes the returned instance (mostly irrelevant, as it only
-   *        determines which result this instance can hold, but it holds none)
-   * @param cause the cause to contain
-   */
-  public static <T, X extends Exception> Try<T, X> failure(X cause) {
-    return new Try<>(null, cause);
-  }
+  private static class Success<T, X extends Exception> extends Try<T, X> {
 
-  private final T result;
-  private final X cause;
+    private final T result;
 
-  private Try(T t, X cause) {
-    final boolean thrown = cause != null;
-    final boolean resulted = t != null;
-    checkArgument(resulted == !thrown);
-    this.cause = cause;
-    this.result = t;
-  }
-
-  /**
-   * Returns <code>true</code> iff this object contains a result (and not a cause).
-   *
-   * @return <code>true</code> iff {@link #isFailure()} returns <code>false</code>
-   */
-  public boolean isSuccess() {
-    return result != null;
-  }
-
-  /**
-   * Return <code>true</code> iff this object contains a cause (and not a result).
-   *
-   * @return <code>true</code> iff {@link #isSuccess()} returns <code>false</code>
-   */
-  public boolean isFailure() {
-    return cause != null;
-  }
-
-  public <U extends T, Y extends X> Try<T, X> orGet(Throwing.Supplier<U, Y> supplier) {
-    if (isSuccess()) {
-      return this;
+    private Success(T result) {
+      this.result = checkNotNull(result);
     }
-    final Try<T, X> t2 = Try.of(supplier);
-    if (t2.isSuccess()) {
-      return t2;
-    }
-    return this;
-  }
 
-  public <X extends Exception> Try<T> and(Throwing.Consumer<T, X> consumer) {
-    if (isFailure()) {
-      return this;
+    @Override
+    public boolean isSuccess() {
+      return true;
     }
-    final TryVoid t2 = TryVoid.run(() -> consumer.accept(result));
-    if (t2.isFailure()) {
-      return failure(t2.getCause());
-    }
-    return this;
-  }
 
-  /**
-   * If this instance is a success, returns a {@link Try} that contains its result transformed by
-   * the given transformation or a cause thrown by the given transformation. If this instance is a
-   * failure, returns this instance.
-   * <p>
-   * This method does not throw. If the given function throws while applying it to this instance’s
-   * result, the throwable is returned in the resulting try instance.
-   *
-   * @param <T2> the type of result the transformation produces.
-   * @param transformation the function to apply to the result contained in this instance
-   * @return a success iff this instance is a success and the transformation function did not throw
-   * @see #map(Function)
-   */
-  public <T2, X extends Exception> Try<T2> flatMap(Throwing.Function<T, T2, X> transformation) {
-    final Try<T2> newResult;
-    if (isFailure()) {
-      newResult = castFailure();
-    } else {
-      newResult = Try.of(() -> transformation.apply(result));
-    }
-    return newResult;
-  }
-
-  public <T2, X extends Exception, Y extends X, Z extends X> T2 map(
-      Throwing.Function<T, T2, Y> transformation,
-      Throwing.Function<Throwable, T2, Z> causeTransformation) throws X {
-    if (isSuccess()) {
-      return transformation.apply(result);
-    }
-    return causeTransformation.apply(cause);
-  }
-
-  /**
-   * Returns the result contained in this instance if it is a success; otherwise, returns the result
-   * of applying the given transformation to the cause contained in this instance, or throws if the
-   * function threw.
-   *
-   * @param <X> a sort of exception that the given function may throw
-   * @param causeTransformation the function to apply to the cause
-   * @return the result contained in this instance or the transformed cause
-   * @throws X if the given function throws while being applied to the cause contained in this
-   *         instance
-   */
-  public <X extends Exception> T orMapCause(Throwing.Function<Throwable, T, X> causeTransformation)
-      throws X {
-    checkNotNull(causeTransformation);
-    if (isSuccess()) {
-      return result;
-    }
-    return causeTransformation.apply(cause);
-  }
-
-  public T orElseThrow() {
-    if (isFailure()) {
-      throw new NoSuchElementException("This try contains no result");
-    }
-    return result;
-  }
-
-  public <U, R, X extends Exception> Try<R> merge(Try<U> t2,
-      Throwing.BiFunction<T, U, R, X> merger) {
-    if (isSuccess()) {
-      if (t2.isSuccess()) {
-        return Try.of(() -> merger.apply(result, t2.result));
-      }
-      return t2.castFailure();
-    }
-    return castFailure();
-  }
-
-  public Optional<T> toOptional() {
-    if (isSuccess()) {
-      return Optional.of(result);
-    }
-    return Optional.empty();
-  }
-
-  public TryVoid toTryVoid() {
-    if (isFailure()) {
-      return TryVoid.failure(cause);
-    }
-    return TryVoid.success();
-  }
-
-  /**
-   * Returns <code>true</code> iff the given object is a {@link Try}; is a success or a failure
-   * according to whether this instance is a success or a failure; and holds an equal result or
-   * cause.
-   */
-  @Override
-  public boolean equals(Object o2) {
-    if (!(o2 instanceof Try)) {
+    @Override
+    public boolean isFailure() {
       return false;
     }
 
-    final Try<?> t2 = (Try<?>) o2;
-    return Objects.equals(result, t2.result) && Objects.equals(cause, t2.cause);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(result, cause);
-  }
-
-  /**
-   * Returns a string representation of this object, suitable for debug.
-   */
-  @Override
-  public String toString() {
-    final ToStringHelper stringHelper = MoreObjects.toStringHelper(this);
-    if (isSuccess()) {
-      stringHelper.add("result", result);
-    } else {
-      stringHelper.add("cause", cause);
+    private <Y extends Exception> Try<T, Y> cast() {
+      @SuppressWarnings("unchecked")
+      final Try<T, Y> casted = (Try<T, Y>) this;
+      return casted;
     }
-    return stringHelper.toString();
+
+    @Override
+    public <T2, Y extends Exception, Z1 extends Y, Z2 extends Y> T2 map(
+        Throwing.Function<T, T2, Z1> transformation,
+        Throwing.Function<X, T2, Z2> causeTransformation) throws Y {
+      return transformation.apply(result);
+    }
+
+    @Override
+    public <U extends T, Y extends Exception, Z extends Exception> Try<T, Z> or(Try<U, Y> t2,
+        BiFunction<X, Y, Z> exceptionsMerger) {
+      return cast();
+    }
+
+    @Override
+    public <U extends T, Y extends Exception, Z extends Exception> Try<T, Z> orGet(
+        Throwing.Supplier<U, Y> supplier, BiFunction<X, Y, Z> exceptionsMerger) {
+      return cast();
+    }
+
+    @Override
+    public <U, V, Y extends X> Try<V, X> and(Try<U, Y> t2, BiFunction<T, U, V> merger) {
+      return t2.map(u -> success(merger.apply(result, u)), Try::failure);
+    }
+
+    @Override
+    public Try<T, X> andIfPresent(Consumer<? super T, ? extends X> consumer) {
+      // consumer.accept(result);
+      // return null;
+    }
+
+    @Override
+    public <U extends T> Try<U, X> flatMap(Function<T, U, ? extends X> mapper) {
+      final Try<U, ? extends X> t2 = Try.get(() -> mapper.apply(result));
+      return cast(t2);
+    }
   }
+
+  private static class Failure<T, X extends Exception> extends Try<T, X> {
+    private final X cause;
+
+    private Failure(X cause) {
+      this.cause = checkNotNull(cause);
+    }
+
+    @Override
+    public boolean isSuccess() {
+      return false;
+    }
+
+    @Override
+    public boolean isFailure() {
+      return true;
+    }
+
+    private <U> Try<U, X> cast() {
+      @SuppressWarnings("unchecked")
+      final Try<U, X> casted = (Try<U, X>) this;
+      return casted;
+    }
+
+    @Override
+    public <T2, Y extends Exception, Z1 extends Y, Z2 extends Y> T2 map(
+        Throwing.Function<T, T2, Z1> transformation,
+        Throwing.Function<X, T2, Z2> causeTransformation) throws Y {
+      return causeTransformation.apply(cause);
+    }
+
+    @Override
+    public <U extends T, Y extends Exception, Z extends Exception> Try<T, Z> or(Try<U, Y> t2,
+        BiFunction<X, Y, Z> exceptionsMerger) {
+      return t2.map(Try::success, y -> failure(exceptionsMerger.apply(cause, y)));
+    }
+
+    @Override
+    public <U extends T, Y extends Exception, Z extends Exception> Try<T, Z> orGet(
+        Throwing.Supplier<U, Y> supplier, BiFunction<X, Y, Z> exceptionsMerger) {
+      final Try<T, Y> t2 = Try.get(supplier);
+      return or(t2, exceptionsMerger);
+    }
+
+    @Override
+    public <U, V, Y extends X> Try<V, X> and(Try<U, Y> t2, BiFunction<T, U, V> merger) {
+      return cast();
+    }
+
+    @Override
+    public Try<T, X> andIfPresent(Consumer<? super T, ? extends X> consumer) {
+      return this;
+    }
+
+    @Override
+    public <U extends T> Try<U, X> flatMap(Function<T, U, ? extends X> mapper) {
+      return cast();
+    }
+  }
+
+  protected Try() {
+    /* Reducing visibility. */
+  }
+
+  public abstract <T2, Y extends Exception, Z1 extends Y, Z2 extends Y> T2 map(
+      Throwing.Function<T, T2, Z1> transformation, Throwing.Function<X, T2, Z2> causeTransformation)
+      throws Y;
+
+  public abstract <U extends T, Y extends Exception, Z extends Exception> Try<T, Z> or(Try<U, Y> t2,
+      BiFunction<X, Y, Z> exceptionsMerger);
+
+  public abstract <U extends T, Y extends Exception, Z extends Exception> Try<T, Z> orGet(
+      Throwing.Supplier<U, Y> supplier, BiFunction<X, Y, Z> exceptionsMerger);
+
+  public abstract <U, V, Y extends X> Try<V, X> and(Try<U, Y> t2, BiFunction<T, U, V> merger);
+
+  public abstract Try<T, X> andIfPresent(Throwing.Consumer<? super T, ? extends X> consumer);
+
+  public abstract <U extends T> Try<U, X> flatMap(Throwing.Function<T, U, ? extends X> mapper);
 
 }

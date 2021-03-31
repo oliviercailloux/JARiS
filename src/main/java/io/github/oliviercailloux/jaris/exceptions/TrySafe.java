@@ -125,8 +125,9 @@ import java.util.function.Function;
  * Summary. Always keep first failure (except for either.)
  * <ul>
  * <li>Fff and(Try, BiFunction)
- * <li>ssf orGet(Supplier); or(Try)
- * <li>ssf' either(Opt, Supplier)
+ * <li>ssF orGet(Supplier, BiFunction); or(Try, BiFunction)
+ * <li>[ssf orGet(Supplier); or(Try)]
+ * <li>[ssf' either(Opt, Supplier)]
  * <li>sff andIfPresent(Consumer)
  * <li>s'ff flatMap(Function)
  * </ul>
