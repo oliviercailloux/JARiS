@@ -6,9 +6,14 @@ import static com.google.common.base.Preconditions.checkState;
 /**
  * An internal try type.
  * <p>
- * Is homeomorphic to an {@code Optional<T>} xor {@code X}: either is a success, and then
- * <em>may</em> contain a result of type {@code T}, or is a failure, and then <em>does</em> contain
- * a cause of type {@code X}.
+ * An instance can either catch all throwables (“catch-all”) or catch only checked exceptions
+ * (“catch-checked”). If it is a catch-all, <code>X</code> must be <code>Throwable</code>. If it is
+ * a catch-checked, <code>X</code> can be whatever, but the functionals that can be used with the
+ * instance can throw only instances of checked exceptions conforming to <code>X</code>: if
+ * <code>X</code> is <code>Exception</code> (or not even), no limit; if <code>X</code> is a sort of
+ * checked exception, limited to that checked exception; if <code>X</code> is a sort of runtime
+ * exception, the functionals will not be allowed to throw any checked exception. As a result, for
+ * catch-checked, there is no advantage for <code>X</code> to be not an <code>Exception</code>.
  *
  * @param <T> the type of result possibly kept in this object.
  * @param <X> the type of cause possibly kept in this object; if this instance is a catch-all, must
