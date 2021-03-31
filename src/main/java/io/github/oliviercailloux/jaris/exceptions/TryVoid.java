@@ -1,126 +1,197 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
-import com.google.common.base.MoreObjects;
-import java.util.Objects;
-import java.util.Optional;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Function;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
 
 /**
  * <p>
  * An instance of this class represents either a “success” or a “failure”, in which case it contains
- * a cause of type {@link Throwable}.
+ * a cause.
  * </p>
  * <p>
  * Instances of this class are immutable.
  * </p>
  */
-public class TryVoid {
-  private static final TryVoid SUCCESS = new TryVoid(null);
+public abstract class TryVoid<X extends Exception> {
+  private static final Success SUCCESS = new Success();
+
+  public static <X extends Exception> TryVoid<X> success() {
+    return SUCCESS.cast();
+  }
+
+  public static <X extends Exception> TryVoid<X> failure(X cause) {
+    return new Failure<>(cause);
+  }
 
   /**
-   * Attempts to run the given runnable, and returns a success if it succeeds; or a failure
-   * containing the exception thrown by the runnable if it threw one.
+   * Attempts to run the given runnable, and returns a success if it succeeds or a failure
+   * containing the checked exception thrown by the runnable if it threw one; otherwise, rethrows
+   * the non-checked throwable that the runnable threw.
    *
-   * @return a success iff the given runnable did not throw an exception.
+   * @return a success iff the given runnable did not throw.
    */
-  public static <X extends Exception> TryVoid run(Throwing.Runnable<X> runnable) {
+  public static <X extends Exception> TryVoid<X> run(Throwing.Runnable<? extends X> runnable) {
     try {
       runnable.run();
       return success();
-    } catch (Throwable t) {
-      return TryVoid.failure(t);
+    } catch (RuntimeException e) {
+      throw e;
+    } catch (Exception e) {
+      @SuppressWarnings("unchecked")
+      final X exc = (X) e;
+      return TryVoid.failure(exc);
     }
   }
 
-  /**
-   * Returns the instance that represents a success.
-   */
-  public static TryVoid success() {
-    return SUCCESS;
+  static <X extends Exception> TryVoid<X> cast(TryVoid<? extends X> t) {
+    @SuppressWarnings("unchecked")
+    final TryVoid<X> casted = (TryVoid<X>) t;
+    return casted;
   }
 
-  /**
-   * Returns a failure containing the given cause.
-   */
-  public static TryVoid failure(Throwable cause) {
-    return new TryVoid(checkNotNull(cause));
-  }
+  private static class Success extends TryVoid<RuntimeException> {
 
-  private final Throwable cause;
-
-  private TryVoid(Throwable t) {
-    this.cause = t;
-  }
-
-  /**
-   * Returns <code>true</code> iff this object represents a success.
-   *
-   * @return <code>true</code> iff {@link #isFailure()} returns <code>false</code>
-   */
-  public boolean isSuccess() {
-    return cause == null;
-  }
-
-  /**
-   * Returns <code>true</code> iff this object represents a failure; equivalently, iff it
-   * encapsulates a cause.
-   *
-   * @return <code>true</code> iff {@link #isSuccess()} returns <code>false</code>
-   */
-  public boolean isFailure() {
-    return cause != null;
-  }
-
-  /**
-   * If this object is a failure, returns the cause it encapsulates.
-   *
-   * @throws IllegalStateException if this object is a success, thus, encapsulates no cause.
-   * @see #isFailure()
-   */
-  public Throwable getCause() throws IllegalStateException {
-    checkState(isFailure());
-    return cause;
-  }
-
-  public <T, X extends Exception> TrySafe<T> andGet(Throwing.Supplier<T, X> supplier) {
-    if (isSuccess()) {
-      return TrySafe.of(supplier);
+    private Success() {
+      /* Reducing visibility. */
     }
-    return TrySafe.failure(cause);
-  }
 
-  public Optional<Throwable> asOptional() {
-    return Optional.ofNullable(cause);
-  }
+    @Override
+    public boolean isSuccess() {
+      return true;
+    }
 
-  /**
-   * Returns <code>true</code> iff the given object is a {@link TrySafe} and, either: this object and
-   * the given object are both successes; or this object and the given object are both failures and
-   * they encapsulate equal causes.
-   */
-  @Override
-  public boolean equals(Object o2) {
-    if (!(o2 instanceof TryVoid)) {
+    @Override
+    public boolean isFailure() {
       return false;
     }
 
-    final TryVoid t2 = (TryVoid) o2;
-    return Objects.equals(cause, t2.cause);
+    private <Y extends Exception> TryVoid<Y> cast() {
+      @SuppressWarnings("unchecked")
+      final TryVoid<Y> casted = (TryVoid<Y>) this;
+      return casted;
+    }
+
+    @Override
+    public <T, Y extends Exception> T map(Supplier<T, ? extends Y> supplier,
+        Function<? super RuntimeException, T, ? extends Y> causeTransformation) throws Y {
+      return supplier.get();
+    }
+
+    @Override
+    public <T> Try<T, RuntimeException> and(Try<T, ? extends RuntimeException> t2) {
+      return Try.cast(t2);
+    }
+
+    @Override
+    public <T> Try<T, RuntimeException> andGet(Supplier<T, ? extends RuntimeException> supplier) {
+      return Try.get(supplier);
+    }
+
+    @Override
+    public TryVoid<RuntimeException> and(TryVoid<? extends RuntimeException> t2) {
+      return cast(t2);
+    }
+
+    @Override
+    public TryVoid<RuntimeException> andRun(Runnable<? extends RuntimeException> runnable) {
+      return run(runnable);
+    }
+
+    @Override
+    public TryVoid<RuntimeException> or(TryVoid<? extends RuntimeException> t2) {
+      return this;
+    }
+
+    @Override
+    public TryVoid<RuntimeException> orRun(Runnable<? extends RuntimeException> runnable) {
+      return this;
+    }
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(cause);
+  private static class Failure<X extends Exception> extends TryVoid<X> {
+    private final X cause;
+
+    private Failure(X cause) {
+      this.cause = checkNotNull(cause);
+    }
+
+    @Override
+    public boolean isSuccess() {
+      return false;
+    }
+
+    @Override
+    public boolean isFailure() {
+      return true;
+    }
+
+    @Override
+    public <T, Y extends Exception> T map(Supplier<T, ? extends Y> supplier,
+        Function<? super X, T, ? extends Y> causeTransformation) throws Y {
+      return causeTransformation.apply(cause);
+    }
+
+    @Override
+    public <T> Try<T, X> and(Try<T, ? extends X> t2) {
+      return Try.failure(cause);
+    }
+
+    @Override
+    public <T> Try<T, X> andGet(Supplier<T, ? extends X> supplier) {
+      return Try.failure(cause);
+    }
+
+    @Override
+    public TryVoid<X> and(TryVoid<? extends X> t2) {
+      return this;
+    }
+
+    @Override
+    public TryVoid<X> andRun(Runnable<? extends X> runnable) {
+      return this;
+    }
+
+    @Override
+    public TryVoid<X> or(TryVoid<? extends X> t2) {
+      return cast(t2);
+    }
+
+    @Override
+    public TryVoid<X> orRun(Runnable<? extends X> runnable) {
+      return run(runnable);
+    }
   }
 
   /**
-   * Returns a string representation of this object, suitable for debug.
+   * Returns <code>true</code> iff this instance represents a success.
+   *
+   * @return <code>true</code> iff {@link #isFailure()} returns <code>false</code>
    */
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("t", cause).toString();
-  }
+  public abstract boolean isSuccess();
+
+  /**
+   * Return <code>true</code> iff this instance contains a cause.
+   *
+   * @return <code>true</code> iff {@link #isSuccess()} returns <code>false</code>
+   */
+  public abstract boolean isFailure();
+
+  public abstract <T, Y extends Exception> T map(Throwing.Supplier<T, ? extends Y> supplier,
+      Throwing.Function<? super X, T, ? extends Y> causeTransformation) throws Y;
+
+  public abstract <T> Try<T, X> and(Try<T, ? extends X> t2);
+
+  public abstract <T> Try<T, X> andGet(Throwing.Supplier<T, ? extends X> supplier);
+
+  public abstract TryVoid<X> and(TryVoid<? extends X> t2);
+
+  public abstract TryVoid<X> andRun(Throwing.Runnable<? extends X> runnable);
+
+  public abstract TryVoid<X> or(TryVoid<? extends X> t2);
+
+  public abstract TryVoid<X> orRun(Throwing.Runnable<? extends X> runnable);
 
 }

@@ -105,7 +105,7 @@ public class TryOld<T, X extends Exception> {
     if (isFailure()) {
       return this;
     }
-    final TryVoid t2 = TryVoid.run(() -> consumer.accept(result));
+    final TryVoidOld t2 = TryVoidOld.run(() -> consumer.accept(result));
     if (t2.isFailure()) {
       return failure(t2.getCause());
     }
@@ -189,11 +189,11 @@ public class TryOld<T, X extends Exception> {
     return Optional.empty();
   }
 
-  public TryVoid toTryVoid() {
+  public TryVoidOld toTryVoid() {
     if (isFailure()) {
-      return TryVoid.failure(cause);
+      return TryVoidOld.failure(cause);
     }
-    return TryVoid.success();
+    return TryVoidOld.success();
   }
 
   /**

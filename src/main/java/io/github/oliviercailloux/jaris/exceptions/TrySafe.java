@@ -122,6 +122,43 @@ import java.util.function.Function;
  * reversing arguments.
  * </ul>
  * <p>
+ * Try + TryVoid → Try.
+ * <ul>
+ * <li>s, ✓ → s
+ * <li>s, f → s / f
+ * <li>f, ✓ → f
+ * <li>f, f' → f / f'
+ * </ul>
+ * <ul>
+ * <li>sf returns this!
+ * <li>sf' replaceCauseIfArgumentFailed(TryVoid). Reverse? TryVoid + Try, or? Unneeded: Try#or for
+ * try-sup is enough. Unless I first need to consume smth then produce a try then merge them. In
+ * which case: prepare.or(try.toVoid).and(try). Or could provide TryVoid#anyway(try), but not clear.
+ * <li>ff and(TryVoid)
+ * <li>ff' Reverse? TryVoid + Try, and?
+ * </ul>
+ * <p>
+ * TryVoid + Try → Try.
+ * <ul>
+ * <li>✓, s → s
+ * <li>f, s → s / f
+ * <li>✓, f → f
+ * <li>f, f' → f / f'
+ * </ul>
+ * <ul>
+ * <li>sf see above sf'.
+ * <li>sf' returns arg
+ * <li>ff andGet for fct-sup; and, for given.
+ * <li>ff' reverse arguments, provided by Try#andConsume, and(TryVoid)?
+ * </ul>
+ * <p>
+ * TryVoid.
+ * <ul>
+ * <li>s'ff andGet; and(Try)
+ * <li>and(TryVoid); andRun
+ * <li>or; orRun
+ * </ul>
+ * <p>
  * Summary. Always keep first failure (except for either.)
  * <ul>
  * <li>Fff and(Try, BiFunction)
@@ -130,13 +167,6 @@ import java.util.function.Function;
  * <li>[ssf' either(Opt, Supplier)]
  * <li>sff andIfPresent(Consumer)
  * <li>s'ff flatMap(Function)
- * </ul>
- * <p>
- * TryVoid.
- * <ul>
- * <li>s'ff andGet
- * <li>andRun
- * <li>orRun
  * </ul>
  * <p>
  * TrySafe, no type for the throwable, catch every throwable. Try<T, W extends Exception>, type for
@@ -198,7 +228,7 @@ public class TrySafe<T> extends TryGeneral<T, Throwable> {
   private <T2> TrySafe<T2> castFailure() {
     checkState(isFailure());
     @SuppressWarnings("unchecked")
-    final TrySafe<T2> casted = (TrySafe<T2>) this;
+//    final TrySafe<T2> casted = (TrySafe<T2>) this;
     return casted;
   }
 
@@ -217,7 +247,7 @@ public class TrySafe<T> extends TryGeneral<T, Throwable> {
     if (isFailure()) {
       return this;
     }
-    final TryVoid t2 = TryVoid.run(() -> consumer.accept(result));
+    final TryVoidOld t2 = TryVoidOld.run(() -> consumer.accept(result));
     if (t2.isFailure()) {
       return failure(t2.getCause());
     }
@@ -301,11 +331,11 @@ public class TrySafe<T> extends TryGeneral<T, Throwable> {
     return Optional.empty();
   }
 
-  public TryVoid toTryVoid() {
+  public TryVoidOld toTryVoid() {
     if (isFailure()) {
-      return TryVoid.failure(cause);
+      return TryVoidOld.failure(cause);
     }
-    return TryVoid.success();
+    return TryVoidOld.success();
   }
 
   /**
