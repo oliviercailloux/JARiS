@@ -95,14 +95,9 @@ public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X>
     }
 
     @Override
-    public <Y extends Exception> void orConsumeCause(Consumer<? super RuntimeException, Y> consumer)
+    public <Y extends Exception> void ifFailed(Consumer<? super RuntimeException, Y> consumer)
         throws Y {
       /* Nothing to do. */
-    }
-
-    @Override
-    public Optional<RuntimeException> toOptionalCause() {
-      return Optional.empty();
     }
 
     @Override
@@ -160,13 +155,8 @@ public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X>
     }
 
     @Override
-    public <Y extends Exception> void orConsumeCause(Consumer<? super X, Y> consumer) throws Y {
+    public <Y extends Exception> void ifFailed(Consumer<? super X, Y> consumer) throws Y {
       consumer.accept(cause);
-    }
-
-    @Override
-    public Optional<X> toOptionalCause() {
-      return Optional.of(cause);
     }
 
     @Override
@@ -193,10 +183,8 @@ public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X>
   public abstract <T, Y extends Exception> T map(Throwing.Supplier<T, ? extends Y> supplier,
       Throwing.Function<? super X, T, ? extends Y> causeTransformation) throws Y;
 
-  public abstract <Y extends Exception> void orConsumeCause(
-      Throwing.Consumer<? super X, Y> consumer) throws Y;
-
-  public abstract Optional<X> toOptionalCause();
+  public abstract <Y extends Exception> void ifFailed(Throwing.Consumer<? super X, Y> consumer)
+      throws Y;
 
   public abstract void orThrow() throws X;
 
@@ -209,8 +197,8 @@ public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X>
   @Override
   public String toString() {
     final ToStringHelper stringHelper = MoreObjects.toStringHelper(this);
-    andRun(() -> stringHelper.addValue("success")).toOptionalCause()
-        .ifPresent(e -> stringHelper.add("cause", e));
+    andRun(() -> stringHelper.addValue("success"));
+    ifFailed(e -> stringHelper.add("cause", e));
     return stringHelper.toString();
   }
 

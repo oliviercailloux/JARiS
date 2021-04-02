@@ -454,7 +454,8 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
   /**
    * Returns a failure containing this cause if this instance is a failure, a failure containing the
    * checked exception that the provided runnable threw if it did throw one, and a success containg
-   * the result contained in this instance otherwise.
+   * the result contained in this instance if this instance is a success and the provided runnable
+   * does not throw.
    * <p>
    * If this instance is a failure, returns this instance without running the provided runnable.
    * Otherwise, if the runnable succeeds (that is, does not throw), returns this instance.
@@ -516,8 +517,7 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
   @Override
   public String toString() {
     final ToStringHelper stringHelper = MoreObjects.toStringHelper(this);
-    andConsume(r -> stringHelper.add("result", r))
-        .orConsumeCause(e -> stringHelper.add("cause", e));
+    orConsumeCause(e -> stringHelper.add("cause", e)).ifPresent(r -> stringHelper.add("result", r));
     return stringHelper.toString();
   }
 
