@@ -173,18 +173,14 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
     }
 
     @Override
-    public <Y extends X> Try<T, X> and(TryVoid<Y> t2) {
-      return t2.map(() -> this, Try::failure);
-    }
-
-    @Override
     public Try<T, X> andRun(Runnable<? extends X> runnable) {
-      return and(TryVoid.run(runnable));
+      final TryVoid<? extends X> ran = TryVoid.run(runnable);
+      return ran.map(() -> this, Try::failure);
     }
 
     @Override
     public Try<T, X> andConsume(Consumer<? super T, ? extends X> consumer) {
-      return and(TryVoid.run(() -> consumer.accept(result)));
+      return andRun(() -> consumer.accept(result));
     }
 
     @Override
@@ -277,11 +273,6 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
     }
 
     @Override
-    public <Y extends X> Try<T, X> and(TryVoid<Y> t2) {
-      return this;
-    }
-
-    @Override
     public Try<T, X> andRun(Runnable<? extends X> runnable) {
       return this;
     }
@@ -341,8 +332,6 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
 
   public abstract <U extends T, Y extends Exception, Z extends Exception> Try<T, Z> orGet(
       Throwing.Supplier<U, Y> supplier, BiFunction<X, Y, Z> exceptionsMerger);
-
-  public abstract <Y extends X> Try<T, X> and(TryVoid<Y> t2);
 
   public abstract Try<T, X> andRun(Throwing.Runnable<? extends X> runnable);
 

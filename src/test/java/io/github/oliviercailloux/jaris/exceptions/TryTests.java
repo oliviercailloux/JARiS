@@ -20,9 +20,6 @@ public class TryTests {
 
     assertEquals(t, Try.get(() -> 1));
 
-    assertEquals(Try.success(1), t.andRun(TryVoid.success()::orThrow));
-    assertEquals(Try.failure(cause), t.andRun(TryVoid.failure(cause)::orThrow));
-
     assertEquals(Try.success(3), t.and(Try.success(2), (i1, i2) -> i1 + i2));
     assertEquals(Try.failure(cause),
         t.and(Try.<Integer, Exception>failure(cause), TryTests::mergeAdding));
@@ -36,6 +33,9 @@ public class TryTests {
     assertThrows(UnsupportedOperationException.class, () -> t.andConsume(i -> {
       throw runtimeExc;
     }));
+
+    assertEquals(Try.success(1), t.andRun(TryVoid.success()::orThrow));
+    assertEquals(Try.failure(cause), t.andRun(TryVoid.failure(cause)::orThrow));
 
     assertEquals(Try.success(1), t.andRun(() -> {
     }));
@@ -97,9 +97,6 @@ public class TryTests {
       throw cause;
     }));
 
-    assertEquals(Try.failure(cause), t.andRun(TryVoid.<IOException>success()::orThrow));
-    assertEquals(Try.failure(cause), t.andRun(TryVoid.failure(cause)::orThrow));
-
     assertEquals(Try.failure(cause), t.and(Try.success(2), (i1, i2) -> i1 + i2));
     assertEquals(Try.failure(cause),
         t.and(Try.<Integer, IOException>failure(cause), TryTests::mergeAdding));
@@ -113,6 +110,9 @@ public class TryTests {
     assertEquals(Try.failure(cause), t.andConsume(i -> {
       throw runtimeExc;
     }));
+
+    assertEquals(Try.failure(cause), t.andRun(TryVoid.<IOException>success()::orThrow));
+    assertEquals(Try.failure(cause), t.andRun(TryVoid.failure(cause)::orThrow));
 
     assertEquals(Try.failure(cause), t.andRun(() -> {
     }));
