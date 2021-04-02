@@ -1,374 +1,341 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Consumer;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Function;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
 import java.util.Optional;
-import java.util.function.Function;
+
 
 /**
- * <p>
- * An instance of this class contains either a result (in which case it is called a “success”) or a
- * cause of type {@link Throwable} (in which case it is called a “failure”).
- * </p>
- * <p>
- * Instances of this class are immutable.
- * </p>
- * <p>
- * Heavily inspired by <a href="https://github.com/vavr-io/vavr">Vavr</a>. One notable difference is
- * that this class (and this library) does not sneaky throw. In particular, {@link #get()} does not
- * throw the original cause if this object is a failure (compare with the contract of Vavr’s
- * <code>Try#<a href=
- * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L629">get()</a></code>
- * and its <a href=
- * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L1305">implementation</a>).
- * <p>
- * TODO specific that this library is <code>null</code> hostile
- * <p>
- * <ul>
- * <li>TRun => TryVoid
- * <li>TSupp => Try
- * <li>r TCons => r ; r TCons => c' ; c TCons => c. andCons [if success, merge with a TryVoid; oth.
- * unch.]
- * <li>r TFct => r' ; r TFct => c' ; c TFct => c. andMap [if success, merge with a Try; oth. unch.]
- * <li>r TRun => r ; r TRun => c'; c TRun c. andRun [if success, merge with a TryVoid; oth. unch.]
- * <li>r TSupp => r'; r TSupp => c'; c TSupp c. TryVoid#andGet [if success, merge with a Try; oth.
- * unch.]
- * <li>r TSupp r; c TSupp r'; c TSupp c'. orGet [if failure, merge with a Try; oth. unch.]
- * <li>r TSupp r; c TSupp r'; c TSupp c. orGet+merge exc function keep original exc [if failure,
- * merge with a Try but keep left; oth. unch.]
- * </ul>
- * <p>
- * Terminal operations (no more a try)
- * <ul>
- * <li>r/c (TCons, TCons). consume
- * <li>r TFct r; c TFct r'; c TFct c'. orMapCause
- * <li>TryVoid#consumeCause.
- * </ul>
- * <p>
- * Merge
- * <ul>
- * TODO
- * </ul>
- * <p>
- * TryVoid
- * <ul>
- * <li>andGet => Try
- * <li>andRun => TryVoid
- * <li>orRun => TryVoid [+ merge exc function?]
- * </ul>
- * <p>
- * Optional
- * <ul>
- * <li>filter
- * <li>flatMap
- * <li>ifPresent
- * <li>ifPresentOrElse
- * <li>map
- * <li>or(supp<opt>)
- * <li>orElse(T)
- * <li>orElseGet(supp)
- * <li>orElseThrow
- * <li>stream
- * </ul>
- * <h2>Axiomatics</h2> Let (s, f) designate a try that contains either s or f. Consider the merge
- * operation given two tries: (s, f) and (s', f'). One such operation is defined by four behaviors.
- * <ul>
- * <li>s, s' → F (a user-provided merge function that indicates the result of the merge); s or s'
- * <li>s, f' → s or f'
- * <li>f, s' → f or s'
- * <li>f, f' → F; f or f'.
- * </ul>
- * That’s 3 × 2 × 2 × 3 = 36 possible operations, too much. To reduce it, let’s decide that (R1) s,
- * f' → s ⇔ f, s' → s', thus, in presence of both a success and a failure, either we keep the
- * success (or-based or recovery logic), or we keep the failure (and-based or fail-fast logic),
- * irrespective of their ordering.
- * <p>
- * We are now left with 18 possibilities. We can write each such operation with three letters, e.g.
- * FsF means {s, s' → F; s, f' and f, s' → s; f, f' → F}. We also discuss whether it makes sense
- * when the second try is produced by a function (try-fct) or by a supplier (try-sup) or given. When
- * for a try-sup, there is no point in also providing a version for given.
- * <ul>
- * <li>Fs. Hard to find a use case: we’re considering two tries, but only one of them need to be a
- * success to succeed (so we’re seemingly attempting twice something and discarding a possible
- * failure), but if this succeeds twice, we need to merge the result using a specified merge
- * function. Why would we want to do this, instead of just being happy with any success (say, the
- * first one)? Seems like we don’t care which attempt succeeded or whether one or both succeeded;
- * but we do care to specify how to merge if they both succeed. [Previously I had considered:
- * orMerge(F, F), making sense for given, try-sup.]
- * <li>Fff Better provided by s'ff when failing-fast. and, for given.
- * <li>Fff' can’t fail fast as we may want the second failure. Can’t be a function as has to work
- * also when first failed. No try-sup as has to run anyway. When given, provided by Fff, reversing
- * arguments.
- * <li>ssF or with short-circuit, for try-sup
- * <li>ssf either provided by ssF, alternative: orAttempt for try-sup<Opt>?
- * <li>ssf' the first failure is ignored, so is in fact a merge of an optional with a try. Provide
- * constructor either(Optional, try-sup), or make it possible to transform a try-sup to a
- * Supplier<Try> and use the normal Optional#or.
- * <li>sff Never uses s' thus it’s not really a merge of two tries. andConsume. andRun.
- * <li>sff' Never uses s' thus it’s not really a merge of two tries. can’t fail fast as we may want
- * the second failure. Can’t be a function as has to work also when first failed. No try-sup (or
- * try-run) as has to run anyway. Use tryVoid#andGet with s'ff semantics, reversing arguments.
- * <li>s's. provided by ss. if we don’t care which success we keep, otherwise see Fs.
- * <li>s'ff and with fail-fast, makes sense for try-fct, not for try-sup as not using s ever; rather
- * tryVoid#andGet.
- * <li>s'ff' can’t fail fast as we may want the second failure. Can’t be a function as has to work
- * also when first failed. No try-sup as has to run anyway. Use andRun, with sff semantics,
- * reversing arguments.
- * </ul>
- * <p>
- * Try + TryVoid → Try.
- * <ul>
- * <li>s, ✓ → s
- * <li>s, f → s / f
- * <li>f, ✓ → f
- * <li>f, f' → f / f'
- * </ul>
- * <ul>
- * <li>sf returns this!
- * <li>sf' replaceCauseIfArgumentFailed(TryVoid). Reverse? TryVoid + Try, or? Unneeded: Try#or for
- * try-sup is enough. Unless I first need to consume smth then produce a try then merge them. In
- * which case: prepare.or(try.toVoid).and(try). Or could provide TryVoid#anyway(try), but not clear.
- * <li>ff and(TryVoid)
- * <li>ff' Reverse? TryVoid + Try, and?
- * </ul>
- * <p>
- * TryVoid + Try → Try.
- * <ul>
- * <li>✓, s → s
- * <li>f, s → s / f
- * <li>✓, f → f
- * <li>f, f' → f / f'
- * </ul>
- * <ul>
- * <li>sf see above sf'.
- * <li>sf' returns arg
- * <li>ff andGet for fct-sup; and, for given.
- * <li>ff' reverse arguments, provided by Try#andConsume, and(TryVoid)?
- * </ul>
- * <p>
- * TryVoid.
- * <ul>
- * <li>s'ff andGet; and(Try)
- * <li>and(TryVoid); andRun
- * <li>or; orRun
- * </ul>
- * <p>
- * Summary. Always keep first failure (except for either.)
- * <ul>
- * <li>Fff and(Try, BiFunction)
- * <li>ssF orGet(Supplier, BiFunction); or(Try, BiFunction)
- * <li>[ssf orGet(Supplier); or(Try)]
- * <li>[ssf' either(Opt, Supplier)]
- * <li>sff andIfPresent(Consumer)
- * <li>s'ff flatMap(Function)
- * </ul>
- * <p>
- * TrySafe, no type for the throwable, catch every throwable. Try<T, W extends Exception>, type for
- * the exception, the cause is always a checked exception, catches only this.
+ * An equivalent of Try but which catches all throwables where Try catches checked exceptions.
  *
- * @param <T> the type of result possibly kept in this object.
+ * @param <T> the type of result possibly kept in the instance.
  */
-public class TrySafe<T> extends TryGeneral<T, Throwable> {
+public abstract class TrySafe<T> extends TryOptionalSafe<T> implements TryGeneral<T, Throwable> {
+
   /**
    * Returns a success containing the given result.
    *
-   * @param <T> the type that parameterizes the returned instance
+   * @param <T> the type of result declared to be possibly (and effectively) kept in the returned
+   *        instance.
    * @param t the result to contain
    */
-  public static <T> TrySafe<T> successSafe(T t) {
-    return new TrySafe<>(t, null);
+  public static <T> TrySafe<T> success(T t) {
+    return new Success<>(t);
   }
 
   /**
    * Returns a failure containing the given cause.
    *
-   * @param <T> the type that parameterizes the returned instance (mostly irrelevant, as it only
-   *        determines which result this instance can hold, but it holds none)
+   * @param <T> the type of result declared to be possibly (but effectively not) kept in the
+   *        returned instance.
    * @param cause the cause to contain
    */
-  public static <T> TrySafe<T> failureSafe(Throwable cause) {
-    return new TrySafe<>(null, cause);
+  public static <T> TrySafe<T> failure(Throwable cause) {
+    return new Failure<>(cause);
   }
 
-  private final T result;
-  private final Throwable cause;
+  /**
+   * Attempts to wrap a result from the given supplier.
+   * <p>
+   * This method returns a failure iff the given supplier throws any sort of throwable.
+   *
+   * @param <T> the type of result possibly kept in the returned instance.
+   * @param supplier the supplier to get a result from
+   * @return a success containing the result if the supplier returns a result; a failure containing
+   *         the throwable if the supplier throws
+   */
+  public static <T> TrySafe<T> get(Throwing.Supplier<? extends T, ? extends Exception> supplier) {
+    try {
+      return success(supplier.get());
+    } catch (Throwable x) {
+      return failure(x);
+    }
+  }
 
-  private TrySafe(T t, Throwable cause) {
-    final boolean thrown = cause != null;
-    final boolean resulted = t != null;
-    checkArgument(resulted == !thrown);
-    this.cause = cause;
-    this.result = t;
+  /**
+   * Conceptually safe cast. Currently unused.
+   */
+  @SuppressWarnings("unused")
+  private static <T> TrySafe<T> cast(TrySafe<? extends T> t) {
+    @SuppressWarnings("unchecked")
+    final TrySafe<T> casted = (TrySafe<T>) t;
+    return casted;
+  }
+
+  private static class Success<T> extends TrySafe<T> {
+
+    private final T result;
+
+    private Success(T result) {
+      this.result = checkNotNull(result);
+    }
+
+    @Override
+    public boolean isSuccess() {
+      return true;
+    }
+
+    @Override
+    public boolean isFailure() {
+      return false;
+    }
+
+    @Override
+    Optional<T> getResult() {
+      return Optional.of(result);
+    }
+
+    @Override
+    Optional<Throwable> getCause() {
+      return Optional.empty();
+    }
+
+    @Override
+    public <U, Y extends Exception> U map(
+        Throwing.Function<? super T, ? extends U, ? extends Y> transformation,
+        Throwing.Function<? super Throwable, ? extends U, ? extends Y> causeTransformation)
+        throws Y {
+      return transformation.apply(result);
+    }
+
+    @Override
+    public <Y extends Exception> T orMapCause(
+        Function<? super Throwable, ? extends T, Y> causeTransformation) throws Y {
+      return result;
+    }
+
+    @Override
+    public <Y extends Exception> Optional<T> orConsumeCause(Consumer<? super Throwable, Y> consumer)
+        throws Y {
+      return Optional.of(result);
+    }
+
+    @Override
+    public T orThrow() throws Throwable {
+      return result;
+    }
+
+    @Override
+    public <W extends Exception> TrySafe<T> or(Throwing.Supplier<? extends T, ?> supplier,
+        Throwing.BiFunction<? super Throwable, ? super Throwable, ? extends Throwable, W> throwablesMerger)
+        throws W {
+      return this;
+    }
+
+    @Override
+    public TrySafe<T> andRun(Runnable<?> runnable) {
+      final TryVoid<?> ran = TrysVoidSafe.run(runnable);
+      return ran.map(() -> this, TrySafe::failure);
+    }
+
+    @Override
+    public TrySafe<T> andConsume(Consumer<? super T, ?> consumer) {
+      return andRun(() -> consumer.accept(result));
+    }
+
+    @Override
+    public <U, V, Y extends Exception> TrySafe<V> and(TrySafe<U> t2,
+        Throwing.BiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y {
+      return t2.map(u -> success(merger.apply(result, u)), TrySafe::failure);
+    }
+
+    @Override
+    public <U> TrySafe<U> flatMap(Function<? super T, ? extends U, ?> mapper) {
+      return TrySafe.get(() -> mapper.apply(result));
+    }
+  }
+
+  private static class Failure<T> extends TrySafe<T> {
+    private final Throwable cause;
+
+    private Failure(Throwable cause) {
+      this.cause = checkNotNull(cause);
+    }
+
+    @Override
+    public boolean isSuccess() {
+      return false;
+    }
+
+    @Override
+    public boolean isFailure() {
+      return true;
+    }
+
+    @Override
+    Optional<T> getResult() {
+      return Optional.empty();
+    }
+
+    @Override
+    Optional<Throwable> getCause() {
+      return Optional.of(cause);
+    }
+
+    private <U> TrySafe<U> cast() {
+      @SuppressWarnings("unchecked")
+      final TrySafe<U> casted = (TrySafe<U>) this;
+      return casted;
+    }
+
+    @Override
+    public <U, Y extends Exception> U map(
+        Throwing.Function<? super T, ? extends U, ? extends Y> transformation,
+        Throwing.Function<? super Throwable, ? extends U, ? extends Y> causeTransformation)
+        throws Y {
+      return causeTransformation.apply(cause);
+    }
+
+    @Override
+    public <Y extends Exception> T orMapCause(
+        Function<? super Throwable, ? extends T, Y> causeTransformation) throws Y {
+      return causeTransformation.apply(cause);
+    }
+
+    @Override
+    public <Y extends Exception> Optional<T> orConsumeCause(Consumer<? super Throwable, Y> consumer)
+        throws Y {
+      consumer.accept(cause);
+      return Optional.empty();
+    }
+
+    @Override
+    public T orThrow() throws Throwable {
+      throw cause;
+    }
+
+    @Override
+    public <W extends Exception> TrySafe<T> or(Throwing.Supplier<? extends T, ?> supplier,
+        Throwing.BiFunction<? super Throwable, ? super Throwable, ? extends Throwable, W> exceptionsMerger)
+        throws W {
+      final TrySafe<T> t2 = TrySafe.get(supplier);
+      return t2.map(TrySafe::success, y -> failure(exceptionsMerger.apply(cause, y)));
+    }
+
+    @Override
+    public TrySafe<T> andRun(Runnable<?> runnable) {
+      return this;
+    }
+
+    @Override
+    public TrySafe<T> andConsume(Consumer<? super T, ?> consumer) {
+      return this;
+    }
+
+    @Override
+    public <U, V, Y extends Exception> TrySafe<V> and(TrySafe<U> t2,
+        Throwing.BiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y {
+      return cast();
+    }
+
+    @Override
+    public <U> TrySafe<U> flatMap(Function<? super T, ? extends U, ?> mapper) {
+      return cast();
+    }
+  }
+
+  protected TrySafe() {
+    /* Reducing visibility. */
   }
 
   /**
    * Returns <code>true</code> iff this object contains a result (and not a cause).
-   *
-   * @return <code>true</code> iff {@link #isFailure()} returns <code>false</code>
    */
-  public boolean isSuccess() {
-    return result != null;
-  }
+  @Override
+  public abstract boolean isSuccess();
 
   /**
    * Return <code>true</code> iff this object contains a cause (and not a result).
-   *
-   * @return <code>true</code> iff {@link #isSuccess()} returns <code>false</code>
    */
-  public boolean isFailure() {
-    return cause != null;
-  }
-
-  private <T2> TrySafe<T2> castFailure() {
-    checkState(isFailure());
-    @SuppressWarnings("unchecked")
-//    final TrySafe<T2> casted = (TrySafe<T2>) this;
-    return casted;
-  }
-
-  public <U extends T, X extends Exception> TrySafe<T> orGet(Throwing.Supplier<U, X> supplier) {
-    if (isSuccess()) {
-      return this;
-    }
-    final TrySafe<T> t2 = TrySafe.of(supplier);
-    if (t2.isSuccess()) {
-      return t2;
-    }
-    return this;
-  }
-
-  public <X extends Exception> TrySafe<T> and(Throwing.Consumer<T, X> consumer) {
-    if (isFailure()) {
-      return this;
-    }
-    final TryVoidOld t2 = TryVoidOld.run(() -> consumer.accept(result));
-    if (t2.isFailure()) {
-      return failure(t2.getCause());
-    }
-    return this;
-  }
+  @Override
+  public abstract boolean isFailure();
 
   /**
-   * If this instance is a success, returns a {@link TrySafe} that contains its result transformed
-   * by the given transformation or a cause thrown by the given transformation. If this instance is
-   * a failure, returns this instance.
+   * Returns this instance if it is a success. Otherwise, attempts to get a result from the given
+   * supplier. If this succeeds, that is, if the supplier returns a result, returns a success
+   * containing that result. Otherwise, merges both throwables using the given
+   * {@code throwablesMerger} and returns a failure containing that merged cause.
+   *
+   * @param <W> a type of exception that the provided merger may throw
+   * @param supplier the supplier that is invoked if this try is a failure
+   * @param throwablesMerger the function invoked to merge both throwables if this try is a failure
+   *        and the given supplier threw
+   * @return a success if this instance is a success or the given supplier returned a result
+   * @throws W iff the merger was applied and threw a checked exception
+   */
+  public abstract <W extends Exception> TrySafe<T> or(
+      Throwing.Supplier<? extends T, ? extends Exception> supplier,
+      Throwing.BiFunction<? super Throwable, ? super Throwable, ? extends Throwable, W> throwablesMerger)
+      throws W;
+
+  /**
+   * Returns a failure containing this cause if this instance is a failure, a failure containing the
+   * throwable that the provided runnable threw if it did throw, and a success containg the result
+   * contained in this instance otherwise.
    * <p>
-   * This method does not throw. If the given function throws while applying it to this instance’s
-   * result, the throwable is returned in the resulting try instance.
+   * If this instance is a failure, returns this instance without running the provided runnable.
+   * Otherwise, if the runnable succeeds (that is, does not throw), returns this instance.
+   * Otherwise, returns a failure containing whatever the runnable threw.
    *
-   * @param <T2> the type of result the transformation produces.
-   * @param transformation the function to apply to the result contained in this instance
-   * @return a success iff this instance is a success and the transformation function did not throw
-   * @see #map(Function)
+   * @param runnable the function to run if this instance is a success
+   * @return a success iff this instance is a success and the provided runnable terminated without
+   *         throwing
    */
-  public <T2, X extends Exception> TrySafe<T2> flatMap(Throwing.Function<T, T2, X> transformation) {
-    final TrySafe<T2> newResult;
-    if (isFailure()) {
-      newResult = castFailure();
-    } else {
-      newResult = TrySafe.of(() -> transformation.apply(result));
-    }
-    return newResult;
-  }
-
-  public <T2, X extends Exception, Y extends X, Z extends X> T2 map(
-      Throwing.Function<T, T2, Y> transformation,
-      Throwing.Function<Throwable, T2, Z> causeTransformation) throws X {
-    if (isSuccess()) {
-      return transformation.apply(result);
-    }
-    return causeTransformation.apply(cause);
-  }
+  public abstract TrySafe<T> andRun(Throwing.Runnable<?> runnable);
 
   /**
-   * Returns the result contained in this instance if it is a success; otherwise, returns the result
-   * of applying the given transformation to the cause contained in this instance, or throws if the
-   * function threw.
+   * Returns a failure containing this cause if this instance is a failure, a failure containing the
+   * throwable that the provided consumer threw if it did throw, and a success containg the result
+   * contained in this instance otherwise.
+   * <p>
+   * If this instance is a failure, returns this instance without running the provided consumer.
+   * Otherwise, if the consumer succeeds (that is, does not throw), returns this instance.
+   * Otherwise, if the consumer throws, returns a failure containing whatever it threw.
    *
-   * @param <X> a sort of exception that the given function may throw
-   * @param causeTransformation the function to apply to the cause
-   * @return the result contained in this instance or the transformed cause
-   * @throws X if the given function throws while being applied to the cause contained in this
-   *         instance
+   * @param consumer the function to run if this instance is a success
+   * @return a success iff this instance is a success and the provided consumer terminated without
+   *         throwing
    */
-  public <X extends Exception> T orMapCause(Throwing.Function<Throwable, T, X> causeTransformation)
-      throws X {
-    checkNotNull(causeTransformation);
-    if (isSuccess()) {
-      return result;
-    }
-    return causeTransformation.apply(cause);
-  }
-
-  public T orElseThrow() {
-    if (isFailure()) {
-      throw new NoSuchElementException("This try contains no result");
-    }
-    return result;
-  }
-
-  public <U, R, X extends Exception> TrySafe<R> merge(TrySafe<U> t2,
-      Throwing.BiFunction<T, U, R, X> merger) {
-    if (isSuccess()) {
-      if (t2.isSuccess()) {
-        return TrySafe.of(() -> merger.apply(result, t2.result));
-      }
-      return t2.castFailure();
-    }
-    return castFailure();
-  }
-
-  public Optional<T> toOptional() {
-    if (isSuccess()) {
-      return Optional.of(result);
-    }
-    return Optional.empty();
-  }
-
-  public TryVoidOld toTryVoid() {
-    if (isFailure()) {
-      return TryVoidOld.failure(cause);
-    }
-    return TryVoidOld.success();
-  }
+  public abstract TrySafe<T> andConsume(Throwing.Consumer<? super T, ?> consumer);
 
   /**
-   * Returns <code>true</code> iff the given object is a {@link TrySafe}; is a success or a failure
-   * according to whether this instance is a success or a failure; and holds an equal result or
-   * cause.
+   * Returns this failure if this instance is a failure; the provided failure if it is a failure and
+   * this instance is a success; and a success containing the merge of the result contained in this
+   * instance and the one contained in {@code t2}, if they both are successes.
+   *
+   * @param <U> the type of result that the provided try is declared to contain
+   * @param <V> the type of result that the returned try will be declared to contain
+   * @param <Y> a type of exception that the provided merger may throw
+   * @param t2 the try to consider if this try is a success
+   * @param merger the function invoked to merge the results if both this and the given try are
+   *        successes
+   * @return a success if this instance and the given try are two successes
+   * @throws Y iff the merger was applied and threw a checked exception
    */
-  @Override
-  public boolean equals(Object o2) {
-    if (!(o2 instanceof TrySafe)) {
-      return false;
-    }
-
-    final TrySafe<?> t2 = (TrySafe<?>) o2;
-    return Objects.equals(result, t2.result) && Objects.equals(cause, t2.cause);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(result, cause);
-  }
+  public abstract <U, V, Y extends Exception> TrySafe<V> and(TrySafe<U> t2,
+      Throwing.BiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y;
 
   /**
-   * Returns a string representation of this object, suitable for debug.
+   * Returns this failure if this instance is a failure; a failure containing the cause thrown by
+   * the given function if it threw; or a success containing the result of applying the provided
+   * mapper to the result contained in this instance if it is a success and the mapper did not
+   * throw.
+   *
+   * @param <U> the type of result that the returned try will be declared to contain
+   * @param mapper the mapper to apply to the result contained in this instance if it is a success
+   * @return a success iff this instance is a success and the provided mapper does not throw
    */
+  public abstract <U> TrySafe<U> flatMap(Throwing.Function<? super T, ? extends U, ?> mapper);
+
   @Override
   public String toString() {
     final ToStringHelper stringHelper = MoreObjects.toStringHelper(this);
-    if (isSuccess()) {
-      stringHelper.add("result", result);
-    } else {
-      stringHelper.add("cause", cause);
-    }
+    orConsumeCause(e -> stringHelper.add("cause", e)).ifPresent(r -> stringHelper.add("result", r));
     return stringHelper.toString();
   }
 

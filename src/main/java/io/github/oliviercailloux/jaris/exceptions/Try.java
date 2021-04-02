@@ -25,66 +25,12 @@ import java.util.Optional;
  * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L629">get()</a></code>
  * and its <a href=
  * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L1305">implementation</a>).
- * <p>
- * Try + Try
- * <ul>
- * <li>Fs. See ssF and s'sF.
- * <li>Fff Better provided by s'ff when failing-fast. and, for given.
- * <li>Fff' can’t fail fast as we may want the second failure. Can’t be a function as has to work
- * also when first failed. No try-sup as has to run anyway. When given, provided by Fff, reversing
- * arguments.
- * <li>ssF or with short-circuit, for try-sup
- * <li>sff Not a merge of two tries (never uses s'). For given: Fff. for try-sup: andRun for
- * try-fct: andConsume
- * <li>sff' Never uses s' thus it’s not really a merge of two tries. can’t fail fast as we may want
- * the second failure. Can’t be a function as has to work also when first failed. No try-sup (or
- * try-run) as has to run anyway. Use and, reversing arguments. [Use tryVoid#andGet with s'ff
- * semantics, reversing arguments.]
- * <li>s'sF provided by ssF, reversing arguments.
- * <li>s'ff and with fail-fast, flatMap for try-fct, not for try-sup as not using s ever (use
- * flatMap and do nothing with the input). For given: Fff.
- * <li>s'ff' can’t fail fast as we may want the second failure. Can’t be a function as has to work
- * also when first failed. No try-sup as has to run anyway. Use andRun, with sff semantics,
- * reversing arguments.
- * </ul>
- * Could also cover the case where we want to act differently depending on success + failure or
- * failure + success, with: ifSameStatusMerge(Try t2, BiFct<T, T → U>, BiFct<X, X → Y>). If
- * different status, keep this. Alternatively: ifTwoFailuresUse(Try t2); ifTwoSuccessesGet(Try t2).
- * (Then can chain ifTwoSuccessesGet(t2).ifTwoFailuresGet(t2) to do both.)
- * <p>
- * Try + TryVoid → Try.
- * <ul>
- * <li>s, ✓ → s
- * <li>s, f → s / f
- * <li>f, ✓ → f
- * <li>f, f' → f / f'
- * </ul>
- * <ul>
- * <li>sf returns this!
- * <li>sf' Corresponds to ≠ actions for (success and failure) than for (failure and success), thus,
- * not covered.
- * <li>ff andRun, andConsume
- * <li>ff' Reverse arguments: TryVoid + Try, andGet
- * </ul>
- * <p>
- * TryVoid + Try → Try.
- * <ul>
- * <li>✓, s → s
- * <li>f, s → s / f
- * <li>✓, f → f
- * <li>f, f' → f / f'
- * </ul>
- * <ul>
- * <li>sf see above sf'.
- * <li>sf' returns arg
- * <li>ff andGet for fct-sup; andRun.
- * <li>ff' reverse arguments, provided by Try#andConsume, #andRun.
- * </ul>
  *
  * @param <T> the type of result possibly kept in the instance.
  * @param <X> the type of cause possibly kept in the instance.
  */
-public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
+public abstract class Try<T, X extends Exception> extends TryOptionalUnsafe<T, X>
+    implements TryGeneral<T, X> {
 
   /**
    * Returns a builder of {@code Try} failures, which can be useful for syntactic reason.
@@ -154,22 +100,20 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
    * the throwable thrown by the supplier if it throws anything else than a checked exception.
    *
    * @param <T> the type of result possibly kept in the returned instance.
-   * @param <U> the type of result supplied by this supplier
    * @param <X> the type of cause possibly kept in the returned instance.
-   * @param <Y> a sort of exception that the supplier may throw
    * @param supplier the supplier to get a result from
    * @return a success containing the result if the supplier returns a result; a failure containing
    *         the throwable if the supplier throws a checked exception
    */
-  public static <T, U extends T, X extends Exception, Y extends X> Try<T, X> get(
-      Throwing.Supplier<U, Y> supplier) {
+  public static <T, X extends Exception> Try<T, X> get(
+      Throwing.Supplier<? extends T, ? extends Exception> supplier) {
     try {
       return success(supplier.get());
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
       @SuppressWarnings("unchecked")
-      final Y exc = (Y) e;
+      final X exc = (X) e;
       return failure(exc);
     }
   }
@@ -377,61 +321,6 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
   public abstract boolean isFailure();
 
   /**
-   * Returns the transformed result contained in this instance if it is a success, using the
-   * provided {@code transformation}; or the transformed cause contained in this instance if it is a
-   * failure, using the provided {@code causeTransformation}.
-   * <p>
-   * This method necessarily applies exactly one of the provided functions.
-   *
-   * @param <U> the type of transformed result to return
-   * @param <Y> a type of exception that the provided functions may throw
-   * @param transformation a function to apply to the result if this instance is a success
-   * @param causeTransformation a function to apply to the cause if this instance is a failure
-   * @return the transformed result or cause
-   * @throws Y iff the function that was applied threw a checked exception
-   */
-  public abstract <U, Y extends Exception> U map(
-      Throwing.Function<? super T, ? extends U, ? extends Y> transformation,
-      Throwing.Function<? super X, ? extends U, ? extends Y> causeTransformation) throws Y;
-
-  /**
-   * Returns the result contained in this instance if it is a success, without applying the provided
-   * function; or returns the transformed cause contained in this instance if it is a failure, using
-   * the provided {@code causeTransformation}.
-   * <p>
-   * Equivalent to: {@code map(Function#identity(), causeTransformation)}.
-   *
-   * @param <Y> a type of exception that the provided function may throw
-   * @param causeTransformation the function to apply if this instance is a failure
-   * @return the result, or the transformed cause
-   * @throws Y iff the function was applied and threw a checked exception
-   */
-  public abstract <Y extends Exception> T orMapCause(
-      Throwing.Function<? super X, ? extends T, Y> causeTransformation) throws Y;
-
-  /**
-   * Returns an optional containing the result of this instance, without invoking the given
-   * consumer, if this try is a success; otherwise, invokes the given consumer and returns an empty
-   * optional.
-   *
-   * @param <Y> a type of exception that the provided consumer may throw
-   * @param consumer the consumer to invoke if this instance is a failure
-   * @return an optional, containing the result if this instance is a success, empty otherwise
-   * @throws Y iff the consumer was invoked and threw a checked exception
-   */
-  public abstract <Y extends Exception> Optional<T> orConsumeCause(
-      Throwing.Consumer<? super X, Y> consumer) throws Y;
-
-  /**
-   * Returns the result contained in this instance if this instance is a success, or throws the
-   * cause contained in this instance.
-   *
-   * @return the result that this success contains
-   * @throws X iff this instance is a failure
-   */
-  public abstract T orThrow() throws X;
-
-  /**
    * Returns this instance if it is a success. Otherwise, attempts to get a result from the given
    * supplier. If this succeeds, that is, if the supplier returns a result, returns a success
    * containing that result. Otherwise, if the supplier throws a checked exception, merges both
@@ -493,7 +382,7 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
    * @param <V> the type of result that the returned try will be declared to contain
    * @param <Y> a type of exception that the provided merger may throw
    * @param t2 the try to consider if this try is a success
-   * @param merger the function invoked to merge both results if both this and the given try are
+   * @param merger the function invoked to merge the results if both this and the given try are
    *        successes
    * @return a success if this instance and the given try are two successes
    * @throws Y iff the merger was applied and threw a checked exception

@@ -1,69 +1,69 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
-import java.util.Objects;
 import java.util.Optional;
 
 /**
- * An internal try type.
- * <p>
- * Is homeomorphic to an {@code Optional<T>} xor {@code X}: either is a success, and then
- * <em>may</em> contain a result of type {@code T}, or is a failure, and then <em>does</em> contain
- * a cause of type {@code X}.
+ * An internal try type for implementation by Try and TrySafe.
  *
- * @param <T> the type of result possibly kept in this object.
- * @param <X> the type of cause possibly kept in this object.
+ * Contains the terminal methods, which do not depend on whether all throwables or only checked
+ * exceptions are caught when producing TryOptional instances.
+ *
  */
-abstract class TryGeneral<T, X extends Exception> {
-  protected TryGeneral() {
-    /* Reducing visibility. */
-  }
+interface TryGeneral<T, X extends Throwable> {
 
   /**
-   * Returns <code>true</code> iff this instance represents a success.
+   * Returns the transformed result contained in this instance if it is a success, using the
+   * provided {@code transformation}; or the transformed cause contained in this instance if it is a
+   * failure, using the provided {@code causeTransformation}.
+   * <p>
+   * This method necessarily applies exactly one of the provided functions.
    *
-   * @return <code>true</code> iff {@link #isFailure()} returns <code>false</code>
+   * @param <U> the type of transformed result to return
+   * @param <Y> a type of exception that the provided functions may throw
+   * @param transformation a function to apply to the result if this instance is a success
+   * @param causeTransformation a function to apply to the cause if this instance is a failure
+   * @return the transformed result or cause
+   * @throws Y iff the function that was applied threw a checked exception
    */
-  public abstract boolean isSuccess();
+  public abstract <U, Y extends Exception> U map(
+      Throwing.Function<? super T, ? extends U, ? extends Y> transformation,
+      Throwing.Function<? super X, ? extends U, ? extends Y> causeTransformation) throws Y;
 
   /**
-   * Return <code>true</code> iff this instance contains a cause.
+   * Returns the result contained in this instance if it is a success, without applying the provided
+   * function; or returns the transformed cause contained in this instance if it is a failure, using
+   * the provided {@code causeTransformation}.
+   * <p>
+   * Equivalent to: {@code map(Function#identity(), causeTransformation)}.
    *
-   * @return <code>true</code> iff {@link #isSuccess()} returns <code>false</code>
+   * @param <Y> a type of exception that the provided function may throw
+   * @param causeTransformation the function to apply if this instance is a failure
+   * @return the result, or the transformed cause
+   * @throws Y iff the function was applied and threw a checked exception
    */
-  public abstract boolean isFailure();
-
-  abstract Optional<T> getResult();
-
-  abstract Optional<X> getCause();
+  public abstract <Y extends Exception> T orMapCause(
+      Throwing.Function<? super X, ? extends T, Y> causeTransformation) throws Y;
 
   /**
-   * Returns <code>true</code> iff, either:
-   * <ul>
-   * <li>the given object is a {@link Try} and this object and the given one are both successes and
-   * hold equal results;
-   * <li>the given object is a {@link Try} or a {@link TryVoid} and this object and the given one
-   * are both failures and hold equal causes.
-   * </ul>
+   * Returns an optional containing the result of this instance, without invoking the given
+   * consumer, if this try is a success; otherwise, invokes the given consumer and returns an empty
+   * optional.
+   *
+   * @param <Y> a type of exception that the provided consumer may throw
+   * @param consumer the consumer to invoke if this instance is a failure
+   * @return an optional, containing the result if this instance is a success, empty otherwise
+   * @throws Y iff the consumer was invoked and threw a checked exception
    */
-  @Override
-  public boolean equals(Object o2) {
-    if (!(o2 instanceof TryGeneral)) {
-      return false;
-    }
-
-    final TryGeneral<?, ?> t2 = (TryGeneral<?, ?>) o2;
-    return getResult().equals(t2.getResult()) && getCause().equals(t2.getCause());
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(getResult(), getCause());
-  }
+  public abstract <Y extends Exception> Optional<T> orConsumeCause(
+      Throwing.Consumer<? super X, Y> consumer) throws Y;
 
   /**
-   * Returns a string representation of this object, suitable for debug.
+   * Returns the result contained in this instance if this instance is a success, or throws the
+   * cause contained in this instance.
+   *
+   * @return the result that this success contains
+   * @throws X iff this instance is a failure
    */
-  @Override
-  public abstract String toString();
+  public abstract T orThrow() throws X;
 
 }

@@ -19,7 +19,7 @@ import java.util.Optional;
  * Instances of this class are immutable.
  * </p>
  */
-public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X> {
+public abstract class TryVoid<X extends Exception> extends TryOptionalUnsafe<Object, X> {
   private static final Success SUCCESS = new Success();
 
   /**
