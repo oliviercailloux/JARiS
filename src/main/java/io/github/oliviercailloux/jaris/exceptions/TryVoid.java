@@ -121,7 +121,7 @@ public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X>
     }
 
     @Override
-    public TryVoid<RuntimeException> orRun(Runnable<? extends RuntimeException> runnable) {
+    public TryVoid<RuntimeException> or(Runnable<? extends RuntimeException> runnable) {
       return this;
     }
   }
@@ -185,7 +185,7 @@ public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X>
     }
 
     @Override
-    public TryVoid<X> orRun(Runnable<? extends X> runnable) {
+    public TryVoid<X> or(Runnable<? extends X> runnable) {
       return run(runnable);
     }
   }
@@ -204,7 +204,7 @@ public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X>
 
   public abstract TryVoid<X> andRun(Throwing.Runnable<? extends X> runnable);
 
-  public abstract TryVoid<X> orRun(Throwing.Runnable<? extends X> runnable);
+  public abstract TryVoid<X> or(Throwing.Runnable<? extends X> runnable);
 
   @Override
   public String toString() {

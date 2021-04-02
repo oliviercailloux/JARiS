@@ -66,15 +66,15 @@ public class TryTests {
       throw runtimeExc;
     }));
 
-    assertEquals(Try.success(1), t.orGet(Try.success(6)::orThrow, (e1, e2) -> cause));
+    assertEquals(Try.success(1), t.or(Try.success(6)::orThrow, (e1, e2) -> cause));
     assertEquals(Try.success(1),
-        t.orGet(Try.<Integer, IOException>failure(cause)::orThrow, (e1, e2) -> cause));
+        t.or(Try.<Integer, IOException>failure(cause)::orThrow, (e1, e2) -> cause));
 
-    assertEquals(Try.success(1), t.orGet(() -> 6, (e1, e2) -> cause));
-    assertEquals(Try.success(1), t.orGet(() -> {
+    assertEquals(Try.success(1), t.or(() -> 6, (e1, e2) -> cause));
+    assertEquals(Try.success(1), t.or(() -> {
       throw cause;
     }, (e1, e2) -> cause));
-    assertEquals(Try.success(1), t.orGet(() -> {
+    assertEquals(Try.success(1), t.or(() -> {
       throw runtimeExc;
     }, (e1, e2) -> cause));
 
@@ -92,7 +92,7 @@ public class TryTests {
   }
 
   @Test
-  void testFailure() throws Exception {
+  void testFailure() {
     final UnsupportedOperationException runtimeExc = new UnsupportedOperationException();
     final IOException cause = new IOException();
     final Try<Integer, IOException> t = Try.failure(cause);
@@ -104,7 +104,11 @@ public class TryTests {
     assertEquals(Try.failure(cause), t.and(Try.success(2), (i1, i2) -> i1 + i2));
     assertEquals(Try.failure(cause),
         t.and(Try.<Integer, IOException>failure(cause), TryTests::mergeAdding));
-    assertEquals(Try.failure(cause), t.and(Try.success(2), TryTests::mergeThrowing));
+    try {
+      assertEquals(Try.failure(cause), t.and(Try.success(2), TryTests::mergeThrowing));
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
 
     assertEquals(Try.failure(cause), t.andConsume(i -> {
     }));
@@ -149,16 +153,15 @@ public class TryTests {
 
     final FileNotFoundException cause2 = new FileNotFoundException();
     final MalformedParametersException mergedCause = new MalformedParametersException();
-    assertEquals(Try.success(6), t.orGet(Try.success(6)::orThrow, (e1, e2) -> cause));
-    assertEquals(Try.failure(mergedCause),
-        t.orGet(Try.<Integer, IOException>failure(cause2)::orThrow,
-            (e1, e2) -> e1.equals(cause) && e2.equals(cause2) ? mergedCause : runtimeExc));
+    assertEquals(Try.success(6), t.or(Try.success(6)::orThrow, (e1, e2) -> cause));
+    assertEquals(Try.failure(mergedCause), t.or(Try.<Integer, IOException>failure(cause2)::orThrow,
+        (e1, e2) -> e1.equals(cause) && e2.equals(cause2) ? mergedCause : runtimeExc));
 
-    assertEquals(Try.success(6), t.orGet(() -> 6, (e1, e2) -> cause));
-    assertEquals(Try.failure(mergedCause), t.orGet(() -> {
+    assertEquals(Try.success(6), t.or(() -> 6, (e1, e2) -> cause));
+    assertEquals(Try.failure(mergedCause), t.or(() -> {
       throw cause2;
     }, (e1, e2) -> e1.equals(cause) && e2.equals(cause2) ? mergedCause : runtimeExc));
-    assertThrows(UnsupportedOperationException.class, () -> t.orGet(() -> {
+    assertThrows(UnsupportedOperationException.class, () -> t.or(() -> {
       throw runtimeExc;
     }, (e1, e2) -> cause));
 
