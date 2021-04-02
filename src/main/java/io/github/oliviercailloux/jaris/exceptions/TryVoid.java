@@ -12,8 +12,8 @@ import java.util.Optional;
 
 /**
  * <p>
- * An instance of this class represents either a “success” or a “failure”, in which case it contains
- * a cause.
+ * An instance of this class represents either a “success” or a “failure”. In the latter case, it
+ * contains a cause.
  * </p>
  * <p>
  * Instances of this class are immutable.
@@ -22,10 +22,23 @@ import java.util.Optional;
 public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X> {
   private static final Success SUCCESS = new Success();
 
+  /**
+   * Returns a success.
+   *
+   * @param <X> the type of cause declared to be possibly (but effectively not) kept in the returned
+   *        instance.
+   * @param t the result to contain
+   */
   public static <X extends Exception> TryVoid<X> success() {
     return SUCCESS.cast();
   }
 
+  /**
+   * Returns a failure containing the given cause.
+   *
+   * @param <X> the type of cause declared to be kept in the returned instance.
+   * @param cause the cause to contain
+   */
   public static <X extends Exception> TryVoid<X> failure(X cause) {
     return new Failure<>(cause);
   }
@@ -89,8 +102,8 @@ public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X>
     }
 
     @Override
-    public <T, Y extends Exception> T map(Supplier<T, ? extends Y> supplier,
-        Function<? super RuntimeException, T, ? extends Y> causeTransformation) throws Y {
+    public <T, Y extends Exception> T map(Supplier<? extends T, ? extends Y> supplier,
+        Function<? super RuntimeException, ? extends T, ? extends Y> causeTransformation) throws Y {
       return supplier.get();
     }
 
@@ -106,7 +119,8 @@ public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X>
     }
 
     @Override
-    public <T> Try<T, RuntimeException> andGet(Supplier<T, ? extends RuntimeException> supplier) {
+    public <T> Try<T, RuntimeException> andGet(
+        Supplier<? extends T, ? extends RuntimeException> supplier) {
       return Try.get(supplier);
     }
 
@@ -149,8 +163,8 @@ public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X>
     }
 
     @Override
-    public <T, Y extends Exception> T map(Supplier<T, ? extends Y> supplier,
-        Function<? super X, T, ? extends Y> causeTransformation) throws Y {
+    public <T, Y extends Exception> T map(Supplier<? extends T, ? extends Y> supplier,
+        Function<? super X, ? extends T, ? extends Y> causeTransformation) throws Y {
       return causeTransformation.apply(cause);
     }
 
@@ -165,7 +179,7 @@ public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X>
     }
 
     @Override
-    public <T> Try<T, X> andGet(Supplier<T, ? extends X> supplier) {
+    public <T> Try<T, X> andGet(Supplier<? extends T, ? extends X> supplier) {
       return Try.failure(cause);
     }
 
@@ -180,18 +194,90 @@ public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X>
     }
   }
 
-  public abstract <T, Y extends Exception> T map(Throwing.Supplier<T, ? extends Y> supplier,
-      Throwing.Function<? super X, T, ? extends Y> causeTransformation) throws Y;
+  /**
+   * Returns the supplied result if this instance is a success, using the provided {@code supplier};
+   * or the transformed cause contained in this instance if it is a failure, using the provided
+   * {@code causeTransformation}.
+   * <p>
+   * This method necessarily invokes exactly one of the provided functional interfaces.
+   *
+   * @param <T> the type of (supplied or transformed) result to return
+   * @param <Y> a type of exception that the provided functions may throw
+   * @param supplier a supplier to get a result from if this instance is a success
+   * @param causeTransformation a function to apply to the cause if this instance is a failure
+   * @return the supplied result or transformed cause
+   * @throws Y iff the functional interface that was invoked threw a checked exception
+   */
+  public abstract <T, Y extends Exception> T map(
+      Throwing.Supplier<? extends T, ? extends Y> supplier,
+      Throwing.Function<? super X, ? extends T, ? extends Y> causeTransformation) throws Y;
 
+  /**
+   * If this instance is a failure, invokes the given consumer using the cause contained in this
+   * instance. If this instance is a success, do nothing.
+   *
+   * @param <Y> a type of exception that the provided consumer may throw
+   * @param consumer the consumer to invoke if this instance is a failure
+   * @throws Y iff the consumer was invoked and threw a checked exception
+   */
   public abstract <Y extends Exception> void ifFailed(Throwing.Consumer<? super X, Y> consumer)
       throws Y;
 
+  /**
+   * If this instance is a failure, throws the cause it contains. Otherwise, do nothing.
+   *
+   * @throws X iff this instance contains a cause
+   */
   public abstract void orThrow() throws X;
 
-  public abstract <T> Try<T, X> andGet(Throwing.Supplier<T, ? extends X> supplier);
+  /**
+   * If this instance is a success, returns a try representing the result of invoking the given
+   * supplier; otherwise, returns this failure.
+   * <p>
+   * If this instance is a failure, it is returned, without invoking the given supplier. Otherwise,
+   * the given supplier is invoked. If it terminates without throwing, a success is returned,
+   * containing the result just supplied by the supplier. If the supplier throws a checked
+   * exception, a failure is returned, containing the cause it threw.
+   *
+   * @param <T> the type of result that the returned try will be declared to contain
+   * @param <X> the type of cause that the returned try will be declared to contain
+   * @param supplier the supplier to attempt to get a result from if this instance is a success.
+   * @return a success iff this instance is a success and the given supplier terminated without
+   *         throwing.
+   * @see Try#get(Supplier)
+   */
+  public abstract <T> Try<T, X> andGet(Throwing.Supplier<? extends T, ? extends X> supplier);
 
+  /**
+   * If this instance is a success, returns a {@code TryVoid} instance representing the result of
+   * invoking the given runnable; otherwise, returns this failure.
+   * <p>
+   * If this instance is a failure, it is returned, without invoking the given runnable. Otherwise,
+   * the given runnable is invoked. If it terminates without throwing, a success is returned. If the
+   * runnable throws a checked exception, a failure is returned, containing the cause it threw.
+   *
+   * @param <X> the type of cause that the returned instance will be declared to contain
+   * @param runnable the runnable to attempt to run if this instance is a success.
+   * @return a success iff this instance is a success and the given runnable terminated without
+   *         throwing.
+   * @see #run(Runnable)
+   */
   public abstract TryVoid<X> andRun(Throwing.Runnable<? extends X> runnable);
 
+  /**
+   * If this instance is a failure, returns a {@code TryVoid} instance representing the result of
+   * invoking the given runnable; otherwise, returns this success.
+   * <p>
+   * If this instance is a success, it is returned, without invoking the given runnable. Otherwise,
+   * the given runnable is invoked. If it terminates without throwing, a success is returned. If the
+   * runnable throws a checked exception, a failure is returned, containing the cause it threw.
+   *
+   * @param <X> the type of cause that the returned instance will be declared to contain
+   * @param runnable the runnable to attempt to run if this instance is a failure.
+   * @return a success iff this instance is a success or the given runnable terminated without
+   *         throwing.
+   * @see #run(Runnable)
+   */
   public abstract TryVoid<X> or(Throwing.Runnable<? extends X> runnable);
 
   @Override

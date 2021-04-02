@@ -1,5 +1,6 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -9,12 +10,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.MalformedParametersException;
+import java.net.URISyntaxException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 public class TryTests {
   @Test
-  void testSuccess() throws Exception {
+  void testSuccess() {
     final UnsupportedOperationException runtimeExc = new UnsupportedOperationException();
     final IOException cause = new IOException();
     final Try<Integer, Exception> t = Try.success(1);
@@ -60,9 +63,13 @@ public class TryTests {
 
     assertEquals(Optional.of(1), t.orConsumeCause(i -> {
     }));
-    assertEquals(Optional.of(1), t.orConsumeCause(i -> {
-      throw cause;
-    }));
+    try {
+      assertEquals(Optional.of(1), t.orConsumeCause(i -> {
+        throw cause;
+      }));
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
     assertEquals(Optional.of(1), t.orConsumeCause(i -> {
       throw runtimeExc;
     }));
@@ -80,14 +87,22 @@ public class TryTests {
     }, (e1, e2) -> cause));
 
     assertEquals(1, t.orMapCause(e -> 8));
-    assertEquals(1, t.orMapCause(e -> {
-      throw cause;
-    }));
+    try {
+      assertEquals(1, t.orMapCause(e -> {
+        throw cause;
+      }));
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
     assertEquals(1, t.orMapCause(e -> {
       throw runtimeExc;
     }));
 
-    assertEquals(1, t.orThrow());
+    try {
+      assertEquals(1, t.orThrow());
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
 
     assertNotEquals(TryVoid.success(), t);
   }
@@ -179,6 +194,139 @@ public class TryTests {
     assertEquals(t, TryVoid.failure(cause));
   }
 
+  @Test
+  void testVoidSuccess() {
+    final UnsupportedOperationException runtimeExc = new UnsupportedOperationException();
+    final IOException cause = new IOException();
+    final TryVoid<Exception> t = TryVoid.success();
+    assertEquals(t, TryVoid.run(() -> {
+    }));
+
+    assertEquals(Try.success(1), t.andGet(Try.success(1)::orThrow));
+    assertEquals(Try.failure(cause), t.andGet(Try.failure(cause)::orThrow));
+    assertEquals(Try.success(1), t.andGet(() -> 1));
+    assertEquals(Try.failure(cause), t.andGet(() -> {
+      throw cause;
+    }));
+    assertThrows(UnsupportedOperationException.class, () -> t.andGet(() -> {
+      throw runtimeExc;
+    }));
+
+    assertEquals(TryVoid.success(), t.andRun(TryVoid.success()::orThrow));
+    assertEquals(TryVoid.failure(cause), t.andRun(TryVoid.failure(cause)::orThrow));
+    assertEquals(TryVoid.success(), t.andRun(() -> {
+    }));
+    assertEquals(TryVoid.failure(cause), t.andRun(() -> {
+      throw cause;
+    }));
+    assertThrows(UnsupportedOperationException.class, () -> t.andRun(() -> {
+      throw runtimeExc;
+    }));
+
+    // final Consumer<Exception, IOException> c = Mockito.mock(Consumer.class);
+    // t.ifFailed(c);
+    // Mockito.verifyNoInteractions(c);
+    assertDoesNotThrow(() -> t.ifFailed(e -> {
+      throw cause;
+    }));
+    // assertThrows(UnsupportedOperationException.class, () -> t.ifFailed(e -> {
+    // throw runtimeExc;
+    // }));
+
+    assertFalse(t.isFailure());
+    assertTrue(t.isSuccess());
+
+    assertEquals(2, t.map(() -> 2, e -> 3));
+    assertThrows(IOException.class, () -> t.map(() -> {
+      throw cause;
+    }, e -> 3));
+    assertThrows(UnsupportedOperationException.class, () -> t.map(() -> {
+      throw runtimeExc;
+    }, e -> 3));
+
+    assertEquals(TryVoid.success(), t.or(() -> {
+    }));
+    assertEquals(TryVoid.success(), t.or(() -> {
+      throw cause;
+    }));
+    assertEquals(TryVoid.success(), t.or(() -> {
+      throw runtimeExc;
+    }));
+
+    assertDoesNotThrow(t::orThrow);
+  }
+
+  @Test
+  void testVoidFailure() {
+    final UnsupportedOperationException runtimeExc = new UnsupportedOperationException();
+    final IOException cause = new IOException();
+    final TryVoid<Exception> t = TryVoid.failure(cause);
+    assertEquals(t, TryVoid.run(() -> {
+      throw cause;
+    }));
+
+    assertEquals(t, t.andGet(Try.success(1)::orThrow));
+    assertEquals(t, t.andGet(Try.failure(cause)::orThrow));
+    assertEquals(t, t.andGet(() -> 1));
+    assertEquals(t, t.andGet(() -> {
+      throw new URISyntaxException("", "");
+    }));
+    assertEquals(t, t.andGet(() -> {
+      throw runtimeExc;
+    }));
+
+    assertEquals(t, t.andRun(TryVoid.success()::orThrow));
+    assertEquals(t, t.andRun(TryVoid.failure(cause)::orThrow));
+    assertEquals(t, t.andRun(() -> {
+    }));
+    assertEquals(t, t.andRun(() -> {
+      throw cause;
+    }));
+    assertEquals(t, t.andRun(() -> {
+      throw runtimeExc;
+    }));
+
+    final Throwing.Consumer<Exception, URISyntaxException> c =
+        Mockito.mock(Throwing.Consumer.class);
+    try {
+      t.ifFailed(c);
+      Mockito.verify(c).accept(cause);
+    } catch (URISyntaxException e) {
+      throw new IllegalStateException(e);
+    }
+    assertThrows(IOException.class, () -> t.ifFailed(e -> {
+      throw cause;
+    }));
+    assertThrows(UnsupportedOperationException.class, () -> t.ifFailed(e -> {
+      throw runtimeExc;
+    }));
+
+    assertTrue(t.isFailure());
+    assertFalse(t.isSuccess());
+
+    assertEquals(3, t.map(() -> 2, e -> 3));
+    assertThrows(IOException.class, () -> t.map(() -> 2, e -> {
+      if (e.equals(cause)) {
+        throw e;
+      }
+      throw runtimeExc;
+    }));
+    assertThrows(UnsupportedOperationException.class, () -> t.map(() -> 2, e -> {
+      throw runtimeExc;
+    }));
+
+    assertEquals(TryVoid.success(), t.or(() -> {
+    }));
+    assertEquals(t, t.or(() -> {
+      throw cause;
+    }));
+    assertThrows(UnsupportedOperationException.class, () -> t.or(() -> {
+      throw runtimeExc;
+    }));
+
+    assertThrows(IOException.class, t::orThrow);
+  }
+
   static int mergeAdding(int i1, int i2) {
     return i1 + i2;
   }
@@ -188,3 +336,4 @@ public class TryTests {
     throw new IOException();
   }
 }
+
