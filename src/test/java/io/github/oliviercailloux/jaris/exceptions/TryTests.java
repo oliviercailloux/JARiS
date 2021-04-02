@@ -2,6 +2,7 @@ package io.github.oliviercailloux.jaris.exceptions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -88,7 +89,7 @@ public class TryTests {
 
     assertEquals(1, t.orThrow());
 
-    assertEquals(TryVoid.success(), t.toTryVoid());
+    assertNotEquals(TryVoid.success(), t);
   }
 
   @Test
@@ -175,8 +176,7 @@ public class TryTests {
 
     assertThrows(IOException.class, () -> t.orThrow());
 
-    assertEquals(TryVoid.failure(cause), t.toTryVoid());
-    assertEquals(t, t.toTryVoid());
+    assertEquals(t, TryVoid.failure(cause));
   }
 
   static int mergeAdding(int i1, int i2) {

@@ -270,11 +270,6 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
     public <U> Try<U, X> flatMap(Function<? super T, ? extends U, ? extends X> mapper) {
       return Try.get(() -> mapper.apply(result));
     }
-
-    @Override
-    public TryVoid<X> toTryVoid() {
-      return TryVoid.success();
-    }
   }
 
   private static class Failure<T, X extends Exception> extends Try<T, X> {
@@ -362,11 +357,6 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
     @Override
     public <U> Try<U, X> flatMap(Function<? super T, ? extends U, ? extends X> mapper) {
       return cast();
-    }
-
-    @Override
-    public TryVoid<X> toTryVoid() {
-      return TryVoid.failure(cause);
     }
   }
 
@@ -522,15 +512,6 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
    */
   public abstract <U> Try<U, X> flatMap(
       Throwing.Function<? super T, ? extends U, ? extends X> mapper);
-
-  /**
-   * Returns a success (discarding the result) if this instance is a success; this failure
-   * otherwise.
-   *
-   * @return a {@code TryVoid} equivalent to this instance, thereby discarding the result if this
-   *         instance is a success
-   */
-  public abstract TryVoid<X> toTryVoid();
 
   @Override
   public String toString() {
