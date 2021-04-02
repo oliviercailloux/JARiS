@@ -66,6 +66,10 @@ public class TryTests {
       throw runtimeExc;
     }));
 
+    assertEquals(Try.success(1), t.orGet(Try.success(6)::orThrow, (e1, e2) -> cause));
+    assertEquals(Try.success(1),
+        t.orGet(Try.<Integer, IOException>failure(cause)::orThrow, (e1, e2) -> cause));
+
     assertEquals(Try.success(1), t.orGet(() -> 6, (e1, e2) -> cause));
     assertEquals(Try.success(1), t.orGet(() -> {
       throw cause;
@@ -143,9 +147,14 @@ public class TryTests {
       throw runtimeExc;
     }));
 
-    assertEquals(Try.success(6), t.orGet(() -> 6, (e1, e2) -> cause));
-    final MalformedParametersException mergedCause = new MalformedParametersException();
     final FileNotFoundException cause2 = new FileNotFoundException();
+    final MalformedParametersException mergedCause = new MalformedParametersException();
+    assertEquals(Try.success(6), t.orGet(Try.success(6)::orThrow, (e1, e2) -> cause));
+    assertEquals(Try.failure(mergedCause),
+        t.orGet(Try.<Integer, IOException>failure(cause2)::orThrow,
+            (e1, e2) -> e1.equals(cause) && e2.equals(cause2) ? mergedCause : runtimeExc));
+
+    assertEquals(Try.success(6), t.orGet(() -> 6, (e1, e2) -> cause));
     assertEquals(Try.failure(mergedCause), t.orGet(() -> {
       throw cause2;
     }, (e1, e2) -> e1.equals(cause) && e2.equals(cause2) ? mergedCause : runtimeExc));

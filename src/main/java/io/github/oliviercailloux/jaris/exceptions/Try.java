@@ -150,12 +150,6 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
     }
 
     @Override
-    public <U extends T, Y extends Exception, Z extends Exception> Try<T, Z> or(Try<U, Y> t2,
-        BiFunction<X, Y, Z> exceptionsMerger) {
-      return cast();
-    }
-
-    @Override
     public <Y extends Exception> Optional<T> orConsumeCause(Consumer<? super X, Y> consumer)
         throws Y {
       return Optional.of(result);
@@ -260,16 +254,10 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
     }
 
     @Override
-    public <U extends T, Y extends Exception, Z extends Exception> Try<T, Z> or(Try<U, Y> t2,
-        BiFunction<X, Y, Z> exceptionsMerger) {
-      return t2.map(Try::success, y -> failure(exceptionsMerger.apply(cause, y)));
-    }
-
-    @Override
     public <U extends T, Y extends Exception, Z extends Exception> Try<T, Z> orGet(
         Throwing.Supplier<U, Y> supplier, BiFunction<X, Y, Z> exceptionsMerger) {
       final Try<T, Y> t2 = Try.get(supplier);
-      return or(t2, exceptionsMerger);
+      return t2.map(Try::success, y -> failure(exceptionsMerger.apply(cause, y)));
     }
 
     @Override
@@ -326,9 +314,6 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
       Throwing.Consumer<? super X, Y> consumer) throws Y;
 
   public abstract T orThrow() throws X;
-
-  public abstract <U extends T, Y extends Exception, Z extends Exception> Try<T, Z> or(Try<U, Y> t2,
-      BiFunction<X, Y, Z> exceptionsMerger);
 
   public abstract <U extends T, Y extends Exception, Z extends Exception> Try<T, Z> orGet(
       Throwing.Supplier<U, Y> supplier, BiFunction<X, Y, Z> exceptionsMerger);

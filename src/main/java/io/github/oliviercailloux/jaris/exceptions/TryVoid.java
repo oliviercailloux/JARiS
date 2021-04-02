@@ -111,28 +111,13 @@ public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X>
     }
 
     @Override
-    public <T> Try<T, RuntimeException> and(Try<T, ? extends RuntimeException> t2) {
-      return Try.cast(t2);
-    }
-
-    @Override
     public <T> Try<T, RuntimeException> andGet(Supplier<T, ? extends RuntimeException> supplier) {
       return Try.get(supplier);
     }
 
     @Override
-    public TryVoid<RuntimeException> and(TryVoid<? extends RuntimeException> t2) {
-      return cast(t2);
-    }
-
-    @Override
     public TryVoid<RuntimeException> andRun(Runnable<? extends RuntimeException> runnable) {
       return run(runnable);
-    }
-
-    @Override
-    public TryVoid<RuntimeException> or(TryVoid<? extends RuntimeException> t2) {
-      return this;
     }
 
     @Override
@@ -190,28 +175,13 @@ public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X>
     }
 
     @Override
-    public <T> Try<T, X> and(Try<T, ? extends X> t2) {
-      return Try.failure(cause);
-    }
-
-    @Override
     public <T> Try<T, X> andGet(Supplier<T, ? extends X> supplier) {
       return Try.failure(cause);
     }
 
     @Override
-    public TryVoid<X> and(TryVoid<? extends X> t2) {
-      return this;
-    }
-
-    @Override
     public TryVoid<X> andRun(Runnable<? extends X> runnable) {
       return this;
-    }
-
-    @Override
-    public TryVoid<X> or(TryVoid<? extends X> t2) {
-      return cast(t2);
     }
 
     @Override
@@ -230,15 +200,9 @@ public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X>
 
   public abstract void orThrow() throws X;
 
-  public abstract <T> Try<T, X> and(Try<T, ? extends X> t2);
-
   public abstract <T> Try<T, X> andGet(Throwing.Supplier<T, ? extends X> supplier);
 
-  public abstract TryVoid<X> and(TryVoid<? extends X> t2);
-
   public abstract TryVoid<X> andRun(Throwing.Runnable<? extends X> runnable);
-
-  public abstract TryVoid<X> or(TryVoid<? extends X> t2);
 
   public abstract TryVoid<X> orRun(Throwing.Runnable<? extends X> runnable);
 
