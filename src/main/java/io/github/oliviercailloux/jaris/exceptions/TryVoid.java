@@ -2,9 +2,13 @@ package io.github.oliviercailloux.jaris.exceptions;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Consumer;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Function;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
+import java.util.Optional;
 
 /**
  * <p>
@@ -15,7 +19,7 @@ import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
  * Instances of this class are immutable.
  * </p>
  */
-public abstract class TryVoid<X extends Exception> {
+public abstract class TryVoid<X extends Exception> extends TryGeneral<Object, X> {
   private static final Success SUCCESS = new Success();
 
   public static <X extends Exception> TryVoid<X> success() {
@@ -68,6 +72,16 @@ public abstract class TryVoid<X extends Exception> {
       return false;
     }
 
+    @Override
+    Optional<Object> getResult() {
+      return Optional.empty();
+    }
+
+    @Override
+    Optional<RuntimeException> getCause() {
+      return Optional.empty();
+    }
+
     private <Y extends Exception> TryVoid<Y> cast() {
       @SuppressWarnings("unchecked")
       final TryVoid<Y> casted = (TryVoid<Y>) this;
@@ -78,6 +92,22 @@ public abstract class TryVoid<X extends Exception> {
     public <T, Y extends Exception> T map(Supplier<T, ? extends Y> supplier,
         Function<? super RuntimeException, T, ? extends Y> causeTransformation) throws Y {
       return supplier.get();
+    }
+
+    @Override
+    public <Y extends Exception> void orConsumeCause(Consumer<? super RuntimeException, Y> consumer)
+        throws Y {
+      /* Nothing to do. */
+    }
+
+    @Override
+    public Optional<RuntimeException> toOptionalCause() {
+      return Optional.empty();
+    }
+
+    @Override
+    public void orThrow() {
+      /* Nothing to do. */
     }
 
     @Override
@@ -129,9 +159,34 @@ public abstract class TryVoid<X extends Exception> {
     }
 
     @Override
+    Optional<Object> getResult() {
+      return Optional.empty();
+    }
+
+    @Override
+    Optional<X> getCause() {
+      return Optional.of(cause);
+    }
+
+    @Override
     public <T, Y extends Exception> T map(Supplier<T, ? extends Y> supplier,
         Function<? super X, T, ? extends Y> causeTransformation) throws Y {
       return causeTransformation.apply(cause);
+    }
+
+    @Override
+    public <Y extends Exception> void orConsumeCause(Consumer<? super X, Y> consumer) throws Y {
+      consumer.accept(cause);
+    }
+
+    @Override
+    public Optional<X> toOptionalCause() {
+      return Optional.of(cause);
+    }
+
+    @Override
+    public void orThrow() throws X {
+      throw cause;
     }
 
     @Override
@@ -165,22 +220,15 @@ public abstract class TryVoid<X extends Exception> {
     }
   }
 
-  /**
-   * Returns <code>true</code> iff this instance represents a success.
-   *
-   * @return <code>true</code> iff {@link #isFailure()} returns <code>false</code>
-   */
-  public abstract boolean isSuccess();
-
-  /**
-   * Return <code>true</code> iff this instance contains a cause.
-   *
-   * @return <code>true</code> iff {@link #isSuccess()} returns <code>false</code>
-   */
-  public abstract boolean isFailure();
-
   public abstract <T, Y extends Exception> T map(Throwing.Supplier<T, ? extends Y> supplier,
       Throwing.Function<? super X, T, ? extends Y> causeTransformation) throws Y;
+
+  public abstract <Y extends Exception> void orConsumeCause(
+      Throwing.Consumer<? super X, Y> consumer) throws Y;
+
+  public abstract Optional<X> toOptionalCause();
+
+  public abstract void orThrow() throws X;
 
   public abstract <T> Try<T, X> and(Try<T, ? extends X> t2);
 
@@ -193,5 +241,13 @@ public abstract class TryVoid<X extends Exception> {
   public abstract TryVoid<X> or(TryVoid<? extends X> t2);
 
   public abstract TryVoid<X> orRun(Throwing.Runnable<? extends X> runnable);
+
+  @Override
+  public String toString() {
+    final ToStringHelper stringHelper = MoreObjects.toStringHelper(this);
+    andRun(() -> stringHelper.addValue("success")).toOptionalCause()
+        .ifPresent(e -> stringHelper.add("cause", e));
+    return stringHelper.toString();
+  }
 
 }

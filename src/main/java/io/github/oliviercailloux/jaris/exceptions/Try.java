@@ -7,12 +7,39 @@ import com.google.common.base.MoreObjects.ToStringHelper;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Consumer;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Function;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
 
 public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
+
+  public static <T> Builder<T> builder() {
+    return new Builder<>();
+  }
+
+  /**
+   * A builder of Try failures, purely for syntactic sugar.
+   *
+   * @param <T> the type of result declared to be possibly (but effectively not) kept in the built
+   *        instances.
+   */
+  public static class Builder<T> {
+    private Builder() {
+      /* Reducing visibility. */
+    }
+
+    /**
+     * Returns a failure containing the given cause and that will catch only checked exceptions when
+     * provided a functional (this matters for the or-based methods).
+     *
+     * @param <X> the type of cause declared to be possibly (and effectively) kept in the returned
+     *        instance.
+     * @param cause the cause to contain
+     */
+    public <X extends Exception> Try<T, X> failure(X cause) {
+      return new Failure<>(cause);
+    }
+  }
 
   /**
    * Returns a success containing the given result and that will catch only checked exceptions when
@@ -93,6 +120,16 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
       return false;
     }
 
+    @Override
+    Optional<T> getResult() {
+      return Optional.of(result);
+    }
+
+    @Override
+    Optional<X> getCause() {
+      return Optional.empty();
+    }
+
     private <Y extends Exception> Try<T, Y> cast() {
       @SuppressWarnings("unchecked")
       final Try<T, Y> casted = (Try<T, Y>) this;
@@ -151,7 +188,8 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
     }
 
     @Override
-    public <U, V, Y extends X> Try<V, X> and(Try<U, Y> t2, BiFunction<T, U, V> merger) {
+    public <U, V, Y extends X, Z extends X> Try<V, X> and(Try<U, Y> t2,
+        Throwing.BiFunction<T, U, V, Z> merger) throws Z {
       return t2.map(u -> success(merger.apply(result, u)), Try::failure);
     }
 
@@ -159,6 +197,11 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
     public <U extends T> Try<U, X> flatMap(Function<T, U, ? extends X> mapper) {
       final Try<U, ? extends X> t2 = Try.get(() -> mapper.apply(result));
       return cast(t2);
+    }
+
+    @Override
+    public TryVoid<X> toTryVoid() {
+      return TryVoid.success();
     }
   }
 
@@ -177,6 +220,16 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
     @Override
     public boolean isFailure() {
       return true;
+    }
+
+    @Override
+    Optional<T> getResult() {
+      return Optional.empty();
+    }
+
+    @Override
+    Optional<X> getCause() {
+      return Optional.of(cause);
     }
 
     private <U> Try<U, X> cast() {
@@ -239,7 +292,8 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
     }
 
     @Override
-    public <U, V, Y extends X> Try<V, X> and(Try<U, Y> t2, BiFunction<T, U, V> merger) {
+    public <U, V, Y extends X, Z extends X> Try<V, X> and(Try<U, Y> t2,
+        Throwing.BiFunction<T, U, V, Z> merger) throws Z {
       return cast();
     }
 
@@ -247,11 +301,28 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
     public <U extends T> Try<U, X> flatMap(Function<T, U, ? extends X> mapper) {
       return cast();
     }
+
+    @Override
+    public TryVoid<X> toTryVoid() {
+      return TryVoid.failure(cause);
+    }
   }
 
   protected Try() {
     /* Reducing visibility. */
   }
+
+  /**
+   * Returns <code>true</code> iff this object contains a result (and not a cause).
+   */
+  @Override
+  public abstract boolean isSuccess();
+
+  /**
+   * Return <code>true</code> iff this object contains a cause (and not a result).
+   */
+  @Override
+  public abstract boolean isFailure();
 
   public abstract <U, Y extends Exception> U map(
       Throwing.Function<T, ? extends U, ? extends Y> transformation,
@@ -277,47 +348,18 @@ public abstract class Try<T, X extends Exception> extends TryGeneral<T, X> {
 
   public abstract Try<T, X> andConsume(Throwing.Consumer<? super T, ? extends X> consumer);
 
-  public abstract <U, V, Y extends X> Try<V, X> and(Try<U, Y> t2, BiFunction<T, U, V> merger);
+  public abstract <U, V, Y extends X, Z extends X> Try<V, X> and(Try<U, Y> t2,
+      Throwing.BiFunction<T, U, V, Z> merger) throws Z;
 
   public abstract <U extends T> Try<U, X> flatMap(Throwing.Function<T, U, ? extends X> mapper);
 
   public abstract TryVoid<X> toTryVoid();
 
-  /**
-   * Returns <code>true</code> iff, either:
-   * <ul>
-   * <li>the given object is a {@link Try} and this object and the given one are both successes and
-   * hold equal results;
-   * <li>the given object is a {@link Try} or a {@link TryVoid} and this object and the given one
-   * are both failures and hold equal causes.
-   * </ul>
-   */
-  @Override
-  public boolean equals(Object o2) {
-    if (!(o2 instanceof TryOld)) {
-      return false;
-    }
-
-    final TryOld<?> t2 = (TryOld<?>) o2;
-    return Objects.equals(result, t2.result) && Objects.equals(cause, t2.cause);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(result, cause);
-  }
-
-  /**
-   * Returns a string representation of this object, suitable for debug.
-   */
   @Override
   public String toString() {
     final ToStringHelper stringHelper = MoreObjects.toStringHelper(this);
-    if (isSuccess()) {
-      stringHelper.add("result", result);
-    } else {
-      stringHelper.add("cause", cause);
-    }
+    andConsume(r -> stringHelper.add("result", r))
+        .orConsumeCause(e -> stringHelper.add("cause", e));
     return stringHelper.toString();
   }
 
