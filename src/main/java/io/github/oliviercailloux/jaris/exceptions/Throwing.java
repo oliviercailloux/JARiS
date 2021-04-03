@@ -10,7 +10,7 @@ import java.util.stream.Stream;
  * Note that a typical usage of these interfaces will bind a <em>checked exception</em> to the type
  * parameter <code>X</code>, though contrary usage (when <code>X</code> is bound to
  * {@link RuntimeException} or a child thereof) may be useful for falling back to a behavior that
- * does not treat exceptions especially. For example, when a {@link CheckedStream} is used with a
+ * does not treat exceptions specially. For example, when a {@link CheckedStream} is used with a
  * throwing interface that declare a {@link RuntimeException}, the {@link CheckedStream} behaves
  * like a {@link Stream}.
  * <p>

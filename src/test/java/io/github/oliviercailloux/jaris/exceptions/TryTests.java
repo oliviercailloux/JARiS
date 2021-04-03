@@ -327,6 +327,101 @@ public class TryTests {
     assertThrows(IOException.class, t::orThrow);
   }
 
+  @Test
+  void testSafeSuccess() {
+    final UnsupportedOperationException runtimeExc = new UnsupportedOperationException();
+    final IOException cause = new IOException();
+    final TrySafe<Integer> t = TrySafe.success(1);
+
+    /*TODO think abou TrySafeVoid#orThrows or how to obtain the cause in gnrl. Also, predicate on cause? */
+    
+    assertEquals(t, TrySafe.get(() -> 1));
+    assertNotEquals(t, Try.success(1));
+    assertNotEquals(t, Try.get(() -> 1));
+
+    assertEquals(TrySafe.success(3), t.and(TrySafe.success(2), (i1, i2) -> i1 + i2));
+    assertEquals(TrySafe.failure(cause),
+        t.and(TrySafe.failure(cause), TryTests::mergeAdding));
+    assertThrows(IOException.class, () -> t.and(TrySafe.success(2), TryTests::mergeThrowing));
+
+    assertEquals(TrySafe.success(1), t.andConsume(i -> {
+    }));
+    assertEquals(TrySafe.failure(cause), t.andConsume(i -> {
+      throw cause;
+    }));
+    assertEquals(TrySafe.failure(cause), t.andConsume(i -> {
+      throw runtimeExc;
+    }));
+
+    assertEquals(TrySafe.success(1), t.andRun(TryVoid.success()::orThrow));
+    assertEquals(TrySafe.failure(cause), t.andRun(TryVoid.failure(cause)::orThrow));
+
+    assertEquals(TrySafe.success(1), t.andRun(() -> {
+    }));
+    assertEquals(TrySafe.failure(cause), t.andRun(() -> {
+      throw cause;
+    }));
+    assertEquals(TrySafe.failure(cause), t.andRun(() -> {
+      throw runtimeExc;
+    }));
+
+    assertEquals(TrySafe.success(5), t.flatMap(i -> i + 4));
+    assertEquals(TrySafe.failure(cause), t.flatMap(i -> {
+      throw cause;
+    }));
+    assertEquals(TrySafe.failure(cause), t.flatMap(i -> {
+      throw runtimeExc;
+    }));
+
+    assertFalse(t.isFailure());
+    assertTrue(t.isSuccess());
+
+    assertEquals(Optional.of(1), t.orConsumeCause(i -> {
+    }));
+    try {
+      assertEquals(Optional.of(1), t.orConsumeCause(i -> {
+        throw cause;
+      }));
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+    assertEquals(Optional.of(1), t.orConsumeCause(i -> {
+      throw runtimeExc;
+    }));
+
+    assertEquals(TrySafe.success(1), t.or(TrySafe.success(6)::orThrow, (e1, e2) -> cause));
+    assertEquals(TrySafe.success(1),
+        t.or(TrySafe.<Integer, IOException>failure(cause)::orThrow, (e1, e2) -> cause));
+
+    assertEquals(TrySafe.success(1), t.or(() -> 6, (e1, e2) -> cause));
+    assertEquals(TrySafe.success(1), t.or(() -> {
+      throw cause;
+    }, (e1, e2) -> cause));
+    assertEquals(TrySafe.success(1), t.or(() -> {
+      throw runtimeExc;
+    }, (e1, e2) -> cause));
+
+    assertEquals(1, t.orMapCause(e -> 8));
+    try {
+      assertEquals(1, t.orMapCause(e -> {
+        throw cause;
+      }));
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+    assertEquals(1, t.orMapCause(e -> {
+      throw runtimeExc;
+    }));
+
+    try {
+      assertEquals(1, t.orThrow());
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+
+    assertNotEquals(TrySafeVoid.success(), t);
+  }
+
   static int mergeAdding(int i1, int i2) {
     return i1 + i2;
   }

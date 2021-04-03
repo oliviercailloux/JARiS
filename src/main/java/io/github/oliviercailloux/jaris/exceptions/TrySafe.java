@@ -11,7 +11,8 @@ import java.util.Optional;
 
 
 /**
- * An equivalent of Try but which catches all throwables where Try catches checked exceptions.
+ * An equivalent to {@link Try} that which catches all throwables instead of catching only checked
+ * exceptions.
  *
  * @param <T> the type of result possibly kept in the instance.
  */
@@ -129,7 +130,7 @@ public abstract class TrySafe<T> extends TryOptionalSafe<T> implements TryGenera
 
     @Override
     public TrySafe<T> andRun(Runnable<?> runnable) {
-      final TryVoid<?> ran = TrysVoidSafe.run(runnable);
+      final TrySafeVoid ran = TrySafeVoid.run(runnable);
       return ran.map(() -> this, TrySafe::failure);
     }
 
@@ -268,8 +269,7 @@ public abstract class TrySafe<T> extends TryOptionalSafe<T> implements TryGenera
    * @return a success if this instance is a success or the given supplier returned a result
    * @throws W iff the merger was applied and threw a checked exception
    */
-  public abstract <W extends Exception> TrySafe<T> or(
-      Throwing.Supplier<? extends T, ? extends Exception> supplier,
+  public abstract <W extends Exception> TrySafe<T> or(Throwing.Supplier<? extends T, ?> supplier,
       Throwing.BiFunction<? super Throwable, ? super Throwable, ? extends Throwable, W> throwablesMerger)
       throws W;
 
@@ -290,7 +290,7 @@ public abstract class TrySafe<T> extends TryOptionalSafe<T> implements TryGenera
 
   /**
    * Returns a failure containing this cause if this instance is a failure, a failure containing the
-   * throwable that the provided consumer threw if it did throw, and a success containg the result
+   * throwable that the provided consumer threw if it did throw, and a success containing the result
    * contained in this instance otherwise.
    * <p>
    * If this instance is a failure, returns this instance without running the provided consumer.
