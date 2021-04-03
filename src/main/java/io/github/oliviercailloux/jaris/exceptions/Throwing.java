@@ -8,14 +8,13 @@ import java.util.stream.Stream;
  * used instead of the standard equivalent when (some of) the methods declare a checked exception.
  * <p>
  * Note that a typical usage of these interfaces will bind a <em>checked exception</em> to the type
- * parameter <code>X</code>, though contrary usage (when <code>X</code> is bound to
- * {@link RuntimeException} or a child thereof) may be useful for falling back to a behavior that
- * does not treat exceptions specially. For example, when a {@link CheckedStream} is used with a
- * throwing interface that declare a {@link RuntimeException}, the {@link CheckedStream} behaves
- * like a {@link Stream}.
+ * parameter {@code X}, though contrary usage (when {@code X} is bound to {@link RuntimeException}
+ * or a child thereof) may be useful for falling back to a behavior that does not treat exceptions
+ * specially. For example, when a {@link CheckedStream} is used with a throwing interface that
+ * declare a {@link RuntimeException}, the {@link CheckedStream} behaves like a {@link Stream}.
  * <p>
- * In all these interfaces, <code>X</code> designates a type of (typically, checked) exception that
- * (some of) the methods may throw. These methods may throw other throwable instances, but the
+ * In all these interfaces, {@code X} designates a type of (typically, checked) exception that (some
+ * of) the methods may throw. These methods may throw other throwable instances, but the
  * <em>only</em> sort of <em>checked</em> exception it can throw should be of type <code>X</code>.
  * By the rules of Java, this will be guaranteed by the compiler, unless sneaky-throw is used.
  * <p>
@@ -27,8 +26,22 @@ import java.util.stream.Stream;
  * Inspired from the <a href=
  * "https://github.com/diffplug/durian/blob/99100976d27a5ebec74a0a7df48fc23de822fa00/src/com/diffplug/common/base/Throwing.java">durian</a>
  * library; simplified.
+ * <p>
+ * The signatures allow for {@code X} to extend merely {@link Throwable}, which can be useful in
+ * very specific circumstances. It is strongly recommended however to consider restricting {@code X}
+ * to extend Exception at the call site: throwables that are not exceptions should generally not be
+ * caught.
  */
 public final class Throwing {
+  /**
+   * I initially thought about allowing only {@code X} to extend Exception. But this creates a
+   * practical problem. Using TrySafe::orThrow to convert a try safe into a supplier requires
+   * {@code X} to be allowed to extend Throwable. Besides, it now seems to me that the constraint of
+   * Exception extension is unduly restrictive: such restrictions should be enforced at the
+   * reception site, where developer knows what versions make sense. Someone may wish to write a
+   * library that checks that some code does not throw, for example, in which case the larger
+   * (unconstrained) version would be useful.
+   */
   private Throwing() {
     /* Not for instanciation. */
   }
@@ -39,7 +52,7 @@ public final class Throwing {
    * @param <X> a sort of exception that this runnable may throw
    */
   @FunctionalInterface
-  public interface Runnable<X extends Exception> {
+  public interface Runnable<X extends Throwable> {
     /**
      * Takes an action.
      *
@@ -55,7 +68,7 @@ public final class Throwing {
    * @param <X> a sort of exception that this supplier may throw
    */
   @FunctionalInterface
-  public interface Supplier<T, X extends Exception> {
+  public interface Supplier<T, X extends Throwable> {
     /**
      * Gets a result.
      *
@@ -73,7 +86,7 @@ public final class Throwing {
    * @param <X> a sort of exception that this comparator may throw
    */
   @FunctionalInterface
-  public interface Comparator<T, X extends Exception> {
+  public interface Comparator<T, X extends Throwable> {
     /**
      * Compares its two arguments for order.
      *
@@ -92,17 +105,17 @@ public final class Throwing {
   }
 
   @FunctionalInterface
-  public interface Consumer<T, X extends Exception> {
+  public interface Consumer<T, X extends Throwable> {
     public void accept(T t) throws X;
   }
 
   @FunctionalInterface
-  public interface Function<T, R, X extends Exception> {
+  public interface Function<T, R, X extends Throwable> {
     public R apply(T t) throws X;
   }
 
   @FunctionalInterface
-  public interface Predicate<T, X extends Exception> {
+  public interface Predicate<T, X extends Throwable> {
     public boolean test(T t) throws X;
 
     public default <Y extends X> Predicate<T, X> and(Predicate<? super T, Y> p2) {
@@ -119,17 +132,17 @@ public final class Throwing {
   }
 
   @FunctionalInterface
-  public interface BiConsumer<T, U, X extends Exception> {
+  public interface BiConsumer<T, U, X extends Throwable> {
     public void accept(T t, U u) throws X;
   }
 
   @FunctionalInterface
-  public interface BiFunction<T, U, R, X extends Exception> {
+  public interface BiFunction<T, U, R, X extends Throwable> {
     public R apply(T t, U u) throws X;
   }
 
   @FunctionalInterface
-  public interface BiPredicate<T, U, X extends Exception> {
+  public interface BiPredicate<T, U, X extends Throwable> {
     public boolean accept(T t, U u) throws X;
   }
 }
