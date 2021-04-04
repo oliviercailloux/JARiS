@@ -1,9 +1,10 @@
-package io.github.oliviercailloux.jaris.exceptions;
+package io.github.oliviercailloux.jaris.exceptions.old;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.MoreObjects;
+import io.github.oliviercailloux.jaris.exceptions.Throwing;
 import java.util.Objects;
 import java.util.Optional;
 

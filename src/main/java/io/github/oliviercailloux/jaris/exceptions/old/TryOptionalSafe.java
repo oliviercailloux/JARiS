@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.jaris.exceptions;
+package io.github.oliviercailloux.jaris.exceptions.old;
 
 /**
  * A TryOptional safe, for implementing equals.

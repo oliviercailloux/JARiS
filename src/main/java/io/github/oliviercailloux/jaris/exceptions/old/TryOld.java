@@ -1,30 +1,54 @@
-package io.github.oliviercailloux.jaris.exceptions;
+package io.github.oliviercailloux.jaris.exceptions.old;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
+import io.github.oliviercailloux.jaris.exceptions.Throwing;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * TODO specific that this library is <code>null</code> hostile
- *
  * @param <T> the type of result possibly kept in this object.
  */
-public class TrySafeOld<T> extends TryGeneral<T, Throwable> {
+public class TryOld<T, X extends Exception> {
+  /**
+   * Attempts to get and encapsulate a result from the given supplier.
+   * <p>
+   * This method returns a failure iff the given supplier throws, irrespective of whether the
+   * supplier throws some <code>X</code> or anything else.
+   *
+   * @param <T> the type that parameterizes the returned instance
+   * @param <U> the type of result supplied by this supplier
+   * @param <X> a sort of exception that the supplier may throw
+   * @param supplier the supplier to get a result from
+   * @return a success containing the result if the supplier returns a result; a failure containing
+   *         the throwable if the supplier throws anything
+   */
+  public static <T, U extends T, X extends Exception, Y extends X> TryOld<T, X> of(
+      Throwing.Supplier<U, Y> supplier) {
+    try {
+      return success(supplier.get());
+    } catch (RuntimeException e) {
+      throw e;
+    } catch (Exception e) {
+      @SuppressWarnings("unchecked")
+      final Y exc = (Y) e;
+      return TryOld.failure(exc);
+    }
+  }
+
   /**
    * Returns a success containing the given result.
    *
    * @param <T> the type that parameterizes the returned instance
    * @param t the result to contain
    */
-  public static <T> TrySafe<T> successSafe(T t) {
-    return new TrySafe<>(t, null);
+  public static <T, X extends Exception> TryOld<T, X> success(T t) {
+    return new TryOld<>(t, null);
   }
 
   /**
@@ -34,14 +58,14 @@ public class TrySafeOld<T> extends TryGeneral<T, Throwable> {
    *        determines which result this instance can hold, but it holds none)
    * @param cause the cause to contain
    */
-  public static <T> TrySafe<T> failureSafe(Throwable cause) {
-    return new TrySafe<>(null, cause);
+  public static <T, X extends Exception> TryOld<T, X> failure(X cause) {
+    return new TryOld<>(null, cause);
   }
 
   private final T result;
-  private final Throwable cause;
+  private final X cause;
 
-  private TrySafeOld(T t, Throwable cause) {
+  private TryOld(T t, X cause) {
     final boolean thrown = cause != null;
     final boolean resulted = t != null;
     checkArgument(resulted == !thrown);
@@ -67,25 +91,18 @@ public class TrySafeOld<T> extends TryGeneral<T, Throwable> {
     return cause != null;
   }
 
-  private <T2> TrySafe<T2> castFailure() {
-    checkState(isFailure());
-    @SuppressWarnings("unchecked")
-//    final TrySafe<T2> casted = (TrySafe<T2>) this;
-    return casted;
-  }
-
-  public <U extends T, X extends Exception> TrySafe<T> orGet(Throwing.Supplier<U, X> supplier) {
+  public <U extends T, Y extends X> TryOld<T, X> orGet(Throwing.Supplier<U, Y> supplier) {
     if (isSuccess()) {
       return this;
     }
-    final TrySafe<T> t2 = TrySafe.of(supplier);
+    final TryOld<T, X> t2 = TryOld.of(supplier);
     if (t2.isSuccess()) {
       return t2;
     }
     return this;
   }
 
-  public <X extends Exception> TrySafe<T> and(Throwing.Consumer<T, X> consumer) {
+  public <X extends Exception> TryOld<T> and(Throwing.Consumer<T, X> consumer) {
     if (isFailure()) {
       return this;
     }
@@ -97,9 +114,9 @@ public class TrySafeOld<T> extends TryGeneral<T, Throwable> {
   }
 
   /**
-   * If this instance is a success, returns a {@link TrySafe} that contains its result transformed
-   * by the given transformation or a cause thrown by the given transformation. If this instance is
-   * a failure, returns this instance.
+   * If this instance is a success, returns a {@link TryOld} that contains its result transformed by
+   * the given transformation or a cause thrown by the given transformation. If this instance is a
+   * failure, returns this instance.
    * <p>
    * This method does not throw. If the given function throws while applying it to this instance’s
    * result, the throwable is returned in the resulting try instance.
@@ -109,12 +126,12 @@ public class TrySafeOld<T> extends TryGeneral<T, Throwable> {
    * @return a success iff this instance is a success and the transformation function did not throw
    * @see #map(Function)
    */
-  public <T2, X extends Exception> TrySafe<T2> flatMap(Throwing.Function<T, T2, X> transformation) {
-    final TrySafe<T2> newResult;
+  public <T2, X extends Exception> TryOld<T2> flatMap(Throwing.Function<T, T2, X> transformation) {
+    final TryOld<T2> newResult;
     if (isFailure()) {
       newResult = castFailure();
     } else {
-      newResult = TrySafe.of(() -> transformation.apply(result));
+      newResult = TryOld.of(() -> transformation.apply(result));
     }
     return newResult;
   }
@@ -155,11 +172,11 @@ public class TrySafeOld<T> extends TryGeneral<T, Throwable> {
     return result;
   }
 
-  public <U, R, X extends Exception> TrySafe<R> merge(TrySafe<U> t2,
+  public <U, R, X extends Exception> TryOld<R> merge(TryOld<U> t2,
       Throwing.BiFunction<T, U, R, X> merger) {
     if (isSuccess()) {
       if (t2.isSuccess()) {
-        return TrySafe.of(() -> merger.apply(result, t2.result));
+        return TryOld.of(() -> merger.apply(result, t2.result));
       }
       return t2.castFailure();
     }
@@ -181,17 +198,17 @@ public class TrySafeOld<T> extends TryGeneral<T, Throwable> {
   }
 
   /**
-   * Returns <code>true</code> iff the given object is a {@link TrySafe}; is a success or a failure
+   * Returns <code>true</code> iff the given object is a {@link TryOld}; is a success or a failure
    * according to whether this instance is a success or a failure; and holds an equal result or
    * cause.
    */
   @Override
   public boolean equals(Object o2) {
-    if (!(o2 instanceof TrySafe)) {
+    if (!(o2 instanceof TryOld)) {
       return false;
     }
 
-    final TrySafe<?> t2 = (TrySafe<?>) o2;
+    final TryOld<?> t2 = (TryOld<?>) o2;
     return Objects.equals(result, t2.result) && Objects.equals(cause, t2.cause);
   }
 

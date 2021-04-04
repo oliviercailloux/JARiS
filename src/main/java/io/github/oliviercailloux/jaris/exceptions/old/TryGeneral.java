@@ -1,5 +1,6 @@
-package io.github.oliviercailloux.jaris.exceptions;
+package io.github.oliviercailloux.jaris.exceptions.old;
 
+import io.github.oliviercailloux.jaris.exceptions.Throwing;
 import java.util.Optional;
 
 /**

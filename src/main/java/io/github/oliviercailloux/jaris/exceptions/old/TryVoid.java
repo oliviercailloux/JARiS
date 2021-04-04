@@ -1,9 +1,10 @@
-package io.github.oliviercailloux.jaris.exceptions;
+package io.github.oliviercailloux.jaris.exceptions.old;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
+import io.github.oliviercailloux.jaris.exceptions.Throwing;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Consumer;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Function;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;

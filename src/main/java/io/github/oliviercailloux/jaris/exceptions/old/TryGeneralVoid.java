@@ -1,4 +1,6 @@
-package io.github.oliviercailloux.jaris.exceptions;
+package io.github.oliviercailloux.jaris.exceptions.old;
+
+import io.github.oliviercailloux.jaris.exceptions.Throwing;
 
 /**
  * An internal try type for implementation by {@link TryVoid} and {@link TrySafeVoid}.
