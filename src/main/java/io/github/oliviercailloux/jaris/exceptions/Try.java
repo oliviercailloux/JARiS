@@ -6,16 +6,12 @@ package io.github.oliviercailloux.jaris.exceptions;
  * TryStatic and TryStaticVoid, with the few main methods not involving catch. Then interfaces Try
  * and TryCatchAll; TryVoid and TryCatchAllVoid. Then TryImpl with two inner classes, and similarly
  * for the other ones. That’s 6 interfaces + 12 classes = 18 classes. Not much better.
- * <p>
- * Consider adding orThrow(Function<Throwable → X extends Throwable>) throws X; to simplify getting
- * the content? But probably useful only after a get(), in which case we can as well throw as in
- * Optional#orThrow. And only for CatchAll which annoyingly always throws Throwable for orThrow,
- * which thus makes it not very useful. The other one we can map the cause then throw it.
  *
  * @param <T>
  * @param <X>
  */
-public interface Try<T, X extends Exception> extends TryVariableCatchInterface<T, X, Exception> {
+public interface Try<T, X extends Exception>
+    extends TryOptional.TryVariableCatchInterface<T, X, Exception> {
   public static <T, X extends Exception> Try<T, X> success(T result) {
     return TryOptional.TrySuccess.given(result);
   }

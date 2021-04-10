@@ -1,6 +1,7 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
-public interface TryCatchAll<T> extends TryVariableCatchInterface<T, Throwable, Throwable> {
+public interface TryCatchAll<T>
+    extends TryOptional.TryVariableCatchInterface<T, Throwable, Throwable> {
   public static <T> TryCatchAll<T> success(T result) {
     return TryCatchAllSuccess.given(result);
   }

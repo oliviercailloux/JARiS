@@ -1,9 +1,9 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
-import io.github.oliviercailloux.jaris.exceptions.old.Try;
 
-public interface TryCatchAllVoid extends TryVoidVariableCatchInterface<Throwable, Throwable> {
+public interface TryCatchAllVoid
+    extends TryOptional.TryVoidVariableCatchInterface<Throwable, Throwable> {
   public static TryCatchAllVoid success() {
     return TryVoidCatchAllSuccess.given();
   }

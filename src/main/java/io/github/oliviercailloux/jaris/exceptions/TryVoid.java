@@ -3,7 +3,8 @@ package io.github.oliviercailloux.jaris.exceptions;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
 
 
-public interface TryVoid<X extends Exception> extends TryVoidVariableCatchInterface<X, Exception> {
+public interface TryVoid<X extends Exception>
+    extends TryOptional.TryVoidVariableCatchInterface<X, Exception> {
   public static <X extends Exception> TryVoid<X> success() {
     return TryOptional.TryVoidSuccess.given();
   }
