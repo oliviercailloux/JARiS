@@ -1,7 +1,5 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
-import static com.google.common.base.Verify.verify;
-
 import io.github.oliviercailloux.jaris.exceptions.old.Try;
 import io.github.oliviercailloux.jaris.exceptions.old.TryVoid;
 import java.util.Objects;
@@ -33,10 +31,7 @@ abstract class TryOptional<T, X extends Throwable> {
    * @return <code>true</code> iff {@link #isFailure()} returns <code>false</code>
    */
   public boolean isSuccess() {
-    final boolean hasResult = getResult().isPresent();
-    final boolean hasCause = getCause().isPresent();
-    verify(hasResult != hasCause);
-    return hasResult;
+    return getCause().isEmpty();
   }
 
   /**
@@ -45,10 +40,7 @@ abstract class TryOptional<T, X extends Throwable> {
    * @return <code>true</code> iff {@link #isSuccess()} returns <code>false</code>
    */
   public boolean isFailure() {
-    final boolean hasResult = getResult().isPresent();
-    final boolean hasCause = getCause().isPresent();
-    verify(hasResult != hasCause);
-    return hasCause;
+    return getCause().isPresent();
   }
 
   abstract boolean catchesAll();
