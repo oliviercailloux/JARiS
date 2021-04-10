@@ -5,11 +5,11 @@ import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
 
 public interface TryVoid<X extends Exception> extends TryVoidVariableCatchInterface<X, Exception> {
   public static <X extends Exception> TryVoid<X> success() {
-    return TryVoidSuccess.given();
+    return TryOptional.TryVoidSuccess.given();
   }
 
   public static <X extends Exception> TryVoid<X> failure(X cause) {
-    return TryVoidFailure.given(cause);
+    return TryOptional.TryVoidFailure.given(cause);
   }
 
   public static <X extends Exception> TryVoid<X> run(Throwing.Runnable<? extends X> runnable) {

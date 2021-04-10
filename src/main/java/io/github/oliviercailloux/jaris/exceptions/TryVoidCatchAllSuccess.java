@@ -3,7 +3,7 @@ package io.github.oliviercailloux.jaris.exceptions;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
 
-class TryVoidCatchAllSuccess extends TryVoidVariableCatchSuccess<Throwable, Throwable>
+class TryVoidCatchAllSuccess extends TryOptional.TryVoidVariableCatchSuccess<Throwable, Throwable>
     implements TryCatchAllVoid {
   public static TryCatchAllVoid given() {
     return new TryVoidCatchAllSuccess();

@@ -2,8 +2,8 @@ package io.github.oliviercailloux.jaris.exceptions;
 
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
 
-public class TryVoidCatchAllFailure extends TryVoidVariableCatchFailure<Throwable, Throwable>
-    implements TryCatchAllVoid {
+public class TryVoidCatchAllFailure extends
+    TryOptional.TryVoidVariableCatchFailure<Throwable, Throwable> implements TryCatchAllVoid {
   public static TryCatchAllVoid given(Throwable cause) {
     return new TryVoidCatchAllFailure(cause);
   }

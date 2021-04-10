@@ -17,11 +17,11 @@ package io.github.oliviercailloux.jaris.exceptions;
  */
 public interface Try<T, X extends Exception> extends TryVariableCatchInterface<T, X, Exception> {
   public static <T, X extends Exception> Try<T, X> success(T result) {
-    return TrySuccess.given(result);
+    return TryOptional.TrySuccess.given(result);
   }
 
   public static <T, X extends Exception> Try<T, X> failure(X cause) {
-    return TryFailure.given(cause);
+    return TryOptional.TryFailure.given(cause);
   }
 
   public static <T, X extends Exception> Try<T, X> get(

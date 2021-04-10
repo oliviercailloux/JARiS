@@ -1,9 +1,16 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
-import io.github.oliviercailloux.jaris.exceptions.old.Try;
-import io.github.oliviercailloux.jaris.exceptions.old.TryVoid;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.BiFunction;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Consumer;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * The root of the Try contract hierarchy, defining in the most general way the concepts of success,
@@ -20,6 +27,350 @@ import java.util.Optional;
  * @param <X> the type of cause kept in this object if it is a failure.
  */
 abstract class TryOptional<T, X extends Throwable> {
+  public static abstract class TryVariableCatch<T, X extends Throwable, Z extends Throwable>
+      extends TryOptional<T, X> implements TryVariableCatchInterface<T, X, Z> {
+
+    @Override
+    public String toString() {
+      final ToStringHelper stringHelper = MoreObjects.toStringHelper(this);
+      orConsumeCause(e -> stringHelper.add("cause", e))
+          .ifPresent(r -> stringHelper.add("result", r));
+      return stringHelper.toString();
+    }
+  }
+
+  public static abstract class TryVariableCatchSuccess<T, X extends Throwable, Z extends Throwable>
+      extends TryVariableCatch<T, X, Z> {
+
+    protected final T result;
+
+    protected TryVariableCatchSuccess(T result) {
+      this.result = checkNotNull(result);
+    }
+
+    @Override
+    Optional<T> getResult() {
+      return Optional.of(result);
+    }
+
+    @Override
+    Optional<X> getCause() {
+      return Optional.empty();
+    }
+
+    @Override
+    public <U, Y extends Exception> U map(
+        Throwing.Function<? super T, ? extends U, ? extends Y> transformation,
+        Throwing.Function<? super X, ? extends U, ? extends Y> causeTransformation) throws Y {
+      return transformation.apply(result);
+    }
+
+    @Override
+    public <Y extends Exception> T orMapCause(
+        Throwing.Function<? super X, ? extends T, Y> causeTransformation) throws Y {
+      return result;
+    }
+
+    @Override
+    public <Y extends Exception> Optional<T> orConsumeCause(
+        Throwing.Consumer<? super X, Y> consumer) throws Y {
+      return Optional.of(result);
+    }
+
+    @Override
+    public <Y extends Z> T orThrow(Function<X, Y> causeTransformation) {
+      return result;
+    }
+  }
+
+  public static abstract class TryVariableCatchFailure<X extends Throwable, Z extends Throwable>
+      extends TryVariableCatch<Object, X, Z> {
+
+    protected final X cause;
+
+    protected TryVariableCatchFailure(X cause) {
+      this.cause = checkNotNull(cause);
+    }
+
+    @Override
+    Optional<Object> getResult() {
+      return Optional.empty();
+    }
+
+    @Override
+    Optional<X> getCause() {
+      return Optional.of(cause);
+    }
+
+    @Override
+    public <U, Y extends Exception> U map(
+        Throwing.Function<? super Object, ? extends U, ? extends Y> transformation,
+        Throwing.Function<? super X, ? extends U, ? extends Y> causeTransformation) throws Y {
+      return causeTransformation.apply(cause);
+    }
+
+    @Override
+    public <Y extends Exception> Object orMapCause(
+        Throwing.Function<? super X, ? extends Object, Y> causeTransformation) throws Y {
+      return causeTransformation.apply(cause);
+    }
+
+    @Override
+    public <Y extends Exception> Optional<Object> orConsumeCause(
+        Throwing.Consumer<? super X, Y> consumer) throws Y {
+      consumer.accept(cause);
+      return Optional.empty();
+    }
+
+    @Override
+    public <Y extends Z> Object orThrow(Function<X, Y> causeTransformation) throws Y {
+      throw causeTransformation.apply(cause);
+    }
+  }
+
+  public static abstract class TryVoidVariableCatchSuccess<X extends Throwable, Z extends Throwable>
+      extends TryVoidVariableCatch<X, Z> {
+
+    protected TryVoidVariableCatchSuccess() {
+      /* Reducing visibility. */
+    }
+
+    @Override
+    Optional<Object> getResult() {
+      return Optional.empty();
+    }
+
+    @Override
+    Optional<X> getCause() {
+      return Optional.empty();
+    }
+
+    @Override
+    public <T, Y extends Exception> T map(Throwing.Supplier<? extends T, ? extends Y> supplier,
+        Throwing.Function<? super X, ? extends T, ? extends Y> causeTransformation) throws Y {
+      return supplier.get();
+    }
+
+    @Override
+    public <Y extends Exception> void ifFailed(Throwing.Consumer<? super X, Y> consumer) throws Y {
+      /* Nothing to do. */
+    }
+
+    @Override
+    public <Y extends Z> void orThrow(Function<X, Y> causeTransformation) {
+      /* Nothing to do. */
+    }
+  }
+
+  public static abstract class TryVoidVariableCatchFailure<X extends Throwable, Z extends Throwable>
+      extends TryVoidVariableCatch<X, Z> {
+
+    protected final X cause;
+
+    protected TryVoidVariableCatchFailure(X cause) {
+      this.cause = checkNotNull(cause);
+    }
+
+    @Override
+    Optional<Object> getResult() {
+      return Optional.empty();
+    }
+
+    @Override
+    Optional<X> getCause() {
+      return Optional.of(cause);
+    }
+
+    @Override
+    public <T, Y extends Exception> T map(Throwing.Supplier<? extends T, ? extends Y> supplier,
+        Throwing.Function<? super X, ? extends T, ? extends Y> causeTransformation) throws Y {
+      return causeTransformation.apply(cause);
+    }
+
+    @Override
+    public <Y extends Exception> void ifFailed(Throwing.Consumer<? super X, Y> consumer) throws Y {
+      consumer.accept(cause);
+    }
+
+    @Override
+    public <Y extends Z> void orThrow(Function<X, Y> causeTransformation) throws Y {
+      throw causeTransformation.apply(cause);
+    }
+  }
+
+  public static class TrySuccess<T> extends TryVariableCatchSuccess<T, Exception, Exception>
+      implements Try<T, Exception> {
+    public static <T, X extends Exception> Try<T, X> given(T result) {
+      return new TrySuccess<>(result).cast();
+    }
+
+    private TrySuccess(T result) {
+      super(result);
+    }
+
+    @Override
+    boolean catchesAll() {
+      return false;
+    }
+
+    private <Y extends Exception> Try<T, Y> cast() {
+      @SuppressWarnings("unchecked")
+      final Try<T, Y> casted = (Try<T, Y>) this;
+      return casted;
+    }
+
+    @Override
+    public <Y extends Exception, Z extends Exception, W extends Exception> Try<T, Z> or(
+        Supplier<? extends T, Y> supplier,
+        BiFunction<? super Exception, ? super Y, ? extends Z, W> exceptionsMerger) throws W {
+      return cast();
+    }
+
+    @Override
+    public Try<T, Exception> andRun(Runnable<? extends Exception> runnable) {
+      final TryVoid<? extends Exception> ran = TryVoid.run(runnable);
+      return ran.map(() -> this, Try::failure);
+    }
+
+    @Override
+    public Try<T, Exception> andConsume(Consumer<? super T, ? extends Exception> consumer) {
+      return andRun(() -> consumer.accept(result));
+    }
+
+    @Override
+    public <U, V, Y extends Exception> Try<V, Exception> and(Try<U, ? extends Exception> t2,
+        BiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y {
+      return t2.map(u -> Try.success(merger.apply(result, u)), Try::failure);
+    }
+
+    @Override
+    public <U> Try<U, Exception> flatMap(
+        Throwing.Function<? super T, ? extends U, ? extends Exception> mapper) {
+      return Try.get(() -> mapper.apply(result));
+    }
+  }
+  public static class TryFailure<X extends Exception>
+      extends TryOptional.TryVariableCatchFailure<X, Exception> implements Try<Object, X> {
+    public static <T, X extends Exception> Try<T, X> given(X cause) {
+      return new TryFailure<>(cause).cast();
+    }
+
+    private TryFailure(X cause) {
+      super(cause);
+    }
+
+    @Override
+    boolean catchesAll() {
+      return false;
+    }
+
+    private <U> Try<U, X> cast() {
+      @SuppressWarnings("unchecked")
+      final Try<U, X> casted = (Try<U, X>) this;
+      return casted;
+    }
+
+    @Override
+    public <Y extends Exception, Z extends Exception, W extends Exception> Try<Object, Z> or(
+        Throwing.Supplier<? extends Object, Y> supplier,
+        Throwing.BiFunction<? super X, ? super Y, ? extends Z, W> exceptionsMerger) throws W {
+      final Try<Object, Y> t2 = Try.get(supplier);
+      return t2.map(Try::success, y -> Try.failure(exceptionsMerger.apply(cause, y)));
+    }
+
+    @Override
+    public Try<Object, X> andRun(Throwing.Runnable<? extends X> runnable) {
+      return this;
+    }
+
+    @Override
+    public Try<Object, X> andConsume(Throwing.Consumer<? super Object, ? extends X> consumer) {
+      return this;
+    }
+
+    @Override
+    public <U, V, Y extends Exception> Try<V, X> and(Try<U, ? extends X> t2,
+        BiFunction<? super Object, ? super U, ? extends V, Y> merger) throws Y {
+      return cast();
+    }
+
+    @Override
+    public <U> Try<U, X> flatMap(
+        Throwing.Function<? super Object, ? extends U, ? extends X> mapper) {
+      return cast();
+    }
+
+  }
+
+  public static class TryVoidSuccess extends TryVoidVariableCatchSuccess<Exception, Exception>
+      implements TryVoid<Exception> {
+    public static <X extends Exception> TryVoid<X> given() {
+      return new TryVoidSuccess().cast();
+    }
+
+    private TryVoidSuccess() {
+      /* Reducing visibility. */
+    }
+
+    @Override
+    boolean catchesAll() {
+      return false;
+    }
+
+    private <Y extends Exception> TryVoid<Y> cast() {
+      @SuppressWarnings("unchecked")
+      final TryVoid<Y> casted = (TryVoid<Y>) this;
+      return casted;
+    }
+
+    @Override
+    public <T> Try<T, Exception> andGet(Supplier<? extends T, ? extends Exception> supplier) {
+      return Try.get(supplier);
+    }
+
+    @Override
+    public TryVoid<Exception> andRun(Runnable<? extends Exception> runnable) {
+      return TryVoid.run(runnable);
+    }
+
+    @Override
+    public TryVoid<Exception> or(Runnable<? extends Exception> runnable) {
+      return this;
+    }
+  }
+
+  public static class TryVoidFailure<X extends Exception>
+      extends TryVoidVariableCatchFailure<X, Exception> implements TryVoid<X> {
+    public static <X extends Exception> TryVoid<X> given(X cause) {
+      return new TryVoidFailure<>(cause);
+    }
+
+    private TryVoidFailure(X cause) {
+      super(cause);
+    }
+
+    @Override
+    boolean catchesAll() {
+      return false;
+    }
+
+    @Override
+    public <T> Try<T, X> andGet(Supplier<? extends T, ? extends X> supplier) {
+      return Try.failure(cause);
+    }
+
+    @Override
+    public TryVoid<X> andRun(Runnable<? extends X> runnable) {
+      return this;
+    }
+
+    @Override
+    public TryVoid<X> or(Runnable<? extends X> runnable) {
+      return TryVoid.run(runnable);
+    }
+
+  }
+
 
   protected TryOptional() {
     /* Reducing visibility. */

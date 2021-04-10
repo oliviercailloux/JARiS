@@ -2,7 +2,7 @@ package io.github.oliviercailloux.jaris.exceptions;
 
 import io.github.oliviercailloux.jaris.exceptions.Throwing.BiFunction;
 
-public class TryCatchAllFailure extends TryVariableCatchFailure<Throwable, Throwable>
+public class TryCatchAllFailure extends TryOptional.TryVariableCatchFailure<Throwable, Throwable>
     implements TryCatchAll<Object> {
   public static <T> TryCatchAll<T> given(Throwable cause) {
     return new TryCatchAllFailure(cause).cast();

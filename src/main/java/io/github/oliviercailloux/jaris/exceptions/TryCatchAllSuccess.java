@@ -6,7 +6,7 @@ import io.github.oliviercailloux.jaris.exceptions.Throwing.Function;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
 
-class TryCatchAllSuccess<T> extends TryVariableCatchSuccess<T, Throwable, Throwable>
+class TryCatchAllSuccess<T> extends TryOptional.TryVariableCatchSuccess<T, Throwable, Throwable>
     implements TryCatchAll<T> {
   public static <T> TryCatchAll<T> given(T result) {
     return new TryCatchAllSuccess<>(result);
