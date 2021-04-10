@@ -7,10 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.github.oliviercailloux.jaris.exceptions.old.Try;
-import io.github.oliviercailloux.jaris.exceptions.old.TrySafe;
-import io.github.oliviercailloux.jaris.exceptions.old.TrySafeVoid;
-import io.github.oliviercailloux.jaris.exceptions.old.TryVoid;
+import com.google.common.base.VerifyException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.MalformedParametersException;
@@ -18,8 +15,13 @@ import java.net.URISyntaxException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TryTests {
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = LoggerFactory.getLogger(TryTests.class);
+
   @Test
   void testSuccess() {
     final UnsupportedOperationException runtimeExc = new UnsupportedOperationException();
@@ -109,6 +111,28 @@ public class TryTests {
     }
 
     assertNotEquals(TryVoid.success(), t);
+
+    /* Just to check whether it is overridden (otherwise it starts with the full name). */
+    assertTrue(t.toString().startsWith("Try"), t.toString());
+  }
+
+  /**
+   * Just to illustrate the good ol’ success → value / else → exc approach.
+   */
+  @Test
+  void testGet() {
+    final Try<Integer, Exception> t = Try.success(1);
+    if (t.isSuccess()) {
+      final int value = t.orMapCause(e -> {
+        throw new VerifyException(e);
+      });
+      LOGGER.info("Success: {}.", value);
+    } else {
+      final Exception exc = t.map(i -> {
+        throw new VerifyException("Unexpected success: " + i);
+      }, e -> e);
+      LOGGER.info("Failure: {}.", exc);
+    }
   }
 
   @Test
@@ -196,6 +220,8 @@ public class TryTests {
     assertThrows(IOException.class, () -> t.orThrow());
 
     assertEquals(t, TryVoid.failure(cause));
+
+    assertTrue(t.toString().startsWith("Try"), t.toString());
   }
 
   @Test
@@ -258,6 +284,8 @@ public class TryTests {
     }));
 
     assertDoesNotThrow(t::orThrow);
+
+    assertTrue(t.toString().startsWith("TryVoid"), t.toString());
   }
 
   @Test
@@ -329,51 +357,59 @@ public class TryTests {
     }));
 
     assertThrows(IOException.class, t::orThrow);
+
+    assertTrue(t.toString().startsWith("TryVoid"), t.toString());
   }
 
   @Test
   void testSafeSuccess() {
     final UnsupportedOperationException runtimeExc = new UnsupportedOperationException();
     final IOException cause = new IOException();
-    final TrySafe<Integer> t = TrySafe.success(1);
+    final TryCatchAll<Integer> t = TryCatchAll.success(1);
 
-    /*TODO think abou TrySafeVoid#orThrows or how to obtain the cause in gnrl. Also, predicate on cause? */
-    
-    assertEquals(t, TrySafe.get(() -> 1));
+    /*
+     * TODO think abou TryCatchAllVoid#orThrows or how to obtain the cause in gnrl. Also, predicate
+     * on cause?
+     */
+
+    assertEquals(t, TryCatchAll.get(() -> 1));
+    assertNotEquals(t, TryCatchAllVoid.success());
+    assertNotEquals(t, TryCatchAllVoid.failure(runtimeExc));
+    assertNotEquals(t, TryCatchAllVoid.failure(cause));
     assertNotEquals(t, Try.success(1));
     assertNotEquals(t, Try.get(() -> 1));
 
-    assertEquals(TrySafe.success(3), t.and(TrySafe.success(2), (i1, i2) -> i1 + i2));
-    assertEquals(TrySafe.failure(cause),
-        t.and(TrySafe.failure(cause), TryTests::mergeAdding));
-    assertThrows(IOException.class, () -> t.and(TrySafe.success(2), TryTests::mergeThrowing));
+    assertEquals(TryCatchAll.success(3), t.and(TryCatchAll.success(2), (i1, i2) -> i1 + i2));
+    assertEquals(TryCatchAll.failure(cause),
+        t.and(TryCatchAll.failure(cause), TryTests::mergeAdding));
+    assertThrows(IOException.class, () -> t.and(TryCatchAll.success(2), TryTests::mergeThrowing));
 
-    assertEquals(TrySafe.success(1), t.andConsume(i -> {
+    assertEquals(TryCatchAll.success(1), t.andConsume(i -> {
     }));
-    assertEquals(TrySafe.failure(cause), t.andConsume(i -> {
+    assertEquals(TryCatchAll.failure(cause), t.andConsume(i -> {
       throw cause;
     }));
-    assertEquals(TrySafe.failure(cause), t.andConsume(i -> {
+    assertEquals(TryCatchAll.failure(runtimeExc), t.andConsume(i -> {
       throw runtimeExc;
     }));
 
-    assertEquals(TrySafe.success(1), t.andRun(TryVoid.success()::orThrow));
-    assertEquals(TrySafe.failure(cause), t.andRun(TryVoid.failure(cause)::orThrow));
+    assertEquals(TryCatchAll.success(1), t.andRun(TryCatchAllVoid.success()::orThrow));
+    assertEquals(TryCatchAll.failure(cause), t.andRun(TryCatchAllVoid.failure(cause)::orThrow));
 
-    assertEquals(TrySafe.success(1), t.andRun(() -> {
+    assertEquals(TryCatchAll.success(1), t.andRun(() -> {
     }));
-    assertEquals(TrySafe.failure(cause), t.andRun(() -> {
+    assertEquals(TryCatchAll.failure(cause), t.andRun(() -> {
       throw cause;
     }));
-    assertEquals(TrySafe.failure(cause), t.andRun(() -> {
+    assertEquals(TryCatchAll.failure(runtimeExc), t.andRun(() -> {
       throw runtimeExc;
     }));
 
-    assertEquals(TrySafe.success(5), t.flatMap(i -> i + 4));
-    assertEquals(TrySafe.failure(cause), t.flatMap(i -> {
+    assertEquals(TryCatchAll.success(5), t.flatMap(i -> i + 4));
+    assertEquals(TryCatchAll.failure(cause), t.flatMap(i -> {
       throw cause;
     }));
-    assertEquals(TrySafe.failure(cause), t.flatMap(i -> {
+    assertEquals(TryCatchAll.failure(runtimeExc), t.flatMap(i -> {
       throw runtimeExc;
     }));
 
@@ -393,15 +429,15 @@ public class TryTests {
       throw runtimeExc;
     }));
 
-    assertEquals(TrySafe.success(1), t.or(TrySafe.success(6)::orThrow, (e1, e2) -> cause));
-    assertEquals(TrySafe.success(1),
-        t.or(TrySafe.<Integer, IOException>failure(cause)::orThrow, (e1, e2) -> cause));
+    assertEquals(TryCatchAll.success(1), t.or(TryCatchAll.success(6)::orThrow, (e1, e2) -> cause));
+    assertEquals(TryCatchAll.success(1),
+        t.or(TryCatchAll.<Integer>failure(cause)::orThrow, (e1, e2) -> cause));
 
-    assertEquals(TrySafe.success(1), t.or(() -> 6, (e1, e2) -> cause));
-    assertEquals(TrySafe.success(1), t.or(() -> {
+    assertEquals(TryCatchAll.success(1), t.or(() -> 6, (e1, e2) -> cause));
+    assertEquals(TryCatchAll.success(1), t.or(() -> {
       throw cause;
     }, (e1, e2) -> cause));
-    assertEquals(TrySafe.success(1), t.or(() -> {
+    assertEquals(TryCatchAll.success(1), t.or(() -> {
       throw runtimeExc;
     }, (e1, e2) -> cause));
 
@@ -419,11 +455,105 @@ public class TryTests {
 
     try {
       assertEquals(1, t.orThrow());
-    } catch (Exception e) {
+    } catch (Throwable e) {
       throw new IllegalStateException(e);
     }
 
-    assertNotEquals(TrySafeVoid.success(), t);
+    assertTrue(t.toString().startsWith("TryCatchAll"), t.toString());
+  }
+
+  @Test
+  void testSafeFailure() {
+    final UnsupportedOperationException runtimeExc = new UnsupportedOperationException();
+    final IOException cause = new IOException();
+    final TryCatchAll<Integer> t = TryCatchAll.failure(runtimeExc);
+
+    /*
+     * TODO think abou TryCatchAllVoid#orThrows or how to obtain the cause in gnrl. Also, predicate
+     * on cause?
+     */
+
+    assertNotEquals(t, TryCatchAll.get(() -> 1));
+    assertEquals(t, TryCatchAll.get(() -> {
+      throw runtimeExc;
+    }));
+    assertNotEquals(t, Try.get(() -> 1));
+    assertNotEquals(t, Try.success(1));
+    assertNotEquals(t, TryVoid.failure(runtimeExc));
+    assertNotEquals(t, TryCatchAllVoid.success());
+    assertEquals(t, TryCatchAllVoid.failure(runtimeExc));
+
+    assertEquals(t, t.and(TryCatchAll.success(2), (i1, i2) -> i1 + i2));
+    assertEquals(t, t.and(TryCatchAll.failure(cause), TryTests::mergeAdding));
+    try {
+      assertEquals(t, t.and(TryCatchAll.success(2), TryTests::mergeThrowing));
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+
+    assertEquals(t, t.andConsume(i -> {
+    }));
+    assertEquals(t, t.andConsume(i -> {
+      throw cause;
+    }));
+    assertEquals(t, t.andConsume(i -> {
+      throw runtimeExc;
+    }));
+
+    assertEquals(t, t.andRun(TryCatchAllVoid.success()::orThrow));
+    assertEquals(t, t.andRun(TryCatchAllVoid.failure(cause)::orThrow));
+
+    assertEquals(t, t.andRun(() -> {
+    }));
+    assertEquals(t, t.andRun(() -> {
+      throw cause;
+    }));
+    assertEquals(t, t.andRun(() -> {
+      throw runtimeExc;
+    }));
+
+    assertEquals(t, t.flatMap(i -> i + 4));
+    assertEquals(t, t.flatMap(i -> {
+      throw cause;
+    }));
+    assertEquals(t, t.flatMap(i -> {
+      throw runtimeExc;
+    }));
+
+    assertTrue(t.isFailure());
+    assertFalse(t.isSuccess());
+
+    assertEquals(Optional.empty(), t.orConsumeCause(i -> {
+    }));
+    assertThrows(IOException.class, () -> t.orConsumeCause(i -> {
+      throw cause;
+    }));
+    assertThrows(UnsupportedOperationException.class, () -> t.orConsumeCause(i -> {
+      throw runtimeExc;
+    }));
+
+    assertEquals(TryCatchAll.success(6), t.or(() -> 6, (e1, e2) -> cause));
+    assertEquals(TryCatchAll.failure(cause), t.or(() -> {
+      throw cause;
+    }, (e1, e2) -> e1.equals(runtimeExc) && e2.equals(cause) ? cause : runtimeExc));
+    assertEquals(TryCatchAll.failure(runtimeExc), t.or(() -> {
+      throw runtimeExc;
+    }, (e1, e2) -> e1.equals(runtimeExc) && e2.equals(runtimeExc) ? runtimeExc : cause));
+    assertEquals(TryCatchAll.success(6), t.or(TryCatchAll.success(6)::orThrow, (e1, e2) -> cause));
+    assertEquals(TryCatchAll.failure(cause), t.or(TryCatchAll.<Integer>failure(cause)::orThrow,
+        (e1, e2) -> e1.equals(runtimeExc) && e2.equals(cause) ? cause : runtimeExc));
+
+    assertEquals(8, t.orMapCause(e -> 8));
+    assertThrows(IOException.class, () -> t.orMapCause(e -> {
+      throw cause;
+    }));
+    assertThrows(UnsupportedOperationException.class, () -> t.orMapCause(e -> {
+      throw runtimeExc;
+    }));
+
+    assertThrows(UnsupportedOperationException.class, t::orThrow);
+
+    assertTrue(t.toString().startsWith("TryCatchAll"), t.toString());
   }
 
   static int mergeAdding(int i1, int i2) {

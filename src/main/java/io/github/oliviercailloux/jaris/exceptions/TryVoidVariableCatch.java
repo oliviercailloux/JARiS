@@ -3,13 +3,14 @@ package io.github.oliviercailloux.jaris.exceptions;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 
-public abstract class TryVariableCatch<T, X extends Throwable, Z extends Throwable>
-    extends TryOptional<T, X> implements TryVariableCatchInterface<T, X, Z> {
+public abstract class TryVoidVariableCatch<X extends Throwable, Z extends Throwable>
+    extends TryOptional<Object, X> implements TryVoidVariableCatchInterface<X, Z> {
 
   @Override
   public String toString() {
     final ToStringHelper stringHelper = MoreObjects.toStringHelper(this);
-    orConsumeCause(e -> stringHelper.add("cause", e)).ifPresent(r -> stringHelper.add("result", r));
+    andRun(() -> stringHelper.addValue("success"));
+    ifFailed(e -> stringHelper.add("cause", e));
     return stringHelper.toString();
   }
 }

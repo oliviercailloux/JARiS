@@ -2,16 +2,15 @@ package io.github.oliviercailloux.jaris.exceptions;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.github.oliviercailloux.jaris.exceptions.Throwing.Consumer;
-import io.github.oliviercailloux.jaris.exceptions.Throwing.Function;
 import java.util.Optional;
+import java.util.function.Function;
 
-abstract class TryVariableCatchSuccess<T, X extends Throwable> extends TryVariableCatch<T, X>
-    implements TryVariableCatchInterface<T, X> {
+abstract class TryVariableCatchSuccess<T, X extends Throwable, Z extends Throwable>
+    extends TryVariableCatch<T, X, Z> {
 
-  private final T result;
+  protected final T result;
 
-  private TryVariableCatchSuccess(T result) {
+  protected TryVariableCatchSuccess(T result) {
     this.result = checkNotNull(result);
   }
 
@@ -25,12 +24,6 @@ abstract class TryVariableCatchSuccess<T, X extends Throwable> extends TryVariab
     return Optional.empty();
   }
 
-  private <Y extends TE> TrySingleImpl<T, Y, TE> cast() {
-    @SuppressWarnings("unchecked")
-    final TrySingleImpl<T, Y, TE> casted = (TrySingleImpl<T, Y, TE>) this;
-    return casted;
-  }
-
   @Override
   public <U, Y extends Exception> U map(
       Throwing.Function<? super T, ? extends U, ? extends Y> transformation,
@@ -39,26 +32,19 @@ abstract class TryVariableCatchSuccess<T, X extends Throwable> extends TryVariab
   }
 
   @Override
-  public <Y extends Exception> T orMapCause(Function<? super X, ? extends T, Y> causeTransformation)
-      throws Y {
+  public <Y extends Exception> T orMapCause(
+      Throwing.Function<? super X, ? extends T, Y> causeTransformation) throws Y {
     return result;
   }
 
   @Override
-  public <Y extends Exception> Optional<T> orConsumeCause(Consumer<? super X, Y> consumer)
+  public <Y extends Exception> Optional<T> orConsumeCause(Throwing.Consumer<? super X, Y> consumer)
       throws Y {
     return Optional.of(result);
   }
 
   @Override
-  public T orThrow() throws X {
+  public <Y extends Z> T orThrow(Function<X, Y> causeTransformation) {
     return result;
-  }
-
-  @Override
-  public <Y extends Throwable, Z extends Throwable, W extends Exception> TryVariableCatchInterface<T, Z> or(
-      Throwing.Supplier<? extends T, Y> supplier,
-      Throwing.BiFunction<? super X, ? super Y, ? extends Z, W> exceptionsMerger) throws W {
-    return cast();
   }
 }

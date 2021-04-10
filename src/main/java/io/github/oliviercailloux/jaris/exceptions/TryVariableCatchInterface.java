@@ -1,6 +1,7 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * A sort of try optional such that a success has an associated value. Suitable for Try and TrySafe,
@@ -10,7 +11,7 @@ import java.util.Optional;
  * @param <T> the type of result kept in this object if it is a success.
  * @param <X> the type of cause kept in this object if it is a failure.
  */
-interface TryVariableCatchInterface<T, X extends Throwable> {
+interface TryVariableCatchInterface<T, X extends Throwable, Z extends Throwable> {
 
   /**
    * Returns <code>true</code> iff this object contains a result (and not a cause).
@@ -79,25 +80,7 @@ interface TryVariableCatchInterface<T, X extends Throwable> {
    * @return the result that this success contains
    * @throws X iff this instance is a failure
    */
-  public T orThrow() throws X;
-
-  /**
-   * Attempts to get a result from the given supplier iff this instance is a failure, and return the
-   * resulting try if the supplier succeeds and the merged cause of this instance and of the failed
-   * supplier if it threw a caught throwable; otherwise, returns this instance.
-   *
-   * @param <Y> a type of exception that the provided supplier may throw
-   * @param <Z> the type of cause that the returned try will be declared to contain
-   * @param <W> a type of exception that the provided merger may throw
-   * @param supplier the supplier that is invoked if this try is a failure
-   * @param exceptionsMerger the function invoked to merge both exceptions if this try is a failure
-   *        and the given supplier threw a checked exception
-   * @return a success if this instance is a success or the given supplier returned a result
-   * @throws W iff the merger was applied and threw a checked exception
-   */
-  public <Y extends Throwable, Z extends Throwable, W extends Exception> TryVariableCatchInterface<T, ?> or(
-      Throwing.Supplier<? extends T, Y> supplier,
-      Throwing.BiFunction<? super X, ? super Y, ? extends Z, W> exceptionsMerger) throws W;
+  public <Y extends Z> T orThrow(Function<X, Y> causeTransformation) throws Y;
 
   /**
    * Runs the runnable iff this instance is a success, and returns the result; otherwise, returns
@@ -107,7 +90,7 @@ interface TryVariableCatchInterface<T, X extends Throwable> {
    * @return a success iff this instance is a success and the provided runnable terminated without
    *         throwing
    */
-  public TryVariableCatchInterface<T, ?> andRun(Throwing.Runnable<? extends X> runnable);
+  public TryVariableCatchInterface<T, ?, Z> andRun(Throwing.Runnable<? extends X> runnable);
 
   /**
    * Runs the consumer iff this instance is a success, and returns this instance if it succeeds and
@@ -117,26 +100,8 @@ interface TryVariableCatchInterface<T, X extends Throwable> {
    * @return a success iff this instance is a success and the provided consumer terminated without
    *         throwing
    */
-  public TryVariableCatchInterface<T, ?> andConsume(
+  public TryVariableCatchInterface<T, ?, Z> andConsume(
       Throwing.Consumer<? super T, ? extends X> consumer);
-
-  /**
-   * Consider the given try iff this instance is a success, and returns the result contained in this
-   * instance merged to the provided result if they both are success, or the provided failure if it
-   * is a failure; otherwise, returns this failure.
-   *
-   * @param <U> the type of result that the provided try is declared to contain
-   * @param <V> the type of result that the returned try will be declared to contain
-   * @param <Y> a type of exception that the provided merger may throw
-   * @param t2 the try to consider if this try is a success
-   * @param merger the function invoked to merge the results if both this and the given try are
-   *        successes
-   * @return a success if this instance and the given try are two successes
-   * @throws Y iff the merger was applied and threw a checked exception
-   */
-  public <U, V, Y extends Exception> TryVariableCatchInterface<V, X> and(
-      TryVariableCatchInterface<U, ? extends X> t2,
-      Throwing.BiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y;
 
   /**
    * Applies the given mapper iff this instance is a success, and returns the transformed success if
@@ -147,7 +112,13 @@ interface TryVariableCatchInterface<T, X extends Throwable> {
    * @param mapper the mapper to apply to the result contained in this instance if it is a success
    * @return a success iff this instance is a success and the provided mapper does not throw
    */
-  public <U> TryVariableCatchInterface<U, X> flatMap(
+  public <U> TryVariableCatchInterface<U, X, Z> flatMap(
       Throwing.Function<? super T, ? extends U, ? extends X> mapper);
+
+  /**
+   * Returns a string representation of this object, suitable for debug.
+   */
+  @Override
+  public String toString();
 
 }
