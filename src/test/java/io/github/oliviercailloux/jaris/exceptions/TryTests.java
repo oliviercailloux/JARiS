@@ -14,6 +14,7 @@ import java.lang.reflect.MalformedParametersException;
 import java.net.URISyntaxException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -283,7 +284,8 @@ public class TryTests {
       throw runtimeExc;
     }));
 
-    assertDoesNotThrow(t::orThrow);
+    final Executable executable = t::orThrow;
+    assertDoesNotThrow(executable);
 
     assertTrue(t.toString().startsWith("TryVoid"), t.toString());
   }
