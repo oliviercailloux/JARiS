@@ -1,44 +1,56 @@
-package io.github.oliviercailloux.jaris.exceptions;
+package io.github.oliviercailloux.jaris.exceptions.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
+import io.github.oliviercailloux.jaris.exceptions.Throwing;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.BiFunction;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Consumer;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
+import io.github.oliviercailloux.jaris.exceptions.Try;
+import io.github.oliviercailloux.jaris.exceptions.TryVoid;
+import io.github.oliviercailloux.jaris.exceptions.catch_all.TryCatchAll;
+import io.github.oliviercailloux.jaris.exceptions.catch_all.TryCatchAllVoid;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * The root of the Try contract hierarchy, defining in the most general way the concepts of success,
- * failure, catching, and equality.
+ * The root of the {@code Try*} implementation hierarchy, defining in the most general way the
+ * concepts of success, failure, catching, and equality.
  * <p>
- * This is not a public part of the contract of Try because cathesAll(), for example, should not be
- * exposed: different catching behaviors are publicly viewed as unrelated types.
+ * This is not a public part of the contract of {@code Try*} because {@link #catchesAll()}, for
+ * example, should not be exposed: different catching behaviors are publicly viewed as unrelated
+ * types.
  * <p>
- * Is homeomorphic to an {@code Optional<T>} xor {@code X} (plus indication of catching all or
- * checked): either is a success, and then <em>may</em> contain a result of type {@code T}, or is a
- * failure, and then <em>does</em> contain a cause of type {@code X}.
+ * Is homeomorphic to an {@code Optional<T>} xor {@code X} (plus indication of catching checked or
+ * catching all): either is a success, and then <em>may</em> contain a result of type {@code T}, or
+ * is a failure, and then <em>does</em> contain a cause of type {@code X}.
  *
  * @param <T> the type of result possibly kept in this object.
  * @param <X> the type of cause kept in this object if it is a failure.
  */
-abstract class TryOptional<T, X extends Throwable> {
+public abstract class TryOptional<T, X extends Throwable> {
+
   /**
-   * A sort of try optional such that a success has an associated value. Suitable for Try and
-   * TrySafe, depending on the catching strategy. The name indicates that this interface applies to
-   * both catching strategies.
+   * A sort of try optional such that a success has an associated value. Is homeomorphic to a
+   * {@code T} xor {@code X} (plus indication of catching checked or catching all). Suitable for
+   * {@link Try} and {@link TryCatchAll}, depending on the catching strategy. The name (“variable
+   * catch”) indicates that this interface applies to both catching strategies.
    *
    * @param <T> the type of result kept in this object if it is a success.
    * @param <X> the type of cause kept in this object if it is a failure.
+   * @param <Z> a priori constraint applied to some functionals on the type of throwable that they
+   *        may throw – when catching all, it sometimes makes sense to authorize functionals to
+   *        throw {@code Throwable}; when catching checked, this makes no sense and we reduce
+   *        possible signatures to clarify the intended use.
    */
   public interface TryVariableCatchInterface<T, X extends Z, Z extends Throwable> {
 
     /**
-     * Returns <code>true</code> iff this object contains a result (and not a cause).
+     * Returns <code>true</code> iff this instance contains a result (and not a cause).
      *
      * @return <code>true</code> iff {@link #isFailure()} returns <code>false</code>
      */
@@ -63,7 +75,7 @@ abstract class TryOptional<T, X extends Throwable> {
      * @param transformation a function to apply to the result if this instance is a success
      * @param causeTransformation a function to apply to the cause if this instance is a failure
      * @return the transformed result or cause
-     * @throws Y iff the function that was applied threw a checked exception
+     * @throws Y iff the function that was applied threw an exception of type {@code Y}
      */
     public <U, Y extends Exception> U map(
         Throwing.Function<? super T, ? extends U, ? extends Y> transformation,
@@ -74,12 +86,12 @@ abstract class TryOptional<T, X extends Throwable> {
      * provided function; or returns the transformed cause contained in this instance if it is a
      * failure, using the provided {@code causeTransformation}.
      * <p>
-     * Equivalent to: {@code map(Function#identity(), causeTransformation)}.
+     * Equivalent to: {@code map(t -> t, causeTransformation)}.
      *
      * @param <Y> a type of exception that the provided function may throw
      * @param causeTransformation the function to apply if this instance is a failure
      * @return the result, or the transformed cause
-     * @throws Y iff the function was applied and threw a checked exception
+     * @throws Y iff the function was applied and threw an exception of type {@code Y}
      */
     public <Y extends Exception> T orMapCause(
         Throwing.Function<? super X, ? extends T, Y> causeTransformation) throws Y;
@@ -92,7 +104,7 @@ abstract class TryOptional<T, X extends Throwable> {
      * @param <Y> a type of exception that the provided consumer may throw
      * @param consumer the consumer to invoke if this instance is a failure
      * @return an optional, containing the result if this instance is a success, empty otherwise
-     * @throws Y iff the consumer was invoked and threw a checked exception
+     * @throws Y iff the consumer was invoked and threw an exception of type {@code Y}
      */
     public <Y extends Exception> Optional<T> orConsumeCause(
         Throwing.Consumer<? super X, Y> consumer) throws Y;
@@ -100,42 +112,53 @@ abstract class TryOptional<T, X extends Throwable> {
     /**
      * Returns the result contained in this instance if this instance is a success, or throws the
      * cause contained in this instance.
+     * <p>
+     * Equivalent to: {@code orThrow(t -> t)}.
      *
      * @return the result that this success contains
      * @throws X iff this instance is a failure
      */
     public T orThrow() throws X;
 
+    /**
+     * Returns the result contained in this instance if this instance is a success, or throws the
+     * transformed cause contained in this instance.
+     *
+     * @param <Y> the type of throwable to throw if this instance is a failure
+     * @param causeTransformation the function to apply to the cause iff this instance is a failure
+     * @return the result that this success contains
+     * @throws Y iff this instance is a failure
+     */
     public <Y extends Z> T orThrow(Function<X, Y> causeTransformation) throws Y;
 
     /**
-     * Runs the runnable iff this instance is a success, and returns the result; otherwise, returns
-     * this instance.
+     * Runs the runnable iff this instance is a success, and returns this instance if it succeeds
+     * and the cause of failure if it throws a catchable throwable; otherwise, returns this
+     * instance.
      *
-     * @param runnable the functional interface to run if this instance is a success
-     * @return a success iff this instance is a success and the provided runnable terminated without
-     *         throwing
+     * @param runnable the runnable to invoke iff this instance is a success
+     * @return a success iff this instance is a success and the provided runnable does not throw
      */
-    public TryVariableCatchInterface<T, ?, Z> andRun(Throwing.Runnable<? extends X> runnable);
+    public TryVariableCatchInterface<T, X, Z> andRun(Throwing.Runnable<? extends X> runnable);
 
     /**
      * Runs the consumer iff this instance is a success, and returns this instance if it succeeds
-     * and the cause of failure if it throws a caught throwable; otherwise, returns this instance.
+     * and the cause of failure if it throws a catchable throwable; otherwise, returns this
+     * instance.
      *
-     * @param consumer the functional interface to run if this instance is a success
-     * @return a success iff this instance is a success and the provided consumer terminated without
-     *         throwing
+     * @param consumer the consumer to invoke iff this instance is a success
+     * @return a success iff this instance is a success and the provided consumer does not throw
      */
     public TryVariableCatchInterface<T, ?, Z> andConsume(
         Throwing.Consumer<? super T, ? extends X> consumer);
 
     /**
      * Applies the given mapper iff this instance is a success, and returns the transformed success
-     * if it succeeds, or the cause of the failure if it throws a catchable throwable; otherwise,
+     * if it succeeds or the cause of the failure if it throws a catchable throwable; otherwise,
      * returns this instance.
      *
      * @param <U> the type of result that the returned try will be declared to contain
-     * @param mapper the mapper to apply to the result contained in this instance if it is a success
+     * @param mapper the mapper to apply to the result iff this instance is a success
      * @return a success iff this instance is a success and the provided mapper does not throw
      */
     public <U> TryVariableCatchInterface<U, X, Z> flatMap(
@@ -145,15 +168,20 @@ abstract class TryOptional<T, X extends Throwable> {
      * Returns a string representation of this object, suitable for debug.
      */
     @Override
-    public String toString();
+    public abstract String toString();
 
   }
   /**
-   * A sort of try optional such that a success has no associated value. Suitable for TryVoid and
-   * TryVoidCatchAll, depending on the catching strategy. The name indicates that this interface
-   * applies to both catching strategies.
+   * A sort of try optional such that a success has no associated value. Is homeomorphic to an
+   * {@code Optional<X>} (plus indication of catching checked or catching all). Suitable for
+   * {@link TryVoid} and {@link TryCatchAllVoid}, depending on the catching strategy. The name
+   * (“variable catch”) indicates that this interface applies to both catching strategies.
    *
    * @param <X> the type of cause kept in this object if it is a failure.
+   * @param <Z> a priori constraint applied to some functionals on the type of throwable that they
+   *        may throw – when catching all, it sometimes makes sense to authorize functionals to
+   *        throw {@code Throwable}; when catching checked, this makes no sense and we reduce
+   *        possible signatures to clarify the intended use.
    */
   public interface TryVoidVariableCatchInterface<X extends Z, Z extends Throwable> {
 
@@ -164,12 +192,16 @@ abstract class TryOptional<T, X extends Throwable> {
      */
     public boolean isSuccess();
 
+
+
     /**
-     * Return <code>true</code> iff this object contains a cause.
+     * Return <code>true</code> iff this instance contains a cause.
      *
      * @return <code>true</code> iff {@link #isSuccess()} returns <code>false</code>
      */
     public boolean isFailure();
+
+
 
     /**
      * Returns the supplied result if this instance is a success, using the provided
@@ -183,7 +215,7 @@ abstract class TryOptional<T, X extends Throwable> {
      * @param supplier a supplier to get a result from if this instance is a success
      * @param causeTransformation a function to apply to the cause if this instance is a failure
      * @return the supplied result or transformed cause
-     * @throws Y iff the functional interface that was invoked threw a checked exception
+     * @throws Y iff the functional interface that was invoked threw an exception of type {@code Y}
      */
     public <T, Y extends Exception> T map(Throwing.Supplier<? extends T, ? extends Y> supplier,
         Throwing.Function<? super X, ? extends T, ? extends Y> causeTransformation) throws Y;
@@ -194,17 +226,28 @@ abstract class TryOptional<T, X extends Throwable> {
      *
      * @param <Y> a type of exception that the provided consumer may throw
      * @param consumer the consumer to invoke if this instance is a failure
-     * @throws Y iff the consumer was invoked and threw a checked exception
+     * @throws Y iff the consumer was invoked and threw an exception of type {@code Y}
      */
     public <Y extends Exception> void ifFailed(Throwing.Consumer<? super X, Y> consumer) throws Y;
 
     /**
      * If this instance is a failure, throws the cause it contains. Otherwise, do nothing.
+     * <p>
+     * Equivalent to: {@code orThrow(t -> t)}.
      *
      * @throws X iff this instance contains a cause
      */
     public void orThrow() throws X;
 
+    /**
+     * If this instance is a failure, throws the transformed cause it contains. Otherwise, do
+     * nothing.
+     *
+     * @param <Y> the type of throwable to throw if this instance is a failure
+     * @param causeTransformation the function to apply to the cause iff this instance is a failure
+     * @return the result that this success contains
+     * @throws Y iff this instance is a failure
+     */
     public <Y extends Z> void orThrow(Function<X, Y> causeTransformation) throws Y;
 
     /**
@@ -213,63 +256,68 @@ abstract class TryOptional<T, X extends Throwable> {
      * <p>
      * If this instance is a failure, it is returned, without invoking the given supplier.
      * Otherwise, the given supplier is invoked. If it terminates without throwing, a success is
-     * returned, containing the result just supplied by the supplier. If the supplier throws a
-     * checked exception, a failure is returned, containing the cause it threw.
+     * returned, containing the just supplied result. If the supplier throws a catchable throwable,
+     * a failure is returned, containing the cause it threw.
      *
      * @param <T> the type of result that the returned try will be declared to contain
      * @param <X> the type of cause that the returned try will be declared to contain
      * @param supplier the supplier to attempt to get a result from if this instance is a success.
      * @return a success iff this instance is a success and the given supplier terminated without
      *         throwing.
-     * @see Try#get(Supplier)
      */
     public <T> TryVariableCatchInterface<T, X, Z> andGet(
         Throwing.Supplier<? extends T, ? extends X> supplier);
 
     /**
-     * If this instance is a success, returns a {@code TryVoid} instance representing the result of
-     * invoking the given runnable; otherwise, returns this failure.
+     * If this instance is a success, returns a try void representing the result of invoking the
+     * given runnable; otherwise, returns this failure.
      * <p>
      * If this instance is a failure, it is returned, without invoking the given runnable.
      * Otherwise, the given runnable is invoked. If it terminates without throwing, a success is
-     * returned. If the runnable throws a checked exception, a failure is returned, containing the
+     * returned. If the runnable throws a catchable throwable, a failure is returned, containing the
      * cause it threw.
      *
      * @param <X> the type of cause that the returned instance will be declared to contain
      * @param runnable the runnable to attempt to run if this instance is a success.
      * @return a success iff this instance is a success and the given runnable terminated without
      *         throwing.
-     * @see #run(Runnable)
      */
     public TryVoidVariableCatchInterface<X, Z> andRun(Throwing.Runnable<? extends X> runnable);
 
     /**
-     * If this instance is a failure, returns a {@code TryVoid} instance representing the result of
-     * invoking the given runnable; otherwise, returns this success.
+     * Returns this instance if it is a success; otherwise, returns a try void representing the
+     * result of invoking the given runnable.
      * <p>
      * If this instance is a success, it is returned, without invoking the given runnable.
      * Otherwise, the given runnable is invoked. If it terminates without throwing, a success is
-     * returned. If the runnable throws a checked exception, a failure is returned, containing the
+     * returned. If the runnable throws a catchable throwable, a failure is returned, containing the
      * cause it threw.
      *
      * @param <X> the type of cause that the returned instance will be declared to contain
-     * @param runnable the runnable to attempt to run if this instance is a failure.
+     * @param runnable the runnable to attempt to invoke if this instance is a failure.
      * @return a success iff this instance is a success or the given runnable terminated without
      *         throwing.
-     * @see #run(Runnable)
      */
     public TryVoidVariableCatchInterface<X, Z> or(Throwing.Runnable<? extends X> runnable);
+
+
 
     /**
      * Returns a string representation of this object, suitable for debug.
      */
     @Override
-    public String toString();
+    public abstract String toString();
 
   }
 
   public static abstract class TryVariableCatch<T, X extends Z, Z extends Throwable>
       extends TryOptional<T, X> implements TryVariableCatchInterface<T, X, Z> {
+    @Override
+    public <Y extends Exception> T orMapCause(
+        Throwing.Function<? super X, ? extends T, Y> causeTransformation) throws Y {
+      return map(t -> t, causeTransformation);
+    }
+
     @Override
     public T orThrow() throws X {
       return orThrow(Function.identity());
@@ -308,12 +356,6 @@ abstract class TryOptional<T, X extends Throwable> {
         Throwing.Function<? super T, ? extends U, ? extends Y> transformation,
         Throwing.Function<? super X, ? extends U, ? extends Y> causeTransformation) throws Y {
       return transformation.apply(result);
-    }
-
-    @Override
-    public <Y extends Exception> T orMapCause(
-        Throwing.Function<? super X, ? extends T, Y> causeTransformation) throws Y {
-      return result;
     }
 
     @Override
@@ -471,7 +513,7 @@ abstract class TryOptional<T, X extends Throwable> {
     }
 
     @Override
-    boolean catchesAll() {
+    protected boolean catchesAll() {
       return false;
     }
 
@@ -522,7 +564,7 @@ abstract class TryOptional<T, X extends Throwable> {
     }
 
     @Override
-    boolean catchesAll() {
+    protected boolean catchesAll() {
       return false;
     }
 
@@ -575,7 +617,7 @@ abstract class TryOptional<T, X extends Throwable> {
     }
 
     @Override
-    boolean catchesAll() {
+    protected boolean catchesAll() {
       return false;
     }
 
@@ -612,7 +654,7 @@ abstract class TryOptional<T, X extends Throwable> {
     }
 
     @Override
-    boolean catchesAll() {
+    protected boolean catchesAll() {
       return false;
     }
 
@@ -656,7 +698,7 @@ abstract class TryOptional<T, X extends Throwable> {
     return getCause().isPresent();
   }
 
-  abstract boolean catchesAll();
+  protected abstract boolean catchesAll();
 
   abstract Optional<T> getResult();
 

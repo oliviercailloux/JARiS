@@ -1,6 +1,7 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
+import io.github.oliviercailloux.jaris.exceptions.impl.TryOptional;
 
 
 public interface TryVoid<X extends Exception>

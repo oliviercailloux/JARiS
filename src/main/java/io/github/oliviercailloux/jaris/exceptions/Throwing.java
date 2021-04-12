@@ -33,6 +33,8 @@ import java.util.stream.Stream;
  * caught.
  */
 public final class Throwing {
+
+
   /**
    * I initially thought about allowing only {@code X} to extend Exception. But this creates a
    * practical problem. Using TrySafe::orThrow to convert a try safe into a supplier requires

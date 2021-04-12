@@ -11,25 +11,6 @@ import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
 import java.util.Optional;
 
 
-/**
- * <p>
- * An instance of this class contains either a result, in which case it is called a “success”; or a
- * cause of type {@link Exception}, in which case it is called a “failure”.
- * </p>
- * <p>
- * Instances of this class are immutable.
- * </p>
- * <p>
- * Heavily inspired by <a href="https://github.com/vavr-io/vavr">Vavr</a>. One notable difference is
- * that this class (and this library) does not sneaky throw (see the contract of Vavr’s
- * <code>Try#<a href=
- * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L629">get()</a></code>
- * and its <a href=
- * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L1305">implementation</a>).
- *
- * @param <T> the type of result possibly kept in the instance.
- * @param <X> the type of cause possibly kept in the instance.
- */
 public abstract class Try<T, X extends Exception> extends TryOptionalUnsafe<T, X>
     implements TryGeneral<T, X> {
 

@@ -8,11 +8,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.base.VerifyException;
+import io.github.oliviercailloux.jaris.exceptions.catch_all.TryCatchAll;
+import io.github.oliviercailloux.jaris.exceptions.catch_all.TryCatchAllVoid;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.MalformedParametersException;
 import java.net.URISyntaxException;
 import java.util.Optional;
+import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
@@ -111,6 +114,18 @@ public class TryTests {
       throw new IllegalStateException(e);
     }
 
+    try {
+      assertEquals(1, t.orThrow(Function.identity()));
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+
+    try {
+      assertEquals(1, t.orThrow(e -> cause));
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+
     assertNotEquals(TryVoid.success(), t);
 
     /* Just to check whether it is overridden (otherwise it starts with the full name). */
@@ -124,14 +139,13 @@ public class TryTests {
   void testGet() {
     final Try<Integer, Exception> t = Try.success(1);
     if (t.isSuccess()) {
-      final int value = t.orMapCause(e -> {
-        throw new VerifyException(e);
-      });
+      final int value = t.orThrow(VerifyException::new);
       LOGGER.info("Success: {}.", value);
     } else {
       final Exception exc = t.map(i -> {
         throw new VerifyException("Unexpected success: " + i);
       }, e -> e);
+      /* Alternative: final Exception exc = t.map(i -> null, e -> e); */
       LOGGER.info("Failure: {}.", exc);
     }
   }
@@ -219,6 +233,8 @@ public class TryTests {
     }));
 
     assertThrows(IOException.class, () -> t.orThrow());
+    assertThrows(IOException.class, () -> t.orThrow(Function.identity()));
+    assertThrows(UnsupportedOperationException.class, () -> t.orThrow(e -> runtimeExc));
 
     assertEquals(t, TryVoid.failure(cause));
 

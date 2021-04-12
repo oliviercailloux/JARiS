@@ -1,14 +1,25 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
+import io.github.oliviercailloux.jaris.exceptions.impl.TryOptional;
+
 /**
- * TODO simplify hierarchy: we have 21 classes, that’s far too much for avoiding only a bit of
- * redundancy. Simplifiy equality: classes should only equalize inter class. Make wo interfaces,
- * TryStatic and TryStaticVoid, with the few main methods not involving catch. Then interfaces Try
- * and TryCatchAll; TryVoid and TryCatchAllVoid. Then TryImpl with two inner classes, and similarly
- * for the other ones. That’s 6 interfaces + 12 classes = 18 classes. Not much better.
+ * <p>
+ * An instance of this class contains either a result, in which case it is called a “success”; or a
+ * cause of type {@link Exception}, in which case it is called a “failure”.
+ * </p>
+ * <p>
+ * Instances of this class are immutable.
+ * </p>
+ * <p>
+ * Heavily inspired by <a href="https://github.com/vavr-io/vavr">Vavr</a>. One notable difference is
+ * that this class (and this library) does not sneaky throw (see the contract of Vavr’s
+ * <code>Try#<a href=
+ * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L629">get()</a></code>
+ * and its <a href=
+ * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L1305">implementation</a>).
  *
- * @param <T>
- * @param <X>
+ * @param <T> the type of result possibly kept in the instance.
+ * @param <X> the type of cause possibly kept in the instance.
  */
 public interface Try<T, X extends Exception>
     extends TryOptional.TryVariableCatchInterface<T, X, Exception> {

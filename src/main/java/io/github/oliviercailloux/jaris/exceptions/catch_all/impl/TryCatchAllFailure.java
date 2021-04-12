@@ -1,6 +1,13 @@
-package io.github.oliviercailloux.jaris.exceptions;
+package io.github.oliviercailloux.jaris.exceptions.catch_all.impl;
 
+import io.github.oliviercailloux.jaris.exceptions.Throwing;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.BiFunction;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Consumer;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Function;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
+import io.github.oliviercailloux.jaris.exceptions.catch_all.TryCatchAll;
+import io.github.oliviercailloux.jaris.exceptions.impl.TryOptional;
 
 public class TryCatchAllFailure extends TryOptional.TryVariableCatchFailure<Throwable, Throwable>
     implements TryCatchAll<Object> {
@@ -13,7 +20,7 @@ public class TryCatchAllFailure extends TryOptional.TryVariableCatchFailure<Thro
   }
 
   @Override
-  boolean catchesAll() {
+  protected boolean catchesAll() {
     return true;
   }
 

@@ -1,4 +1,14 @@
-package io.github.oliviercailloux.jaris.exceptions;
+package io.github.oliviercailloux.jaris.exceptions.catch_all;
+
+import io.github.oliviercailloux.jaris.exceptions.Throwing;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.BiFunction;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Consumer;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Function;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
+import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
+import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryCatchAllFailure;
+import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryCatchAllSuccess;
+import io.github.oliviercailloux.jaris.exceptions.impl.TryOptional;
 
 public interface TryCatchAll<T>
     extends TryOptional.TryVariableCatchInterface<T, Throwable, Throwable> {
