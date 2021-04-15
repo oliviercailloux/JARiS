@@ -29,8 +29,8 @@ import java.util.function.Function;
  * catching all): either is a success, and then <em>may</em> contain a result of type {@code T}, or
  * is a failure, and then <em>does</em> contain a cause of type {@code X}.
  * <p>
- * See this class in commit aefe2d5f7a6c2d851d7f3d99dc3795a8d2714828 for extensive (draft!)
- * documentation about the design choices.
+ * See this class in branch doc-try for some thoughts about possible extensions; and extensive
+ * (draft!) documentation about the design choices.
  *
  * @param <T> the type of result possibly kept in this object.
  * @param <X> the type of cause kept in this object if it is a failure.
