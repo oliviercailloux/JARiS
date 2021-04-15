@@ -1,6 +1,5 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
-import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
 import io.github.oliviercailloux.jaris.exceptions.impl.TryOptional;
 
 
@@ -70,7 +69,7 @@ public interface TryVoid<X extends Exception>
    * @param supplier the supplier to attempt to get a result from if this instance is a success.
    * @return a success iff this instance is a success and the given supplier terminated without
    *         throwing.
-   * @see Try#get(Supplier)
+   * @see Try#get(Throwing.Supplier)
    */
   @Override
   public <T> Try<T, X> andGet(Throwing.Supplier<? extends T, ? extends X> supplier);
@@ -86,7 +85,7 @@ public interface TryVoid<X extends Exception>
    * @param runnable the runnable to attempt to run if this instance is a success.
    * @return a success iff this instance is a success and the given runnable terminated without
    *         throwing.
-   * @see #run(Runnable)
+   * @see #run(Throwing.Runnable)
    */
   @Override
   public TryVoid<X> andRun(Throwing.Runnable<? extends X> runnable);
@@ -102,7 +101,7 @@ public interface TryVoid<X extends Exception>
    * @param runnable the runnable to attempt to run if this instance is a failure.
    * @return a success iff this instance is a success or the given runnable terminated without
    *         throwing.
-   * @see #run(Runnable)
+   * @see #run(Throwing.Runnable)
    */
   @Override
   public TryVoid<X> or(Throwing.Runnable<? extends X> runnable);
