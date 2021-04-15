@@ -96,8 +96,6 @@ public interface TryCatchAll<T>
    * exceptions using the given {@code exceptionMerger} and returns a failure containing that merged
    * cause.
    *
-   * @param <Y> a type of exception that the provided supplier may throw
-   * @param <Z> the type of cause that the returned try will be declared to contain
    * @param <W> a type of exception that the provided merger may throw
    * @param supplier the supplier that is invoked if this try is a failure
    * @param exceptionsMerger the function invoked to merge both exceptions if this try is a failure
