@@ -47,8 +47,8 @@ public abstract class TryOptional<T, X extends Throwable> {
    * @param <X> the type of cause kept in this object if it is a failure.
    * @param <Z> a priori constraint applied to some functionals on the type of throwable that they
    *        may throw – when catching all, it sometimes makes sense to authorize functionals to
-   *        throw {@code Throwable}; when catching checked, this makes no sense and we reduce
-   *        possible signatures to clarify the intended use.
+   *        throw {@code Throwable}; when catching species of exceptions, this makes no sense and we
+   *        reduce possible signatures to clarify the intended use.
    */
   public interface TryVariableCatchInterface<T, X extends Z, Z extends Throwable> {
 
@@ -184,9 +184,7 @@ public abstract class TryOptional<T, X extends Throwable> {
    *
    * @param <X> the type of cause kept in this object if it is a failure.
    * @param <Z> a priori constraint applied to some functionals on the type of throwable that they
-   *        may throw – when catching all, it sometimes makes sense to authorize functionals to
-   *        throw {@code Throwable}; when catching checked, this makes no sense and we reduce
-   *        possible signatures to clarify the intended use.
+   *        may throw (see {@link TryVariableCatchInterface}).
    */
   public interface TryVoidVariableCatchInterface<X extends Z, Z extends Throwable> {
 
