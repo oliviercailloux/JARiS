@@ -126,7 +126,7 @@ public class TryOld<T, X extends Exception> {
    * @return a success iff this instance is a success and the transformation function did not throw
    * @see #map(Function)
    */
-  public <T2, X extends Exception> TryOld<T2> flatMap(Throwing.Function<T, T2, X> transformation) {
+  public <T2, X extends Exception> TryOld<T2> andApply(Throwing.Function<T, T2, X> transformation) {
     final TryOld<T2> newResult;
     if (isFailure()) {
       newResult = castFailure();

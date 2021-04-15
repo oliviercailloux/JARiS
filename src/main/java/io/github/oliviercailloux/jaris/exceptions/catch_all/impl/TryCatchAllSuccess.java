@@ -50,7 +50,7 @@ public class TryCatchAllSuccess<T>
   }
 
   @Override
-  public <U> TryCatchAll<U> flatMap(Function<? super T, ? extends U, ?> mapper) {
+  public <U> TryCatchAll<U> andApply(Function<? super T, ? extends U, ?> mapper) {
     return TryCatchAll.get(() -> mapper.apply(result));
   }
 }

@@ -1,11 +1,6 @@
 package io.github.oliviercailloux.jaris.exceptions.catch_all;
 
 import io.github.oliviercailloux.jaris.exceptions.Throwing;
-import io.github.oliviercailloux.jaris.exceptions.Throwing.BiFunction;
-import io.github.oliviercailloux.jaris.exceptions.Throwing.Consumer;
-import io.github.oliviercailloux.jaris.exceptions.Throwing.Function;
-import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
-import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
 import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryCatchAllFailure;
 import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryCatchAllSuccess;
 import io.github.oliviercailloux.jaris.exceptions.impl.TryOptional;
@@ -27,27 +22,6 @@ public interface TryCatchAll<T>
       return failure(e);
     }
   }
-
-  /**
-   * Returns this instance if it is a success. Otherwise, attempts to get a result from the given
-   * supplier. If this succeeds, that is, if the supplier returns a result, returns a success
-   * containing that result. Otherwise, if the supplier throws a checked exception, merges both
-   * exceptions using the given {@code exceptionMerger} and returns a failure containing that merged
-   * cause.
-   *
-   * @param <Y> a type of exception that the provided supplier may throw
-   * @param <Z> the type of cause that the returned try will be declared to contain
-   * @param <W> a type of exception that the provided merger may throw
-   * @param supplier the supplier that is invoked if this try is a failure
-   * @param exceptionsMerger the function invoked to merge both exceptions if this try is a failure
-   *        and the given supplier threw a checked exception
-   * @return a success if this instance is a success or the given supplier returned a result
-   * @throws W iff the merger was applied and threw a checked exception
-   */
-  public abstract <W extends Exception> TryCatchAll<T> or(
-      Throwing.Supplier<? extends T, ?> supplier,
-      Throwing.BiFunction<? super Throwable, ? super Throwable, ? extends Throwable, W> exceptionsMerger)
-      throws W;
 
   /**
    * Returns a failure containing this cause if this instance is a failure, a failure containing the
@@ -112,6 +86,27 @@ public interface TryCatchAll<T>
    * @return a success iff this instance is a success and the provided mapper does not throw
    */
   @Override
-  public abstract <U> TryCatchAll<U> flatMap(
+  public abstract <U> TryCatchAll<U> andApply(
       Throwing.Function<? super T, ? extends U, ? extends Throwable> mapper);
+
+  /**
+   * Returns this instance if it is a success. Otherwise, attempts to get a result from the given
+   * supplier. If this succeeds, that is, if the supplier returns a result, returns a success
+   * containing that result. Otherwise, if the supplier throws a checked exception, merges both
+   * exceptions using the given {@code exceptionMerger} and returns a failure containing that merged
+   * cause.
+   *
+   * @param <Y> a type of exception that the provided supplier may throw
+   * @param <Z> the type of cause that the returned try will be declared to contain
+   * @param <W> a type of exception that the provided merger may throw
+   * @param supplier the supplier that is invoked if this try is a failure
+   * @param exceptionsMerger the function invoked to merge both exceptions if this try is a failure
+   *        and the given supplier threw a checked exception
+   * @return a success if this instance is a success or the given supplier returned a result
+   * @throws W iff the merger was applied and threw a checked exception
+   */
+  public abstract <W extends Exception> TryCatchAll<T> or(
+      Throwing.Supplier<? extends T, ?> supplier,
+      Throwing.BiFunction<? super Throwable, ? super Throwable, ? extends Throwable, W> exceptionsMerger)
+      throws W;
 }

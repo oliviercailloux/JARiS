@@ -89,7 +89,7 @@ public abstract class TryOptional<T, X extends Throwable> {
      * Equivalent to: {@code map(t -> t, causeTransformation)}.
      *
      * @param <Y> a type of exception that the provided function may throw
-     * @param causeTransformation the function to apply if this instance is a failure
+     * @param causeTransformation the function to apply iff this instance is a failure
      * @return the result, or the transformed cause
      * @throws Y iff the function was applied and threw an exception of type {@code Y}
      */
@@ -113,7 +113,7 @@ public abstract class TryOptional<T, X extends Throwable> {
      * Returns the result contained in this instance if this instance is a success, or throws the
      * cause contained in this instance.
      * <p>
-     * Equivalent to: {@code orThrow(t -> t)}.
+     * Equivalent to: {@link #orThrow(Function) orThrow(t -> t)}.
      *
      * @return the result that this success contains
      * @throws X iff this instance is a failure
@@ -156,12 +156,14 @@ public abstract class TryOptional<T, X extends Throwable> {
      * Applies the given mapper iff this instance is a success, and returns the transformed success
      * if it succeeds or the cause of the failure if it throws a catchable throwable; otherwise,
      * returns this instance.
+     * <p>
+     * Equivalent to: {@code t.map(s -> Try.get(() -> mapper.apply(s)), t)}
      *
      * @param <U> the type of result that the returned try will be declared to contain
      * @param mapper the mapper to apply to the result iff this instance is a success
      * @return a success iff this instance is a success and the provided mapper does not throw
      */
-    public <U> TryVariableCatchInterface<U, X, Z> flatMap(
+    public <U> TryVariableCatchInterface<U, X, Z> andApply(
         Throwing.Function<? super T, ? extends U, ? extends X> mapper);
 
     /**
@@ -233,7 +235,7 @@ public abstract class TryOptional<T, X extends Throwable> {
     /**
      * If this instance is a failure, throws the cause it contains. Otherwise, do nothing.
      * <p>
-     * Equivalent to: {@code orThrow(t -> t)}.
+     * Equivalent to: {@link #orThrow(Function) orThrow(t -> t)}.
      *
      * @throws X iff this instance contains a cause
      */
@@ -320,7 +322,7 @@ public abstract class TryOptional<T, X extends Throwable> {
 
     @Override
     public T orThrow() throws X {
-      return orThrow(Function.identity());
+      return orThrow(t -> t);
     }
 
     @Override
@@ -397,12 +399,6 @@ public abstract class TryOptional<T, X extends Throwable> {
     }
 
     @Override
-    public <Y extends Exception> Object orMapCause(
-        Throwing.Function<? super X, ? extends Object, Y> causeTransformation) throws Y {
-      return causeTransformation.apply(cause);
-    }
-
-    @Override
     public <Y extends Exception> Optional<Object> orConsumeCause(
         Throwing.Consumer<? super X, Y> consumer) throws Y {
       consumer.accept(cause);
@@ -419,7 +415,7 @@ public abstract class TryOptional<T, X extends Throwable> {
       extends TryOptional<Object, X> implements TryVoidVariableCatchInterface<X, Z> {
     @Override
     public void orThrow() throws X {
-      orThrow(Function.identity());
+      orThrow(t -> t);
     }
 
 
@@ -432,6 +428,12 @@ public abstract class TryOptional<T, X extends Throwable> {
     }
   }
 
+  /**
+   * TODO
+   *
+   * @param <X>
+   * @param <Z>
+   */
   public static abstract class TryVoidVariableCatchSuccess<X extends Z, Z extends Throwable>
       extends TryVoidVariableCatch<X, Z> {
 
@@ -518,16 +520,13 @@ public abstract class TryOptional<T, X extends Throwable> {
     }
 
     private <Y extends Exception> Try<T, Y> cast() {
+      /*
+       * Safe: there is no cause in this (immutable) instance, thus its declared type does not
+       * matter.
+       */
       @SuppressWarnings("unchecked")
       final Try<T, Y> casted = (Try<T, Y>) this;
       return casted;
-    }
-
-    @Override
-    public <Y extends Exception, Z extends Exception, W extends Exception> Try<T, Z> or(
-        Supplier<? extends T, Y> supplier,
-        BiFunction<? super Exception, ? super Y, ? extends Z, W> exceptionsMerger) throws W {
-      return cast();
     }
 
     @Override
@@ -548,9 +547,16 @@ public abstract class TryOptional<T, X extends Throwable> {
     }
 
     @Override
-    public <U> Try<U, Exception> flatMap(
+    public <U> Try<U, Exception> andApply(
         Throwing.Function<? super T, ? extends U, ? extends Exception> mapper) {
       return Try.get(() -> mapper.apply(result));
+    }
+
+    @Override
+    public <Y extends Exception, Z extends Exception, W extends Exception> Try<T, Z> or(
+        Supplier<? extends T, Y> supplier,
+        BiFunction<? super Exception, ? super Y, ? extends Z, W> exceptionsMerger) throws W {
+      return cast();
     }
   }
   public static class TryFailure<X extends Exception>
@@ -569,17 +575,13 @@ public abstract class TryOptional<T, X extends Throwable> {
     }
 
     private <U> Try<U, X> cast() {
+      /*
+       * Safe: there is no result in this (immutable) instance, thus its declared type does not
+       * matter.
+       */
       @SuppressWarnings("unchecked")
       final Try<U, X> casted = (Try<U, X>) this;
       return casted;
-    }
-
-    @Override
-    public <Y extends Exception, Z extends Exception, W extends Exception> Try<Object, Z> or(
-        Throwing.Supplier<? extends Object, Y> supplier,
-        Throwing.BiFunction<? super X, ? super Y, ? extends Z, W> exceptionsMerger) throws W {
-      final Try<Object, Y> t2 = Try.get(supplier);
-      return t2.map(Try::success, y -> Try.failure(exceptionsMerger.apply(cause, y)));
     }
 
     @Override
@@ -599,9 +601,17 @@ public abstract class TryOptional<T, X extends Throwable> {
     }
 
     @Override
-    public <U> Try<U, X> flatMap(
+    public <U> Try<U, X> andApply(
         Throwing.Function<? super Object, ? extends U, ? extends X> mapper) {
       return cast();
+    }
+
+    @Override
+    public <Y extends Exception, Z extends Exception, W extends Exception> Try<Object, Z> or(
+        Throwing.Supplier<? extends Object, Y> supplier,
+        Throwing.BiFunction<? super X, ? super Y, ? extends Z, W> exceptionsMerger) throws W {
+      final Try<Object, Y> t2 = Try.get(supplier);
+      return t2.map(Try::success, y -> Try.failure(exceptionsMerger.apply(cause, y)));
     }
 
   }
@@ -622,6 +632,10 @@ public abstract class TryOptional<T, X extends Throwable> {
     }
 
     private <Y extends Exception> TryVoid<Y> cast() {
+      /*
+       * Safe: there is no cause in this (immutable) instance, thus its declared type does not
+       * matter.
+       */
       @SuppressWarnings("unchecked")
       final TryVoid<Y> casted = (TryVoid<Y>) this;
       return casted;

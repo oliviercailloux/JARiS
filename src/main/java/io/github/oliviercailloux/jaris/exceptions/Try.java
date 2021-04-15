@@ -5,15 +5,19 @@ import io.github.oliviercailloux.jaris.exceptions.impl.TryOptional;
 /**
  * <p>
  * An instance of this class contains either a result, in which case it is called a “success”; or a
- * cause of type {@link Exception}, in which case it is called a “failure”.
+ * cause of type {@code X} (some {@link Exception}), in which case it is called a “failure”.
  * </p>
  * <p>
- * Instances of this class are immutable.
+ * Instances of this type are immutable.
  * </p>
  * <p>
- * Heavily inspired by <a href="https://github.com/vavr-io/vavr">Vavr</a>. One notable difference is
- * that this class (and this library) does not sneaky throw (see the contract of Vavr’s
- * <code>Try#<a href=
+ * When the documentation of a method indicates that it catches checked exceptions thrown by some
+ * provided functional interface, it is implicit that if the provided functional interface throws
+ * anything that is not a checked exception, then it is not caught, and simply thrown back to the
+ * caller.
+ * <p>
+ * Inspired by <a href="https://github.com/vavr-io/vavr">Vavr</a>. One notable difference is that
+ * this library does not sneaky throw (see the contract of Vavr’s <code>Try#<a href=
  * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L629">get()</a></code>
  * and its <a href=
  * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L1305">implementation</a>).
@@ -23,14 +27,40 @@ import io.github.oliviercailloux.jaris.exceptions.impl.TryOptional;
  */
 public interface Try<T, X extends Exception>
     extends TryOptional.TryVariableCatchInterface<T, X, Exception> {
+  /**
+   * Returns a success containing the given result.
+   *
+   * @param <T> the type of result declared to be (and effectively) kept in the instance
+   * @param <X> the type of cause declared to be (but not effectively) kept in the instance.
+   * @param result the result to contain
+   */
   public static <T, X extends Exception> Try<T, X> success(T result) {
     return TryOptional.TrySuccess.given(result);
   }
 
+  /**
+   * Returns a failure containing the given cause.
+   *
+   * @param <T> the type of result declared to be (but not effectively) kept in the instance
+   * @param <X> the type of cause declared to be (and effectively) kept in the instance.
+   * @param cause the cause to contain
+   */
   public static <T, X extends Exception> Try<T, X> failure(X cause) {
     return TryOptional.TryFailure.given(cause);
   }
 
+  /**
+   * Attempts to get and encapsulate a result from the given supplier.
+   * <p>
+   * This method returns a failure iff the given supplier throws a checked exception.
+   *
+   * @param <T> the type of result declared to be kept in the instance
+   * @param <X> the type of cause declared to be kept in the instance; a sort of exception that the
+   *        supplier may throw.
+   * @param supplier the supplier to get a result from
+   * @return a success containing the result if the supplier returns a result; a failure containing
+   *         the throwable if the supplier throws a checked exception
+   */
   public static <T, X extends Exception> Try<T, X> get(
       Throwing.Supplier<? extends T, ? extends X> supplier) {
     try {
@@ -38,6 +68,7 @@ public interface Try<T, X extends Exception>
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
+      /* This is safe, provided the supplier did not sneaky-throw. */
       @SuppressWarnings("unchecked")
       final X exc = (X) e;
       return failure(exc);
@@ -45,30 +76,8 @@ public interface Try<T, X extends Exception>
   }
 
   /**
-   * Returns this instance if it is a success. Otherwise, attempts to get a result from the given
-   * supplier. If this succeeds, that is, if the supplier returns a result, returns a success
-   * containing that result. Otherwise, if the supplier throws a checked exception, merges both
-   * exceptions using the given {@code exceptionMerger} and returns a failure containing that merged
-   * cause.
-   *
-   * @param <Y> a type of exception that the provided supplier may throw
-   * @param <Z> the type of cause that the returned try will be declared to contain
-   * @param <W> a type of exception that the provided merger may throw
-   * @param supplier the supplier that is invoked if this try is a failure
-   * @param exceptionsMerger the function invoked to merge both exceptions if this try is a failure
-   *        and the given supplier threw a checked exception
-   * @return a success if this instance is a success or the given supplier returned a result
-   * @throws W iff the merger was applied and threw a checked exception
-   */
-  public abstract <Y extends Exception, Z extends Exception, W extends Exception> Try<T, Z> or(
-      Throwing.Supplier<? extends T, Y> supplier,
-      Throwing.BiFunction<? super X, ? super Y, ? extends Z, W> exceptionsMerger) throws W;
-
-  /**
-   * Returns a failure containing this cause if this instance is a failure, a failure containing the
-   * checked exception that the provided runnable threw if it did throw one, and a success containg
-   * the result contained in this instance if this instance is a success and the provided runnable
-   * does not throw.
+   * Runs the runnable iff this instance is a success, and returns this instance if it succeeds and
+   * the cause of failure if it throws a checked exception; otherwise, returns this instance.
    * <p>
    * If this instance is a failure, returns this instance without running the provided runnable.
    * Otherwise, if the runnable succeeds (that is, does not throw), returns this instance.
@@ -83,9 +92,8 @@ public interface Try<T, X extends Exception>
   public abstract Try<T, X> andRun(Throwing.Runnable<? extends X> runnable);
 
   /**
-   * Returns a failure containing this cause if this instance is a failure, a failure containing the
-   * checked exception that the provided consumer threw if it did throw one, and a success containg
-   * the result contained in this instance otherwise.
+   * Runs the consumer iff this instance is a success, and returns this instance if it succeeds and
+   * the cause of failure if it throws a checked exception; otherwise, returns this instance.
    * <p>
    * If this instance is a failure, returns this instance without running the provided consumer.
    * Otherwise, if the consumer succeeds (that is, does not throw), returns this instance.
@@ -100,9 +108,9 @@ public interface Try<T, X extends Exception>
   public abstract Try<T, X> andConsume(Throwing.Consumer<? super T, ? extends X> consumer);
 
   /**
-   * Returns this failure if this instance is a failure; the provided failure if it is a failure and
-   * this instance is a success; and a success containing the merge of the result contained in this
-   * instance and the one contained in {@code t2}, if they both are successes.
+   * Returns this failure if this instance is a failure; the provided failure if the provided try is
+   * a failure and this instance is a success; and a success containing the merge of the result
+   * contained in this instance and the one contained in {@code t2}, if they both are successes.
    *
    * @param <U> the type of result that the provided try is declared to contain
    * @param <V> the type of result that the returned try will be declared to contain
@@ -111,7 +119,7 @@ public interface Try<T, X extends Exception>
    * @param merger the function invoked to merge the results if both this and the given try are
    *        successes
    * @return a success if this instance and the given try are two successes
-   * @throws Y iff the merger was applied and threw a checked exception
+   * @throws Y iff the merger was applied and threw an exception of type {@code Y}
    */
   public abstract <U, V, Y extends Exception> Try<V, X> and(Try<U, ? extends X> t2,
       Throwing.BiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y;
@@ -121,12 +129,37 @@ public interface Try<T, X extends Exception>
    * the given function if it threw a checked exception; or a success containing the result of
    * applying the provided mapper to the result contained in this instance if it is a success and
    * the mapper did not throw.
+   * <p>
+   * Equivalent to: {@code t.map(r -> Try.get(() -> mapper.apply(r)), c -> t)}
    *
    * @param <U> the type of result that the returned try will be declared to contain
    * @param mapper the mapper to apply to the result contained in this instance if it is a success
    * @return a success iff this instance is a success and the provided mapper does not throw
    */
   @Override
-  public abstract <U> Try<U, X> flatMap(
+  public abstract <U> Try<U, X> andApply(
       Throwing.Function<? super T, ? extends U, ? extends X> mapper);
+
+  /**
+   * Returns this instance if it is a success; otherwise, returns a success if the supplier succeeds
+   * and a failure if it throws a checked exception.
+   * <p>
+   * Returns this instance if it is a success. Otherwise, attempts to get a result from the given
+   * supplier. If this succeeds, that is, if the supplier returns a result, returns a success
+   * containing that result. Otherwise, if the supplier throws a checked exception, merges both
+   * exceptions using the given {@code exceptionMerger} and returns a failure containing that merged
+   * cause.
+   *
+   * @param <Y> a type of exception that the provided supplier may throw
+   * @param <Z> the type of cause that the returned try will be declared to contain
+   * @param <W> a type of exception that the provided merger may throw
+   * @param supplier the supplier to invoke iff this try is a failure
+   * @param exceptionsMerger the function invoked to merge both exceptions iff this try is a failure
+   *        and the given supplier threw a checked exception
+   * @return a success if this instance is a success or the given supplier returned a result
+   * @throws W iff the merger was applied and threw a checked exception
+   */
+  public abstract <Y extends Exception, Z extends Exception, W extends Exception> Try<T, Z> or(
+      Throwing.Supplier<? extends T, Y> supplier,
+      Throwing.BiFunction<? super X, ? super Y, ? extends Z, W> exceptionsMerger) throws W;
 }

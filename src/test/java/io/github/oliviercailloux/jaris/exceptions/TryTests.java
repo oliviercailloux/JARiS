@@ -60,11 +60,12 @@ public class TryTests {
       throw runtimeExc;
     }));
 
-    assertEquals(Try.success(5), t.flatMap(i -> i + 4));
-    assertEquals(Try.failure(cause), t.flatMap(i -> {
+    assertEquals(Try.success(5), t.map(i -> Try.get(() -> i + 4), f -> t));
+    assertEquals(Try.success(5), t.andApply(i -> i + 4));
+    assertEquals(Try.failure(cause), t.andApply(i -> {
       throw cause;
     }));
-    assertThrows(UnsupportedOperationException.class, () -> t.flatMap(i -> {
+    assertThrows(UnsupportedOperationException.class, () -> t.andApply(i -> {
       throw runtimeExc;
     }));
 
@@ -190,11 +191,11 @@ public class TryTests {
       throw runtimeExc;
     }));
 
-    assertEquals(Try.failure(cause), t.flatMap(i -> i + 4));
-    assertEquals(Try.failure(cause), t.flatMap(i -> {
+    assertEquals(Try.failure(cause), t.andApply(i -> i + 4));
+    assertEquals(Try.failure(cause), t.andApply(i -> {
       throw cause;
     }));
-    assertEquals(Try.failure(cause), t.flatMap(i -> {
+    assertEquals(Try.failure(cause), t.andApply(i -> {
       throw runtimeExc;
     }));
 
@@ -423,11 +424,11 @@ public class TryTests {
       throw runtimeExc;
     }));
 
-    assertEquals(TryCatchAll.success(5), t.flatMap(i -> i + 4));
-    assertEquals(TryCatchAll.failure(cause), t.flatMap(i -> {
+    assertEquals(TryCatchAll.success(5), t.andApply(i -> i + 4));
+    assertEquals(TryCatchAll.failure(cause), t.andApply(i -> {
       throw cause;
     }));
-    assertEquals(TryCatchAll.failure(runtimeExc), t.flatMap(i -> {
+    assertEquals(TryCatchAll.failure(runtimeExc), t.andApply(i -> {
       throw runtimeExc;
     }));
 
@@ -530,11 +531,11 @@ public class TryTests {
       throw runtimeExc;
     }));
 
-    assertEquals(t, t.flatMap(i -> i + 4));
-    assertEquals(t, t.flatMap(i -> {
+    assertEquals(t, t.andApply(i -> i + 4));
+    assertEquals(t, t.andApply(i -> {
       throw cause;
     }));
-    assertEquals(t, t.flatMap(i -> {
+    assertEquals(t, t.andApply(i -> {
       throw runtimeExc;
     }));
 

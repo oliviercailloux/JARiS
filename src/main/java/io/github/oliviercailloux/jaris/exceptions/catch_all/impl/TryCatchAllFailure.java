@@ -56,7 +56,7 @@ public class TryCatchAllFailure extends TryOptional.TryVariableCatchFailure<Thro
   }
 
   @Override
-  public <U> TryCatchAll<U> flatMap(Throwing.Function<? super Object, ? extends U, ?> mapper) {
+  public <U> TryCatchAll<U> andApply(Throwing.Function<? super Object, ? extends U, ?> mapper) {
     return cast();
   }
 
