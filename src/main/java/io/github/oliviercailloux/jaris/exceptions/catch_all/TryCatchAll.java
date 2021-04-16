@@ -1,8 +1,8 @@
 package io.github.oliviercailloux.jaris.exceptions.catch_all;
 
 import io.github.oliviercailloux.jaris.exceptions.Throwing;
-import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryCatchAllFailure;
-import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryCatchAllSuccess;
+import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryCatchAllImpl.TryCatchAllFailure;
+import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryCatchAllImpl.TryCatchAllSuccess;
 import io.github.oliviercailloux.jaris.exceptions.impl.TryOptional;
 
 public interface TryCatchAll<T>

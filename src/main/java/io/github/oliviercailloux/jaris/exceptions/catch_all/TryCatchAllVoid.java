@@ -4,8 +4,8 @@ import io.github.oliviercailloux.jaris.exceptions.Throwing;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
 import io.github.oliviercailloux.jaris.exceptions.Try;
-import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryVoidCatchAllFailure;
-import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryVoidCatchAllSuccess;
+import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryCatchAllImpl.TryVoidCatchAllFailure;
+import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryCatchAllImpl.TryVoidCatchAllSuccess;
 import io.github.oliviercailloux.jaris.exceptions.impl.TryOptional;
 
 public interface TryCatchAllVoid
