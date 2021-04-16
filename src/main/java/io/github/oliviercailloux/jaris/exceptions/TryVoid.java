@@ -1,8 +1,5 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
-import io.github.oliviercailloux.jaris.exceptions.impl.TryOptional;
-
-
 /**
  * <p>
  * An instance of this class is either a <em>success</em> or a <em>failure</em>. In the latter case,

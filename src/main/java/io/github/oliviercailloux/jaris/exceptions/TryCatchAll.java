@@ -1,18 +1,13 @@
-package io.github.oliviercailloux.jaris.exceptions.catch_all;
-
-import io.github.oliviercailloux.jaris.exceptions.Throwing;
-import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryCatchAllImpl.TryCatchAllFailure;
-import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryCatchAllImpl.TryCatchAllSuccess;
-import io.github.oliviercailloux.jaris.exceptions.impl.TryOptional;
+package io.github.oliviercailloux.jaris.exceptions;
 
 public interface TryCatchAll<T>
     extends TryOptional.TryVariableCatchInterface<T, Throwable, Throwable> {
   public static <T> TryCatchAll<T> success(T result) {
-    return TryCatchAllSuccess.given(result);
+    return TryOptional.TryCatchAllSuccess.given(result);
   }
 
   public static <T> TryCatchAll<T> failure(Throwable cause) {
-    return TryCatchAllFailure.given(cause);
+    return TryOptional.TryCatchAllFailure.given(cause);
   }
 
   public static <T> TryCatchAll<T> get(Throwing.Supplier<? extends T, ?> supplier) {

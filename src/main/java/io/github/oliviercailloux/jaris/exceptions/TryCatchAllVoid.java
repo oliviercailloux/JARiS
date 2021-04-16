@@ -1,21 +1,16 @@
-package io.github.oliviercailloux.jaris.exceptions.catch_all;
+package io.github.oliviercailloux.jaris.exceptions;
 
-import io.github.oliviercailloux.jaris.exceptions.Throwing;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
-import io.github.oliviercailloux.jaris.exceptions.Try;
-import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryCatchAllImpl.TryCatchAllVoidFailure;
-import io.github.oliviercailloux.jaris.exceptions.catch_all.impl.TryCatchAllImpl.TryCatchAllVoidSuccess;
-import io.github.oliviercailloux.jaris.exceptions.impl.TryOptional;
 
 public interface TryCatchAllVoid
     extends TryOptional.TryVariableCatchVoidInterface<Throwable, Throwable> {
   public static TryCatchAllVoid success() {
-    return TryCatchAllVoidSuccess.given();
+    return TryOptional.TryCatchAllVoidSuccess.given();
   }
 
   public static TryCatchAllVoid failure(Throwable cause) {
-    return TryCatchAllVoidFailure.given(cause);
+    return TryOptional.TryCatchAllVoidFailure.given(cause);
   }
 
   public static TryCatchAllVoid run(Throwing.Runnable<?> runnable) {
