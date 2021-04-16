@@ -30,7 +30,7 @@ import java.util.function.Function;
  * @param <T> the type of result possibly kept in this object.
  * @param <X> the type of cause kept in this object if it is a failure.
  */
-public abstract class TryOptional<T, X extends Throwable> {
+abstract class TryOptional<T, X extends Throwable> {
 
   /**
    * A sort of try optional such that a success has an associated value. Is homeomorphic to a
