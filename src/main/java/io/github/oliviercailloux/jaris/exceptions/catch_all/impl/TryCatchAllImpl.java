@@ -105,13 +105,13 @@ public class TryCatchAllImpl {
 
   }
 
-  public static class TryVoidCatchAllSuccess extends
-      TryOptional.TryVoidVariableCatchSuccess<Throwable, Throwable> implements TryCatchAllVoid {
+  public static class TryCatchAllVoidSuccess extends
+      TryOptional.TryVariableCatchVoidSuccess<Throwable, Throwable> implements TryCatchAllVoid {
     public static TryCatchAllVoid given() {
-      return new TryVoidCatchAllSuccess();
+      return new TryCatchAllVoidSuccess();
     }
 
-    private TryVoidCatchAllSuccess() {
+    private TryCatchAllVoidSuccess() {
       /* Reducing visibility. */
     }
 
@@ -136,13 +136,13 @@ public class TryCatchAllImpl {
     }
   }
 
-  public static class TryVoidCatchAllFailure extends
-      TryOptional.TryVoidVariableCatchFailure<Throwable, Throwable> implements TryCatchAllVoid {
+  public static class TryCatchAllVoidFailure extends
+      TryOptional.TryVariableCatchVoidFailure<Throwable, Throwable> implements TryCatchAllVoid {
     public static TryCatchAllVoid given(Throwable cause) {
-      return new TryVoidCatchAllFailure(cause);
+      return new TryCatchAllVoidFailure(cause);
     }
 
-    private TryVoidCatchAllFailure(Throwable cause) {
+    private TryCatchAllVoidFailure(Throwable cause) {
       super(cause);
     }
 

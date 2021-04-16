@@ -15,7 +15,7 @@ import io.github.oliviercailloux.jaris.exceptions.impl.TryOptional;
  * @param <X> the type of cause possibly kept in the instance.
  */
 public interface TryVoid<X extends Exception>
-    extends TryOptional.TryVoidVariableCatchInterface<X, Exception> {
+    extends TryOptional.TryVariableCatchVoidInterface<X, Exception> {
   /**
    * Returns a success.
    *

@@ -186,7 +186,7 @@ public abstract class TryOptional<T, X extends Throwable> {
    * @param <Z> a priori constraint applied to some functionals on the type of throwable that they
    *        may throw (see {@link TryVariableCatchInterface}).
    */
-  public interface TryVoidVariableCatchInterface<X extends Z, Z extends Throwable> {
+  public interface TryVariableCatchVoidInterface<X extends Z, Z extends Throwable> {
 
     /**
      * Returns <code>true</code> iff this instance is a success, hence, contains no cause.
@@ -282,7 +282,7 @@ public abstract class TryOptional<T, X extends Throwable> {
      * @return a success iff this instance is a success and the given runnable terminated without
      *         throwing.
      */
-    public TryVoidVariableCatchInterface<X, Z> andRun(Throwing.Runnable<? extends X> runnable);
+    public TryVariableCatchVoidInterface<X, Z> andRun(Throwing.Runnable<? extends X> runnable);
 
     /**
      * Returns this instance if it is a success; otherwise, returns a try void representing the
@@ -297,7 +297,7 @@ public abstract class TryOptional<T, X extends Throwable> {
      * @return a success iff this instance is a success or the given runnable terminated without
      *         throwing.
      */
-    public TryVoidVariableCatchInterface<X, Z> or(Throwing.Runnable<? extends X> runnable);
+    public TryVariableCatchVoidInterface<X, Z> or(Throwing.Runnable<? extends X> runnable);
 
 
 
@@ -408,8 +408,8 @@ public abstract class TryOptional<T, X extends Throwable> {
     }
   }
 
-  public static abstract class TryVoidVariableCatch<X extends Z, Z extends Throwable>
-      extends TryOptional<Object, X> implements TryVoidVariableCatchInterface<X, Z> {
+  public static abstract class TryVariableCatchVoid<X extends Z, Z extends Throwable>
+      extends TryOptional<Object, X> implements TryVariableCatchVoidInterface<X, Z> {
     @Override
     public void orThrow() throws X {
       orThrow(t -> t);
@@ -425,16 +425,10 @@ public abstract class TryOptional<T, X extends Throwable> {
     }
   }
 
-  /**
-   * TODO
-   *
-   * @param <X>
-   * @param <Z>
-   */
-  public static abstract class TryVoidVariableCatchSuccess<X extends Z, Z extends Throwable>
-      extends TryVoidVariableCatch<X, Z> {
+  public static abstract class TryVariableCatchVoidSuccess<X extends Z, Z extends Throwable>
+      extends TryVariableCatchVoid<X, Z> {
 
-    protected TryVoidVariableCatchSuccess() {
+    protected TryVariableCatchVoidSuccess() {
       /* Reducing visibility. */
     }
 
@@ -465,12 +459,12 @@ public abstract class TryOptional<T, X extends Throwable> {
     }
   }
 
-  public static abstract class TryVoidVariableCatchFailure<X extends Z, Z extends Throwable>
-      extends TryVoidVariableCatch<X, Z> {
+  public static abstract class TryVariableCatchVoidFailure<X extends Z, Z extends Throwable>
+      extends TryVariableCatchVoid<X, Z> {
 
     protected final X cause;
 
-    protected TryVoidVariableCatchFailure(X cause) {
+    protected TryVariableCatchVoidFailure(X cause) {
       this.cause = checkNotNull(cause);
     }
 
@@ -613,7 +607,7 @@ public abstract class TryOptional<T, X extends Throwable> {
 
   }
 
-  public static class TryVoidSuccess extends TryVoidVariableCatchSuccess<Exception, Exception>
+  public static class TryVoidSuccess extends TryVariableCatchVoidSuccess<Exception, Exception>
       implements TryVoid<Exception> {
     public static <X extends Exception> TryVoid<X> given() {
       return new TryVoidSuccess().cast();
@@ -655,7 +649,7 @@ public abstract class TryOptional<T, X extends Throwable> {
   }
 
   public static class TryVoidFailure<X extends Exception>
-      extends TryVoidVariableCatchFailure<X, Exception> implements TryVoid<X> {
+      extends TryVariableCatchVoidFailure<X, Exception> implements TryVoid<X> {
     public static <X extends Exception> TryVoid<X> given(X cause) {
       return new TryVoidFailure<>(cause);
     }
