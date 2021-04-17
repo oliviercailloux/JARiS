@@ -13,12 +13,14 @@ package io.github.oliviercailloux.jaris.exceptions;
  * provided functional interface, it is implicit that if the provided functional interface throws
  * anything that is not a checked exception, then it is not caught, and simply thrown back to the
  * caller.
+ * </p>
  * <p>
  * Inspired by <a href="https://github.com/vavr-io/vavr">Vavr</a>. One notable difference is that
  * this library does not sneaky throw (see the contract of Vavr’s <code>Try#<a href=
  * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L629">get()</a></code>
  * and its <a href=
  * "https://github.com/vavr-io/vavr/blob/9a40af5cec2622a8ce068d5833a2bf07671f5eed/src/main/java/io/vavr/control/Try.java#L1305">implementation</a>).
+ * </p>
  *
  * @param <T> the type of result possibly kept in the instance.
  * @param <X> the type of cause possibly kept in the instance.
