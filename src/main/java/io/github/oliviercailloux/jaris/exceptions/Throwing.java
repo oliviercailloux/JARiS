@@ -1,36 +1,35 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
-import java.util.stream.Stream;
-
 /**
  * <p>
- * Variations on the standard functional interfaces which can declare a checked exception. To be
- * used instead of the standard equivalent when (some of) the methods declare a checked exception.
- * <p>
- * Note that a typical usage of these interfaces will bind a <em>checked exception</em> to the type
- * parameter {@code X}, though contrary usage (when {@code X} is bound to {@link RuntimeException}
- * or a child thereof) may be useful for falling back to a behavior that does not treat exceptions
- * specially. For example, when a {@link CheckedStream} is used with a throwing interface that
- * declare a {@link RuntimeException}, the {@link CheckedStream} behaves like a {@link Stream}.
+ * Variations on the standard functional interfaces which can declare throwing throwables. To be
+ * used instead of the standard equivalent when (some of) the methods may throw throwables that are
+ * not {@link RuntimeException} instances.
  * <p>
  * In all these interfaces, {@code X} designates a type of (typically, checked) exception that (some
  * of) the methods may throw. These methods may throw other throwable instances, but the
  * <em>only</em> sort of <em>checked</em> exception it can throw should be of type <code>X</code>.
- * By the rules of Java, this will be guaranteed by the compiler, unless sneaky-throw is used.
+ * By the rules of Java, this will be guaranteed by the compiler, unless <a href=
+ * "https://objectcomputing.com/resources/publications/sett/january-2010-reducing-boilerplate-code-with-project-lombok#sneaky">sneaky-throw</a>
+ * is used.
  * <p>
- * This library assumes no sneaky-throw is used, otherwise, the behavior of any method related to
- * the throwing functional interfaces is unspecified.
+ * In typical usage of these interfaces, the type parameter {@code X} is a <em>checked
+ * exception</em>. Other uses are also possible:
+ * <ul>
+ * <li>Binding {@code X} to {@code RuntimeException} (or a child thereof) may be useful for falling
+ * back to a behavior that does not treat exceptions specially. For example, when a
+ * {@link CheckedStream} is used with a throwing interface that declare a {@code RuntimeException},
+ * the {@code CheckedStream} behaves like a {@code Stream}.</li>
+ * <li>The signatures also allow for {@code X} to extend merely {@link Throwable}, which can be
+ * useful in very specific circumstances. It is strongly recommended however to consider restricting
+ * {@code X} to extend {@code Exception} at the usage site: throwables that are not exceptions
+ * should generally not be caught. For example, {@link Try} implements such a restriction.</li>
  * <p>
  * TODO add default methods.
  * <p>
  * Inspired from the <a href=
  * "https://github.com/diffplug/durian/blob/99100976d27a5ebec74a0a7df48fc23de822fa00/src/com/diffplug/common/base/Throwing.java">durian</a>
  * library; simplified.
- * <p>
- * The signatures allow for {@code X} to extend merely {@link Throwable}, which can be useful in
- * very specific circumstances. It is strongly recommended however to consider restricting {@code X}
- * to extend Exception at the call site: throwables that are not exceptions should generally not be
- * caught.
  */
 public final class Throwing {
 
@@ -51,7 +50,7 @@ public final class Throwing {
   /**
    * Equivalent of {@link java.lang.Runnable} that may declare a checked exception.
    *
-   * @param <X> a sort of exception that this runnable may throw
+   * @param <X> a sort of throwable that this runnable may throw
    */
   @FunctionalInterface
   public interface Runnable<X extends Throwable> {
@@ -67,7 +66,7 @@ public final class Throwing {
   /**
    * Equivalent of {@link java.util.function.Supplier} that may declare a checked exception.
    *
-   * @param <X> a sort of exception that this supplier may throw
+   * @param <X> a sort of throwable that this supplier may throw
    */
   @FunctionalInterface
   public interface Supplier<T, X extends Throwable> {
@@ -85,7 +84,7 @@ public final class Throwing {
    * <p>
    * TODO add default methods.
    *
-   * @param <X> a sort of exception that this comparator may throw
+   * @param <X> a sort of throwable that this comparator may throw
    */
   @FunctionalInterface
   public interface Comparator<T, X extends Throwable> {
