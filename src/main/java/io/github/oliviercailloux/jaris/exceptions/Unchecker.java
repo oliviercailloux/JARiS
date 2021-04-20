@@ -8,6 +8,8 @@ import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
 import java.util.Comparator;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -177,6 +179,25 @@ public class Unchecker<X extends Exception, Y extends RuntimeException> {
   }
 
   /**
+   * Returns a consumer that simply delegates to the given consumer, except that any checked
+   * exception thrown by the given consumer is instead thrown by the returned consumer as an
+   * unchecked exception, applying the wrapper to transform it.
+   */
+  public <T, U> BiConsumer<T, U> wrapBiConsumer(Throwing.BiConsumer<T, U, ? extends X> consumer) {
+    return (t, u) -> {
+      try {
+        consumer.accept(t, u);
+      } catch (RuntimeException e) {
+        throw e;
+      } catch (Exception e) {
+        @SuppressWarnings("unchecked")
+        final X ef = (X) e;
+        throw wrapper.apply(ef);
+      }
+    };
+  }
+
+  /**
    * Returns a function that simply delegates to the given function, except that any checked
    * exception thrown by the given function is instead thrown by the returned function as an
    * unchecked exception, applying the wrapper to transform it.
@@ -196,14 +217,15 @@ public class Unchecker<X extends Exception, Y extends RuntimeException> {
   }
 
   /**
-   * Returns a predicate that simply delegates to the given predicate, except that any checked
-   * exception thrown by the given predicate is instead thrown by the returned predicate as an
+   * Returns a bi function that simply delegates to the given bi function, except that any checked
+   * exception thrown by the given bi function is instead thrown by the returned bi function as an
    * unchecked exception, applying the wrapper to transform it.
    */
-  public <F> Predicate<F> wrapPredicate(Throwing.Predicate<F, ? extends X> predicate) {
-    return (arg) -> {
+  public <F1, F2, T> BiFunction<F1, F2, T> wrapBiFunction(
+      Throwing.BiFunction<F1, F2, T, ? extends X> function) {
+    return (t, u) -> {
       try {
-        return predicate.test(arg);
+        return function.apply(t, u);
       } catch (RuntimeException e) {
         throw e;
       } catch (Exception e) {
@@ -215,14 +237,34 @@ public class Unchecker<X extends Exception, Y extends RuntimeException> {
   }
 
   /**
-   * Returns a consumer that simply delegates to the given consumer, except that any checked
-   * exception thrown by the given consumer is instead thrown by the returned consumer as an
-   * unchecked exception, applying the wrapper to transform it.
+   * Returns a binary operator that simply delegates to the given binary operator, except that any
+   * checked exception thrown by the given binary operator is instead thrown by the returned binary
+   * operator as an unchecked exception, applying the wrapper to transform it.
    */
-  public <T, U> BiConsumer<T, U> wrapBiConsumer(Throwing.BiConsumer<T, U, ? extends X> consumer) {
+  public <F> BinaryOperator<F> wrapBinaryOperator(
+      Throwing.BinaryOperator<F, ? extends X> operator) {
     return (t, u) -> {
       try {
-        consumer.accept(t, u);
+        return operator.apply(t, u);
+      } catch (RuntimeException e) {
+        throw e;
+      } catch (Exception e) {
+        @SuppressWarnings("unchecked")
+        final X ef = (X) e;
+        throw wrapper.apply(ef);
+      }
+    };
+  }
+
+  /**
+   * Returns a predicate that simply delegates to the given predicate, except that any checked
+   * exception thrown by the given predicate is instead thrown by the returned predicate as an
+   * unchecked exception, applying the wrapper to transform it.
+   */
+  public <F> Predicate<F> wrapPredicate(Throwing.Predicate<F, ? extends X> predicate) {
+    return (arg) -> {
+      try {
+        return predicate.test(arg);
       } catch (RuntimeException e) {
         throw e;
       } catch (Exception e) {

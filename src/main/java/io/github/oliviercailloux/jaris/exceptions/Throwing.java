@@ -259,6 +259,45 @@ public final class Throwing {
   }
 
   /**
+   * Equivalent of {@link java.util.function.BiConsumer} that may throw non-{@code RuntimeException}
+   * throwables.
+   *
+   * @param <T> the type of the first argument to the operation
+   * @param <U> the type of the second argument to the operation
+   * @param <X> a sort of throwable that the {@code Throwing.BiConsumer} may throw
+   */
+  @FunctionalInterface
+  public interface BiConsumer<T, U, X extends Throwable> {
+    /**
+     * Performs this operation on the given arguments.
+     *
+     * @param t the first input argument
+     * @param u the second input argument
+     * @throws X in generally unspecified circumstances
+     */
+    public void accept(T t, U u) throws X;
+  
+    /**
+     * Returns a composed {@code Throwing.BiConsumer} that performs, in sequence, this operation
+     * followed by the {@code after} operation.
+     *
+     * @param after the operation to perform after this operation
+     * @return a composed {@code Throwing.BiConsumer} that performs in sequence this operation
+     *         followed by the {@code after} operation
+     * @see java.util.function.BiConsumer#andThen(java.util.function.BiConsumer)
+     */
+    default Throwing.BiConsumer<T, U, X> andThen(
+        Throwing.BiConsumer<? super T, ? super U, ? extends X> after) {
+      checkNotNull(after);
+  
+      return (l, r) -> {
+        accept(l, r);
+        after.accept(l, r);
+      };
+    }
+  }
+
+  /**
    * Equivalent of {@link java.util.function.Function} that may throw non-{@code RuntimeException}
    * throwables.
    *
@@ -314,6 +353,98 @@ public final class Throwing {
     }
   }
 
+
+  /**
+   * Equivalent of {@link java.util.function.BiFunction} that may throw non-{@code RuntimeException}
+   * throwables.
+   *
+   * @param <T> the type of the first argument to the function
+   * @param <U> the type of the second argument to the function
+   * @param <R> the type of the result of the function
+   * @param <X> a sort of throwable that the {@code Throwing.Function} may throw
+   */
+  @FunctionalInterface
+  public interface BiFunction<T, U, R, X extends Throwable> {
+    /**
+     * Applies this function to the given arguments.
+     *
+     * @param t the first function argument
+     * @param u the second function argument
+     * @return the function result
+     * @throws X in generally unspecified circumstances
+     */
+    public R apply(T t, U u) throws X;
+  
+    /**
+     * Returns a composed function that first applies this function to its input, and then applies
+     * the {@code after} function to the result.
+     *
+     * @param <V> the type of output of the {@code after} function, and of the composed function
+     * @param after the function to apply after this function is applied
+     * @return a composed function that first applies this function and then applies the
+     *         {@code after} function
+     * @see java.util.function.BiFunction#andThen(java.util.function.Function)
+     */
+    default <V> Throwing.BiFunction<T, U, V, X> andThen(
+        Throwing.Function<? super R, ? extends V, ? extends X> after) {
+      checkNotNull(after);
+      return (t, u) -> after.apply(apply(t, u));
+    }
+  
+  }
+
+  /**
+   * Equivalent of {@link java.util.function.UnaryOperator} that may throw
+   * non-{@code RuntimeException} throwables.
+   *
+   * @param <T> the type of the operand and result of the operator
+   * @param <X> a sort of throwable that the {@code Throwing.UnaryOperator} may throw
+   */
+  @FunctionalInterface
+  public interface UnaryOperator<T, X extends Throwable> extends Throwing.Function<T, T, X> {
+  
+  }
+
+  /**
+   * Equivalent of {@link java.util.function.BinaryOperator} that may throw
+   * non-{@code RuntimeException} throwables.
+   *
+   * @param <T> the type of the operands and result of the operator
+   * @param <X> a sort of throwable that the {@code Throwing.BinaryOperator} may throw
+   */
+  @FunctionalInterface
+  public interface BinaryOperator<T, X extends Throwable> extends Throwing.BiFunction<T, T, T, X> {
+    /**
+     * Returns a {@link Throwing.BinaryOperator} which returns the lesser of two elements according
+     * to the specified {@code Comparator}.
+     *
+     * @param <T> the type of the input arguments of the comparator
+     * @param comparator a {@code Throwing.Comparator} for comparing the two values
+     * @return a {@code Throwing.BinaryOperator} which returns the lesser of its operands, according
+     *         to the supplied {@code Throwing.Comparator}
+     */
+    public static <T, X extends Throwable> Throwing.BinaryOperator<T, X> minBy(
+        Throwing.Comparator<? super T, ? extends X> comparator) {
+      checkNotNull(comparator);
+      return (a, b) -> comparator.compare(a, b) <= 0 ? a : b;
+    }
+  
+    /**
+     * Returns a {@link Throwing.BinaryOperator} which returns the greater of two elements according
+     * to the specified {@code Comparator}.
+     *
+     * @param <T> the type of the input arguments of the comparator
+     * @param comparator a {@code Throwing.Comparator} for comparing the two values
+     * @return a {@code Throwing.BinaryOperator} which returns the greater of its operands,
+     *         according to the supplied {@code Throwing.Comparator}
+     */
+    public static <T, X extends Throwable> Throwing.BinaryOperator<T, X> maxBy(
+        Throwing.Comparator<? super T, ? extends X> comparator) {
+      checkNotNull(comparator);
+      return (a, b) -> comparator.compare(a, b) >= 0 ? a : b;
+    }
+  
+  }
 
   /**
    * Equivalent of {@link java.util.function.Predicate} that may throw non-{@code RuntimeException}
@@ -383,84 +514,6 @@ public final class Throwing {
     public default Throwing.Predicate<T, X> negate() {
       return t -> !test(t);
     }
-  }
-
-  /**
-   * Equivalent of {@link java.util.function.BiConsumer} that may throw non-{@code RuntimeException}
-   * throwables.
-   *
-   * @param <T> the type of the first argument to the operation
-   * @param <U> the type of the second argument to the operation
-   * @param <X> a sort of throwable that the {@code Throwing.BiConsumer} may throw
-   */
-  @FunctionalInterface
-  public interface BiConsumer<T, U, X extends Throwable> {
-    /**
-     * Performs this operation on the given arguments.
-     *
-     * @param t the first input argument
-     * @param u the second input argument
-     * @throws X in generally unspecified circumstances
-     */
-    public void accept(T t, U u) throws X;
-
-    /**
-     * Returns a composed {@code Throwing.BiConsumer} that performs, in sequence, this operation
-     * followed by the {@code after} operation.
-     *
-     * @param after the operation to perform after this operation
-     * @return a composed {@code Throwing.BiConsumer} that performs in sequence this operation
-     *         followed by the {@code after} operation
-     * @see java.util.function.BiConsumer#andThen(java.util.function.BiConsumer)
-     */
-    default Throwing.BiConsumer<T, U, X> andThen(
-        Throwing.BiConsumer<? super T, ? super U, ? extends X> after) {
-      checkNotNull(after);
-
-      return (l, r) -> {
-        accept(l, r);
-        after.accept(l, r);
-      };
-    }
-  }
-
-  /**
-   * Equivalent of {@link java.util.function.BiFunction} that may throw non-{@code RuntimeException}
-   * throwables.
-   *
-   * @param <T> the type of the first argument to the function
-   * @param <U> the type of the second argument to the function
-   * @param <R> the type of the result of the function
-   * @param <X> a sort of throwable that the {@code Throwing.Function} may throw
-   */
-  @FunctionalInterface
-  public interface BiFunction<T, U, R, X extends Throwable> {
-    /**
-     * Applies this function to the given arguments.
-     *
-     * @param t the first function argument
-     * @param u the second function argument
-     * @return the function result
-     * @throws X in generally unspecified circumstances
-     */
-    public R apply(T t, U u) throws X;
-
-    /**
-     * Returns a composed function that first applies this function to its input, and then applies
-     * the {@code after} function to the result.
-     *
-     * @param <V> the type of output of the {@code after} function, and of the composed function
-     * @param after the function to apply after this function is applied
-     * @return a composed function that first applies this function and then applies the
-     *         {@code after} function
-     * @see java.util.function.BiFunction#andThen(java.util.function.Function)
-     */
-    default <V> Throwing.BiFunction<T, U, V, X> andThen(
-        Throwing.Function<? super R, ? extends V, ? extends X> after) {
-      checkNotNull(after);
-      return (t, u) -> after.apply(apply(t, u));
-    }
-
   }
 
   /**
