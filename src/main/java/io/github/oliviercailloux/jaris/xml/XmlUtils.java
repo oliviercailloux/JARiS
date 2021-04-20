@@ -76,16 +76,21 @@ public class XmlUtils {
   }
 
   /**
-   * Returns a copy of the given list of nodes, using a proper generic collection.
+   * Returns an immutable copy of the given list of nodes, using a proper generic collection.
+   *
+   * @param nodes the nodes to copy
+   * @return an immutable copy of the nodes
    */
   public static ImmutableList<Node> toList(NodeList nodes) {
     return ImmutableList.copyOf(new NodeListWrapper(nodes));
   }
 
   /**
-   * Returns a copy of the given list of nodes as a list of elements, using a proper generic
-   * collection.
+   * Returns an immutable copy of the given list of nodes as a list of elements, using a proper
+   * generic collection.
    *
+   * @param nodes the nodes to copy
+   * @return an immutable copy of the nodes
    * @throws ClassCastException if some node in the provided list cannot be cast to an element.
    */
   public static ImmutableList<Element> toElements(NodeList nodes) throws ClassCastException {
@@ -94,6 +99,9 @@ public class XmlUtils {
 
   /**
    * Returns the node type, its local name, its namespace, its value, and its name.
+   *
+   * @param node the node from which to extract debug information
+   * @return a string containing information pertaining to the node
    */
   public static String toDebugString(Node node) {
     return String.format("Node type %s, Local %s, NS %s, Value %s, Name %s.", node.getNodeType(),
