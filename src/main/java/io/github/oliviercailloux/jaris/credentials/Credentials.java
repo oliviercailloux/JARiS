@@ -11,9 +11,9 @@ import java.util.Objects;
  * password.
  * </p>
  * <p>
- * This immutable object stores two pieces of login information as <code>String</code>:
- * <code>username</code> and <code>password</code>. Each of these values can be an empty
- * <code>String</code>, but are never <code>null</code>.
+ * This immutable object stores two pieces of login information as {@code String}:
+ * {@code username} and {@code password}. Each of these values can be an empty
+ * {@code String}, but are never {@code null}.
  * </p>
  */
 public class Credentials {
@@ -21,8 +21,8 @@ public class Credentials {
   /**
    * Creates an instance containing the given information.
    *
-   * @param username may be empty, but not <code>null</code>.
-   * @param password may be empty, but not <code>null</code>.
+   * @param username may be empty, but not {@code null}.
+   * @param password may be empty, but not {@code null}.
    * @return an instance representing the given login information.
    */
   public static Credentials given(String username, String password) {
@@ -41,7 +41,7 @@ public class Credentials {
   /**
    * Returns the username.
    *
-   * @return may be an empty <code>String</code>, but never <code>null</code>.
+   * @return may be an empty {@code String}, but never {@code null}.
    */
   public String getUsername() {
     return username;
@@ -50,14 +50,14 @@ public class Credentials {
   /**
    * Returns the password.
    *
-   * @return may be an empty <code>String</code>, but never <code>null</code>.
+   * @return may be an empty {@code String}, but never {@code null}.
    */
   public String getPassword() {
     return password;
   }
 
   /**
-   * Returns <code>true</code> iff the given object is a {@link Credentials} and the username and
+   * Returns {@code true} iff the given object is a {@link Credentials} and the username and
    * password match.
    */
   @Override
