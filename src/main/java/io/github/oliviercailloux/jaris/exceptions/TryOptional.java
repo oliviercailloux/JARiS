@@ -48,16 +48,16 @@ abstract class TryOptional<T, X extends Throwable> {
   public interface TryVariableCatchInterface<T, X extends Z, Z extends Throwable> {
 
     /**
-     * Returns <code>true</code> iff this instance contains a result (and not a cause).
+     * Returns {@code true} iff this instance contains a result (and not a cause).
      *
-     * @return <code>true</code> iff {@link #isFailure()} returns <code>false</code>
+     * @return {@code true} iff {@link #isFailure()} returns {@code false}
      */
     public boolean isSuccess();
 
     /**
-     * Return <code>true</code> iff this object contains a cause (and not a result).
+     * Return {@code true} iff this object contains a cause (and not a result).
      *
-     * @return <code>true</code> iff {@link #isSuccess()} returns <code>false</code>
+     * @return {@code true} iff {@link #isSuccess()} returns {@code false}
      */
     public boolean isFailure();
 
@@ -184,18 +184,18 @@ abstract class TryOptional<T, X extends Throwable> {
   public interface TryVariableCatchVoidInterface<X extends Z, Z extends Throwable> {
 
     /**
-     * Returns <code>true</code> iff this instance is a success, hence, contains no cause.
+     * Returns {@code true} iff this instance is a success, hence, contains no cause.
      *
-     * @return <code>true</code> iff {@link #isFailure()} returns <code>false</code>
+     * @return {@code true} iff {@link #isFailure()} returns {@code false}
      */
     public boolean isSuccess();
 
 
 
     /**
-     * Return <code>true</code> iff this instance contains a cause.
+     * Return {@code true} iff this instance contains a cause.
      *
-     * @return <code>true</code> iff {@link #isSuccess()} returns <code>false</code>
+     * @return {@code true} iff {@link #isSuccess()} returns {@code false}
      */
     public boolean isFailure();
 
@@ -842,18 +842,18 @@ abstract class TryOptional<T, X extends Throwable> {
   }
 
   /**
-   * Returns <code>true</code> iff this instance represents a success.
+   * Returns {@code true} iff this instance represents a success.
    *
-   * @return <code>true</code> iff {@link #isFailure()} returns <code>false</code>
+   * @return {@code true} iff {@link #isFailure()} returns {@code false}
    */
   public boolean isSuccess() {
     return getCause().isEmpty();
   }
 
   /**
-   * Return <code>true</code> iff this instance contains a cause.
+   * Return {@code true} iff this instance contains a cause.
    *
-   * @return <code>true</code> iff {@link #isSuccess()} returns <code>false</code>
+   * @return {@code true} iff {@link #isSuccess()} returns {@code false}
    */
   public boolean isFailure() {
     return getCause().isPresent();
@@ -866,7 +866,7 @@ abstract class TryOptional<T, X extends Throwable> {
   abstract Optional<X> getCause();
 
   /**
-   * Returns <code>true</code> iff both instances have the same “catching” behavior, and either:
+   * Returns {@code true} iff both instances have the same “catching” behavior, and either:
    * <ul>
    * <li>the given object is a {@link Try} and this object and the given one are both successes and
    * hold equal results;

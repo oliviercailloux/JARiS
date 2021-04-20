@@ -13,12 +13,33 @@ import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 /**
+ * An equivalent to Java stream which allows for functional interfaces that may throw checked
+ * exceptions; designed for people who do not like sneaky-throws.
+ * <p>
+ * The following popular SO questions mention several libraries that deal with the “streams and
+ * checked exceptions” issue, but (at the time of writing) all those I found there sneaky throw,
+ * apart from <a href= "https://github.com/JeffreyFalgout/ThrowingStream/">ThrowingStream</a>.
+ * </p>
+ * <ul>
+ * <li><a href="https://stackoverflow.com/questions/23548589">Java 8: How do I work with exception
+ * throwing methods in streams?</a></li>
+ * <li><a href="https://stackoverflow.com/questions/19757300">Java 8: Lambda-Streams, Filter by
+ * Method with Exception</a></li>
+ * <li><a href="https://stackoverflow.com/questions/30117134">Aggregate runtime exceptions in Java 8
+ * streams</a></li>
+ * <li><a href="https://stackoverflow.com/questions/27644361">How can I throw CHECKED exceptions
+ * from inside Java 8 streams?</a></li>
+ * </ul>
+ * <p>
+ * This approach is heavily inspired by
+ * <a href= "https://github.com/JeffreyFalgout/ThrowingStream/">ThrowingStream</a>; some differences
+ * are discussed <a href="https://github.com/JeffreyFalgout/ThrowingStream/issues/3">here</a>.
+ * </p>
  *
- * Heavily inspired by
- * <a href= "https://github.com/JeffreyFalgout/ThrowingStream/">ThrowingStream</a>.
- *
- * @param <T>
- * @param <X>
+ * @param <T> the type of the stream elements
+ * @param <X> an exception type that functionals used with this stream may throw, and that terminal
+ *        operations on this stream may throw
+ * @see Stream
  */
 public class CheckedStream<T, X extends Exception> {
   @SuppressWarnings("serial")
