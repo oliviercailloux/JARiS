@@ -457,6 +457,12 @@ public class CheckedStream<T, X extends Exception> {
     }
   }
 
+  /**
+   * Accumulates the elements of this stream into an immutable list.
+   *
+   * @return an immutable list
+   * @throws X if any functional interface operating on this stream throws a checked exception
+   */
   public ImmutableList<T> toList() throws X {
     try {
       return delegate.collect(ImmutableList.toImmutableList());
