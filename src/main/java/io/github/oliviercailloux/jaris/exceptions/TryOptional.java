@@ -304,7 +304,7 @@ abstract class TryOptional<T, X extends Throwable> {
 
   }
 
-  public static abstract class TryVariableCatch<T, X extends Z, Z extends Throwable>
+  public abstract static class TryVariableCatch<T, X extends Z, Z extends Throwable>
       extends TryOptional<T, X> implements TryVariableCatchInterface<T, X, Z> {
     @Override
     public <Y extends Exception> T orMapCause(
@@ -326,7 +326,7 @@ abstract class TryOptional<T, X extends Throwable> {
     }
   }
 
-  public static abstract class TryVariableCatchSuccess<T, X extends Z, Z extends Throwable>
+  public abstract static class TryVariableCatchSuccess<T, X extends Z, Z extends Throwable>
       extends TryVariableCatch<T, X, Z> {
 
     protected final T result;
@@ -364,7 +364,7 @@ abstract class TryOptional<T, X extends Throwable> {
     }
   }
 
-  public static abstract class TryVariableCatchFailure<X extends Z, Z extends Throwable>
+  public abstract static class TryVariableCatchFailure<X extends Z, Z extends Throwable>
       extends TryVariableCatch<Object, X, Z> {
 
     protected final X cause;
@@ -403,7 +403,7 @@ abstract class TryOptional<T, X extends Throwable> {
     }
   }
 
-  public static abstract class TryVariableCatchVoid<X extends Z, Z extends Throwable>
+  public abstract static class TryVariableCatchVoid<X extends Z, Z extends Throwable>
       extends TryOptional<Object, X> implements TryVariableCatchVoidInterface<X, Z> {
     @Override
     public void orThrow() throws X {
@@ -420,7 +420,7 @@ abstract class TryOptional<T, X extends Throwable> {
     }
   }
 
-  public static abstract class TryVariableCatchVoidSuccess<X extends Z, Z extends Throwable>
+  public abstract static class TryVariableCatchVoidSuccess<X extends Z, Z extends Throwable>
       extends TryVariableCatchVoid<X, Z> {
 
     protected TryVariableCatchVoidSuccess() {
@@ -454,7 +454,7 @@ abstract class TryOptional<T, X extends Throwable> {
     }
   }
 
-  public static abstract class TryVariableCatchVoidFailure<X extends Z, Z extends Throwable>
+  public abstract static class TryVariableCatchVoidFailure<X extends Z, Z extends Throwable>
       extends TryVariableCatchVoid<X, Z> {
 
     protected final X cause;
