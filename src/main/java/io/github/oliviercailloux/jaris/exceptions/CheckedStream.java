@@ -211,7 +211,7 @@ public class CheckedStream<T, X extends Exception> {
   }
 
   /**
-   * @see Stream#reduce(T, BinaryOperator)
+   * @see Stream#reduce(Object, BinaryOperator) <code>Stream.reduce(T, BinaryOperator)</code>
    */
   public T reduce(T identity, Throwing.BinaryOperator<T, ? extends X> accumulator) throws X {
     final BinaryOperator<T> wrapped = UNCHECKER.wrapBinaryOperator(accumulator);
@@ -241,7 +241,8 @@ public class CheckedStream<T, X extends Exception> {
   }
 
   /**
-   * @see Stream#reduce(U, BiFunction, BinaryOperator)
+   * @see Stream#reduce(Object, BiFunction, BinaryOperator)
+   *      <code>Stream.reduce(U, BiFunction, BinaryOperator)</code>
    */
   public <U> U reduce(U identity, Throwing.BiFunction<U, ? super T, U, ? extends X> accumulator,
       Throwing.BinaryOperator<U, ? extends X> combiner) throws X {

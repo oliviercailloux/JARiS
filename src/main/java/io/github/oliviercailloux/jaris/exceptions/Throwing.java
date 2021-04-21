@@ -87,8 +87,6 @@ public final class Throwing {
   /**
    * Equivalent of {@link java.util.Comparator} that may throw non-{@code RuntimeException}
    * throwables.
-   * <p>
-   * TODO add default methods.
    *
    * @param <T> the type of objects that may be compared by this comparator
    * @param <X> a sort of throwable that this comparator may throw
@@ -145,7 +143,7 @@ public final class Throwing {
      * @throws ClassCastException if the arguments' types prevent them from being compared by this
      *         comparator.
      * @throws X in generally unspecified circumstances
-     * @see java.util.Comparator#compare(T, T)
+     * @see java.util.Comparator#compare(Object, Object) <code>Comparator.compare(T, T)</code>
      */
     public int compare(T o1, T o2) throws X;
 
@@ -276,7 +274,7 @@ public final class Throwing {
      * @throws X in generally unspecified circumstances
      */
     public void accept(T t, U u) throws X;
-  
+
     /**
      * Returns a composed {@code Throwing.BiConsumer} that performs, in sequence, this operation
      * followed by the {@code after} operation.
@@ -289,7 +287,7 @@ public final class Throwing {
     default Throwing.BiConsumer<T, U, X> andThen(
         Throwing.BiConsumer<? super T, ? super U, ? extends X> after) {
       checkNotNull(after);
-  
+
       return (l, r) -> {
         accept(l, r);
         after.accept(l, r);
@@ -374,7 +372,7 @@ public final class Throwing {
      * @throws X in generally unspecified circumstances
      */
     public R apply(T t, U u) throws X;
-  
+
     /**
      * Returns a composed function that first applies this function to its input, and then applies
      * the {@code after} function to the result.
@@ -390,7 +388,7 @@ public final class Throwing {
       checkNotNull(after);
       return (t, u) -> after.apply(apply(t, u));
     }
-  
+
   }
 
   /**
@@ -402,7 +400,7 @@ public final class Throwing {
    */
   @FunctionalInterface
   public interface UnaryOperator<T, X extends Throwable> extends Throwing.Function<T, T, X> {
-  
+
   }
 
   /**
@@ -428,7 +426,7 @@ public final class Throwing {
       checkNotNull(comparator);
       return (a, b) -> comparator.compare(a, b) <= 0 ? a : b;
     }
-  
+
     /**
      * Returns a {@link Throwing.BinaryOperator} which returns the greater of two elements according
      * to the specified {@code Comparator}.
@@ -443,7 +441,7 @@ public final class Throwing {
       checkNotNull(comparator);
       return (a, b) -> comparator.compare(a, b) >= 0 ? a : b;
     }
-  
+
   }
 
   /**
