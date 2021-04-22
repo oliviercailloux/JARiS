@@ -5,9 +5,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Optional;
 
 /**
- * <p>
  * Immutable.
- * </p>
  * <p>
  * Stores two optional pieces of login information: username and password. For each piece,
  * distinguishes <em>missing information</em> and <em>empty string</em>. An empty string is thus
