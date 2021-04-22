@@ -26,27 +26,25 @@ import org.slf4j.LoggerFactory;
  * username and password. Be aware that a piece of information may be provided and empty.
  * </p>
  * <ol>
- * <li>System properties {@code usernameKey} and {@code passwordKey}. Each property may be
- * set, including to the empty string, or not set. This source is valid iff both properties are
- * set.</li>
- * <li>Environment variables {@code usernameKey} and {@code passwordKey}. Each variable
- * may be set, including to the empty string, or not set. This source is valid iff both environment
- * variables are set.</li>
- * <li>File {@code filePath}. This source is valid iff the file exists. The first line of the
- * file gives the username, the second one gives the password. If the file has only one line, the
+ * <li>System properties {@code usernameKey} and {@code passwordKey}. Each property may be set,
+ * including to the empty string, or not set. This source is valid iff both properties are set.</li>
+ * <li>Environment variables {@code usernameKey} and {@code passwordKey}. Each variable may be set,
+ * including to the empty string, or not set. This source is valid iff both environment variables
+ * are set.</li>
+ * <li>File {@code filePath}. This source is valid iff the file exists. The first line of the file
+ * gives the username, the second one gives the password. If the file has only one line, the
  * password is considered to be the empty string. If the file is empty, the username and the
  * password are both considered to be the empty string. Empty lines are not considered at all. If
  * the file has non empty line content after the second line, it is an error. Both classical end of
- * line marks ({@code \r} and {@code \r\n}) are considered as end of lines, and the file
- * is considered as encoded in UTF-8.</li>
+ * line marks ({@code \r} and {@code \r\n}) are considered as end of lines, and the file is
+ * considered as encoded in UTF-8.</li>
  * </ol>
  * <p>
  * This class also permits to configure the sources that it attempts to read from, at instance
  * creation time (using the factory methods). If not provided, the default value for
- * {@code usernameKey} is {@value #DEFAULT_USERNAME_KEY}; the default value for
- * {@code passwordKey} is {@value #DEFAULT_PASSWORD_KEY} (both for system properties and
- * environment); and the default value for {@code filePath} is {@code "API_login.txt"} in
- * the current directory.
+ * {@code usernameKey} is {@value #DEFAULT_USERNAME_KEY}; the default value for {@code passwordKey}
+ * is {@value #DEFAULT_PASSWORD_KEY} (both for system properties and environment); and the default
+ * value for {@code filePath} is {@code "API_login.txt"} in the current directory.
  * </p>
  * <p>
  * Instances of this class are immutable.

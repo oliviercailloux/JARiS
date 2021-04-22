@@ -11,9 +11,9 @@ import java.util.Objects;
  * password.
  * </p>
  * <p>
- * This immutable object stores two pieces of login information as {@code String}:
- * {@code username} and {@code password}. Each of these values can be an empty
- * {@code String}, but are never {@code null}.
+ * This immutable object stores two pieces of login information as {@code String}: {@code username}
+ * and {@code password}. Each of these values can be an empty {@code String}, but are never
+ * {@code null}.
  * </p>
  */
 public class Credentials {
