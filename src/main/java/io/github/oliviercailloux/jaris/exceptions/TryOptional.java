@@ -171,6 +171,7 @@ abstract class TryOptional<T, X extends Throwable> {
     public abstract String toString();
 
   }
+
   /**
    * A sort of try optional such that a success has no associated value. Is homeomorphic to an
    * {@code Optional<X>} (plus indication of catching checked or catching all). Suitable for
@@ -190,16 +191,12 @@ abstract class TryOptional<T, X extends Throwable> {
      */
     public boolean isSuccess();
 
-
-
     /**
      * Return {@code true} iff this instance contains a cause.
      *
      * @return {@code true} iff {@link #isSuccess()} returns {@code false}
      */
     public boolean isFailure();
-
-
 
     /**
      * Returns the supplied result if this instance is a success, using the provided
@@ -293,8 +290,6 @@ abstract class TryOptional<T, X extends Throwable> {
      *         throwing.
      */
     public TryVariableCatchVoidInterface<X, Z> or(Throwing.Runnable<? extends X> runnable);
-
-
 
     /**
      * Returns a string representation of this object, suitable for debug.
@@ -409,7 +404,6 @@ abstract class TryOptional<T, X extends Throwable> {
     public void orThrow() throws X {
       orThrow(t -> t);
     }
-
 
     @Override
     public String toString() {
@@ -545,6 +539,7 @@ abstract class TryOptional<T, X extends Throwable> {
       return cast();
     }
   }
+
   public static class TryFailure<X extends Exception>
       extends TryOptional.TryVariableCatchFailure<X, Exception> implements Try<Object, X> {
     public static <T, X extends Exception> Try<T, X> given(X cause) {
@@ -673,6 +668,7 @@ abstract class TryOptional<T, X extends Throwable> {
       return TryVoid.run(runnable);
     }
   }
+
   public static class TryCatchAllSuccess<T> extends
       TryOptional.TryVariableCatchSuccess<T, Throwable, Throwable> implements TryCatchAll<T> {
     public static <T> TryCatchAll<T> given(T result) {
@@ -834,8 +830,6 @@ abstract class TryOptional<T, X extends Throwable> {
     }
 
   }
-
-
 
   protected TryOptional() {
     /* Reducing visibility. */

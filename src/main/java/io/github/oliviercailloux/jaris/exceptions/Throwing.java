@@ -351,7 +351,6 @@ public final class Throwing {
     }
   }
 
-
   /**
    * Equivalent of {@link java.util.function.BiFunction} that may throw non-{@code RuntimeException}
    * throwables.
