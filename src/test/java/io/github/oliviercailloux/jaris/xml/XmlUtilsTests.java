@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class XmlUtilsTests {
+class XmlUtilsTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlUtilsTests.class);
   private Document document;
