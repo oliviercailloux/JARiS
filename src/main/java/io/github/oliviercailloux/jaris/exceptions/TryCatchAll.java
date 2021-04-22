@@ -81,8 +81,8 @@ public interface TryCatchAll<T>
    * @return a success iff this instance is a success and the provided mapper does not throw
    */
   @Override
-  public abstract <U> TryCatchAll<U> andApply(
-      Throwing.Function<? super T, ? extends U, ? extends Throwable> mapper);
+  public abstract <U> TryCatchAll<U>
+      andApply(Throwing.Function<? super T, ? extends U, ? extends Throwable> mapper);
 
   /**
    * Returns this instance if it is a success. Otherwise, attempts to get a result from the given
@@ -98,8 +98,7 @@ public interface TryCatchAll<T>
    * @return a success if this instance is a success or the given supplier returned a result
    * @throws W iff the merger was applied and threw a checked exception
    */
-  public abstract <W extends Exception> TryCatchAll<T> or(
-      Throwing.Supplier<? extends T, ?> supplier,
-      Throwing.BiFunction<? super Throwable, ? super Throwable, ? extends Throwable, W> exceptionsMerger)
-      throws W;
+  public abstract <W extends Exception> TryCatchAll<T>
+      or(Throwing.Supplier<? extends T, ?> supplier, Throwing.BiFunction<? super Throwable,
+          ? super Throwable, ? extends Throwable, W> exceptionsMerger) throws W;
 }

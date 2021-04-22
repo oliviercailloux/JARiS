@@ -83,5 +83,4 @@ public class Credentials {
     return MoreObjects.toStringHelper(this).add("username", username)
         .add("password", password.isEmpty() ? "" : "****").toString();
   }
-
 }

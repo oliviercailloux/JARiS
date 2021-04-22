@@ -125,8 +125,9 @@ public final class Throwing {
      * @param keyExtractor the function used to extract the {@link Comparable} sort key
      * @return a comparator that compares by an extracted key
      */
-    public static <T, U extends Comparable<? super U>, X extends Throwable> Throwing.Comparator<T, X> comparing(
-        Throwing.Function<? super T, ? extends U, ? extends X> keyExtractor) {
+    public static <T, U extends Comparable<? super U>, X extends Throwable>
+        Throwing.Comparator<T, X>
+        comparing(Throwing.Function<? super T, ? extends U, ? extends X> keyExtractor) {
       checkNotNull(keyExtractor);
       return (c1, c2) -> keyExtractor.apply(c1).compareTo(keyExtractor.apply(c2));
     }
@@ -177,8 +178,8 @@ public final class Throwing {
      * @return a lexicographic-order comparator composed of this and then the other comparator
      * @see java.util.Comparator#thenComparing(java.util.Comparator)
      */
-    default Throwing.Comparator<T, X> thenComparing(
-        Throwing.Comparator<? super T, ? extends X> other) {
+    default Throwing.Comparator<T, X>
+        thenComparing(Throwing.Comparator<? super T, ? extends X> other) {
       checkNotNull(other);
       return (c1, c2) -> {
         int res = compare(c1, c2);
@@ -215,8 +216,8 @@ public final class Throwing {
      * @see #thenComparing(Throwing.Comparator)
      * @see java.util.Comparator#thenComparing(java.util.Function)
      */
-    default <U extends Comparable<? super U>> Throwing.Comparator<T, X> thenComparing(
-        Throwing.Function<? super T, ? extends U, ? extends X> keyExtractor) {
+    default <U extends Comparable<? super U>> Throwing.Comparator<T, X>
+        thenComparing(Throwing.Function<? super T, ? extends U, ? extends X> keyExtractor) {
       return thenComparing(comparing(keyExtractor));
     }
   }
@@ -284,8 +285,8 @@ public final class Throwing {
      *         followed by the {@code after} operation
      * @see java.util.function.BiConsumer#andThen(java.util.function.BiConsumer)
      */
-    default Throwing.BiConsumer<T, U, X> andThen(
-        Throwing.BiConsumer<? super T, ? super U, ? extends X> after) {
+    default Throwing.BiConsumer<T, U, X>
+        andThen(Throwing.BiConsumer<? super T, ? super U, ? extends X> after) {
       checkNotNull(after);
 
       return (l, r) -> {
@@ -326,8 +327,8 @@ public final class Throwing {
      * @see #andThen(Throwing.Function)
      * @see java.util.function.Function#compose(java.util.function.Function)
      */
-    default <V> Throwing.Function<V, R, X> compose(
-        Throwing.Function<? super V, ? extends T, ? extends X> before) {
+    default <V> Throwing.Function<V, R, X>
+        compose(Throwing.Function<? super V, ? extends T, ? extends X> before) {
       checkNotNull(before);
       return v -> apply(before.apply(v));
     }
@@ -344,8 +345,8 @@ public final class Throwing {
      * @see #compose(Function)
      * @see java.util.function.Function#andThen(java.util.function.Function)
      */
-    default <V> Throwing.Function<T, V, X> andThen(
-        Throwing.Function<? super R, ? extends V, ? extends X> after) {
+    default <V> Throwing.Function<T, V, X>
+        andThen(Throwing.Function<? super R, ? extends V, ? extends X> after) {
       checkNotNull(after);
       return t -> after.apply(apply(t));
     }
@@ -382,12 +383,11 @@ public final class Throwing {
      *         {@code after} function
      * @see java.util.function.BiFunction#andThen(java.util.function.Function)
      */
-    default <V> Throwing.BiFunction<T, U, V, X> andThen(
-        Throwing.Function<? super R, ? extends V, ? extends X> after) {
+    default <V> Throwing.BiFunction<T, U, V, X>
+        andThen(Throwing.Function<? super R, ? extends V, ? extends X> after) {
       checkNotNull(after);
       return (t, u) -> after.apply(apply(t, u));
     }
-
   }
 
   /**
@@ -420,8 +420,8 @@ public final class Throwing {
      * @return a {@code Throwing.BinaryOperator} which returns the lesser of its operands, according
      *         to the supplied {@code Throwing.Comparator}
      */
-    public static <T, X extends Throwable> Throwing.BinaryOperator<T, X> minBy(
-        Throwing.Comparator<? super T, ? extends X> comparator) {
+    public static <T, X extends Throwable> Throwing.BinaryOperator<T, X>
+        minBy(Throwing.Comparator<? super T, ? extends X> comparator) {
       checkNotNull(comparator);
       return (a, b) -> comparator.compare(a, b) <= 0 ? a : b;
     }
@@ -435,12 +435,11 @@ public final class Throwing {
      * @return a {@code Throwing.BinaryOperator} which returns the greater of its operands,
      *         according to the supplied {@code Throwing.Comparator}
      */
-    public static <T, X extends Throwable> Throwing.BinaryOperator<T, X> maxBy(
-        Throwing.Comparator<? super T, ? extends X> comparator) {
+    public static <T, X extends Throwable> Throwing.BinaryOperator<T, X>
+        maxBy(Throwing.Comparator<? super T, ? extends X> comparator) {
       checkNotNull(comparator);
       return (a, b) -> comparator.compare(a, b) >= 0 ? a : b;
     }
-
   }
 
   /**
@@ -462,8 +461,8 @@ public final class Throwing {
      *
      */
     @SuppressWarnings("unchecked")
-    static <T, X extends Throwable> Throwing.Predicate<T, X> not(
-        Throwing.Predicate<? super T, ? extends X> target) {
+    static <T, X extends Throwable> Throwing.Predicate<T, X>
+        not(Throwing.Predicate<? super T, ? extends X> target) {
       checkNotNull(target);
       return (Predicate<T, X>) target.negate();
     }
@@ -542,8 +541,8 @@ public final class Throwing {
      *         predicate and the {@code other} predicate
      * @see java.util.function.BiPredicate#and(java.util.function.BiPredicate)
      */
-    default Throwing.BiPredicate<T, U, X> and(
-        Throwing.BiPredicate<? super T, ? super U, ? extends X> other) {
+    default Throwing.BiPredicate<T, U, X>
+        and(Throwing.BiPredicate<? super T, ? super U, ? extends X> other) {
       checkNotNull(other);
       return (T t, U u) -> test(t, u) && other.test(t, u);
     }
@@ -557,8 +556,8 @@ public final class Throwing {
      *         predicate and the {@code other} predicate
      * @see java.util.function.BiPredicate#or(java.util.function.BiPredicate)
      */
-    default Throwing.BiPredicate<T, U, X> or(
-        Throwing.BiPredicate<? super T, ? super U, ? extends X> other) {
+    default Throwing.BiPredicate<T, U, X>
+        or(Throwing.BiPredicate<? super T, ? super U, ? extends X> other) {
       checkNotNull(other);
       return (T t, U u) -> test(t, u) || other.test(t, u);
     }

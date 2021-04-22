@@ -57,8 +57,8 @@ public class Unchecker<X extends Exception, Y extends RuntimeException> {
    * Returns an object that will use the given wrapper function to transform checked exceptions to
    * unchecked ones, if any checked exception happens.
    */
-  public static <X extends Exception, Y extends RuntimeException> Unchecker<X, Y> wrappingWith(
-      Function<X, Y> wrapper) {
+  public static <X extends Exception, Y extends RuntimeException> Unchecker<X, Y>
+      wrappingWith(Function<X, Y> wrapper) {
     return new Unchecker<>(wrapper);
   }
 
@@ -221,8 +221,8 @@ public class Unchecker<X extends Exception, Y extends RuntimeException> {
    * exception thrown by the given bi function is instead thrown by the returned bi function as an
    * unchecked exception, applying the wrapper to transform it.
    */
-  public <F1, F2, T> BiFunction<F1, F2, T> wrapBiFunction(
-      Throwing.BiFunction<F1, F2, T, ? extends X> function) {
+  public <F1, F2, T> BiFunction<F1, F2, T>
+      wrapBiFunction(Throwing.BiFunction<F1, F2, T, ? extends X> function) {
     return (t, u) -> {
       try {
         return function.apply(t, u);
@@ -241,8 +241,8 @@ public class Unchecker<X extends Exception, Y extends RuntimeException> {
    * checked exception thrown by the given binary operator is instead thrown by the returned binary
    * operator as an unchecked exception, applying the wrapper to transform it.
    */
-  public <F> BinaryOperator<F> wrapBinaryOperator(
-      Throwing.BinaryOperator<F, ? extends X> operator) {
+  public <F> BinaryOperator<F>
+      wrapBinaryOperator(Throwing.BinaryOperator<F, ? extends X> operator) {
     return (t, u) -> {
       try {
         return operator.apply(t, u);

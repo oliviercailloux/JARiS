@@ -61,8 +61,8 @@ public interface Try<T, X extends Exception>
    * @return a success containing the result if the supplier returns a result; a failure containing
    *         the throwable if the supplier throws a checked exception
    */
-  public static <T, X extends Exception> Try<T, X> get(
-      Throwing.Supplier<? extends T, ? extends X> supplier) {
+  public static <T, X extends Exception> Try<T, X>
+      get(Throwing.Supplier<? extends T, ? extends X> supplier) {
     try {
       return success(supplier.get());
     } catch (RuntimeException e) {
@@ -137,8 +137,8 @@ public interface Try<T, X extends Exception>
    * @return a success iff this instance is a success and the provided mapper does not throw
    */
   @Override
-  public abstract <U> Try<U, X> andApply(
-      Throwing.Function<? super T, ? extends U, ? extends X> mapper);
+  public abstract <U> Try<U, X>
+      andApply(Throwing.Function<? super T, ? extends U, ? extends X> mapper);
 
   /**
    * Returns this instance if it is a success; otherwise, returns a success if the supplier succeeds

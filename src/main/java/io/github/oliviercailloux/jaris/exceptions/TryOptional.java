@@ -91,8 +91,8 @@ abstract class TryOptional<T, X extends Throwable> {
      * @return the result, or the transformed cause
      * @throws Y iff the function was applied and threw an exception of type {@code Y}
      */
-    public <Y extends Exception> T orMapCause(
-        Throwing.Function<? super X, ? extends T, Y> causeTransformation) throws Y;
+    public <Y extends Exception> T
+        orMapCause(Throwing.Function<? super X, ? extends T, Y> causeTransformation) throws Y;
 
     /**
      * Returns an optional containing the result of this instance, without invoking the given
@@ -104,8 +104,8 @@ abstract class TryOptional<T, X extends Throwable> {
      * @return an optional, containing the result if this instance is a success, empty otherwise
      * @throws Y iff the consumer was invoked and threw an exception of type {@code Y}
      */
-    public <Y extends Exception> Optional<T> orConsumeCause(
-        Throwing.Consumer<? super X, Y> consumer) throws Y;
+    public <Y extends Exception> Optional<T>
+        orConsumeCause(Throwing.Consumer<? super X, Y> consumer) throws Y;
 
     /**
      * Returns the result contained in this instance if this instance is a success, or throws the
@@ -147,8 +147,8 @@ abstract class TryOptional<T, X extends Throwable> {
      * @param consumer the consumer to invoke iff this instance is a success
      * @return a success iff this instance is a success and the provided consumer does not throw
      */
-    public TryVariableCatchInterface<T, ?, Z> andConsume(
-        Throwing.Consumer<? super T, ? extends X> consumer);
+    public TryVariableCatchInterface<T, ?, Z>
+        andConsume(Throwing.Consumer<? super T, ? extends X> consumer);
 
     /**
      * Applies the given mapper iff this instance is a success, and returns the transformed success
@@ -161,15 +161,14 @@ abstract class TryOptional<T, X extends Throwable> {
      * @param mapper the mapper to apply to the result iff this instance is a success
      * @return a success iff this instance is a success and the provided mapper does not throw
      */
-    public <U> TryVariableCatchInterface<U, X, Z> andApply(
-        Throwing.Function<? super T, ? extends U, ? extends X> mapper);
+    public <U> TryVariableCatchInterface<U, X, Z>
+        andApply(Throwing.Function<? super T, ? extends U, ? extends X> mapper);
 
     /**
      * Returns a string representation of this object, suitable for debug.
      */
     @Override
     public abstract String toString();
-
   }
 
   /**
@@ -258,8 +257,8 @@ abstract class TryOptional<T, X extends Throwable> {
      * @return a success iff this instance is a success and the given supplier terminated without
      *         throwing.
      */
-    public <T> TryVariableCatchInterface<T, X, Z> andGet(
-        Throwing.Supplier<? extends T, ? extends X> supplier);
+    public <T> TryVariableCatchInterface<T, X, Z>
+        andGet(Throwing.Supplier<? extends T, ? extends X> supplier);
 
     /**
      * If this instance is a success, returns a try void representing the result of invoking the
@@ -296,14 +295,13 @@ abstract class TryOptional<T, X extends Throwable> {
      */
     @Override
     public abstract String toString();
-
   }
 
   public abstract static class TryVariableCatch<T, X extends Z, Z extends Throwable>
       extends TryOptional<T, X> implements TryVariableCatchInterface<T, X, Z> {
     @Override
-    public <Y extends Exception> T orMapCause(
-        Throwing.Function<? super X, ? extends T, Y> causeTransformation) throws Y {
+    public <Y extends Exception> T
+        orMapCause(Throwing.Function<? super X, ? extends T, Y> causeTransformation) throws Y {
       return map(t -> t, causeTransformation);
     }
 
@@ -348,8 +346,8 @@ abstract class TryOptional<T, X extends Throwable> {
     }
 
     @Override
-    public <Y extends Exception> Optional<T> orConsumeCause(
-        Throwing.Consumer<? super X, Y> consumer) throws Y {
+    public <Y extends Exception> Optional<T>
+        orConsumeCause(Throwing.Consumer<? super X, Y> consumer) throws Y {
       return Optional.of(result);
     }
 
@@ -386,8 +384,8 @@ abstract class TryOptional<T, X extends Throwable> {
     }
 
     @Override
-    public <Y extends Exception> Optional<Object> orConsumeCause(
-        Throwing.Consumer<? super X, Y> consumer) throws Y {
+    public <Y extends Exception> Optional<Object>
+        orConsumeCause(Throwing.Consumer<? super X, Y> consumer) throws Y {
       consumer.accept(cause);
       return Optional.empty();
     }
@@ -527,8 +525,8 @@ abstract class TryOptional<T, X extends Throwable> {
     }
 
     @Override
-    public <U> Try<U, Exception> andApply(
-        Throwing.Function<? super T, ? extends U, ? extends Exception> mapper) {
+    public <U> Try<U, Exception>
+        andApply(Throwing.Function<? super T, ? extends U, ? extends Exception> mapper) {
       return Try.get(() -> mapper.apply(result));
     }
 
@@ -582,8 +580,8 @@ abstract class TryOptional<T, X extends Throwable> {
     }
 
     @Override
-    public <U> Try<U, X> andApply(
-        Throwing.Function<? super Object, ? extends U, ? extends X> mapper) {
+    public <U> Try<U, X>
+        andApply(Throwing.Function<? super Object, ? extends U, ? extends X> mapper) {
       return cast();
     }
 
@@ -594,7 +592,6 @@ abstract class TryOptional<T, X extends Throwable> {
       final Try<Object, Y> t2 = Try.get(supplier);
       return t2.map(Try::success, y -> Try.failure(exceptionsMerger.apply(cause, y)));
     }
-
   }
 
   public static class TryVoidSuccess extends TryVariableCatchVoidSuccess<Exception, Exception>
@@ -686,7 +683,8 @@ abstract class TryOptional<T, X extends Throwable> {
 
     @Override
     public <W extends Exception> TryCatchAll<T> or(Throwing.Supplier<? extends T, ?> supplier,
-        Throwing.BiFunction<? super Throwable, ? super Throwable, ? extends Throwable, W> exceptionsMerger)
+        Throwing.BiFunction<? super Throwable, ? super Throwable, ? extends Throwable,
+            W> exceptionsMerger)
         throws W {
       return this;
     }
@@ -736,10 +734,9 @@ abstract class TryOptional<T, X extends Throwable> {
     }
 
     @Override
-    public <W extends Exception> TryCatchAll<Object> or(
-        Throwing.Supplier<? extends Object, ?> supplier,
-        Throwing.BiFunction<? super Throwable, ? super Throwable, ? extends Throwable, W> exceptionsMerger)
-        throws W {
+    public <W extends Exception> TryCatchAll<Object>
+        or(Throwing.Supplier<? extends Object, ?> supplier, Throwing.BiFunction<? super Throwable,
+            ? super Throwable, ? extends Throwable, W> exceptionsMerger) throws W {
       final TryCatchAll<Object> t2 = TryCatchAll.get(supplier);
       return t2.map(TryCatchAll::success,
           y -> TryCatchAll.failure(exceptionsMerger.apply(cause, y)));
@@ -765,7 +762,6 @@ abstract class TryOptional<T, X extends Throwable> {
     public <U> TryCatchAll<U> andApply(Throwing.Function<? super Object, ? extends U, ?> mapper) {
       return cast();
     }
-
   }
 
   public static class TryCatchAllVoidSuccess extends
@@ -828,7 +824,6 @@ abstract class TryOptional<T, X extends Throwable> {
     public TryCatchAllVoid or(Throwing.Runnable<?> runnable) {
       return TryCatchAllVoid.run(runnable);
     }
-
   }
 
   protected TryOptional() {

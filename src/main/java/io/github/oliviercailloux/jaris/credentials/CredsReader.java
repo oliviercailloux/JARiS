@@ -246,5 +246,4 @@ public class CredsReader {
     map.put(fileAuthentication.getInformationalValue() * 1.0d, fileAuthentication);
     return map.lastEntry().getValue();
   }
-
 }

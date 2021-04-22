@@ -119,8 +119,8 @@ public class CheckedStream<T, X extends Exception> {
    * @param generator the {@code Throwing.Supplier} of generated elements
    * @return a new infinite sequential unordered {@code CheckedStream}
    */
-  public static <T, X extends Exception> CheckedStream<T, X> generate(
-      Throwing.Supplier<? extends T, ? extends X> generator) {
+  public static <T, X extends Exception> CheckedStream<T, X>
+      generate(Throwing.Supplier<? extends T, ? extends X> generator) {
     final Supplier<? extends T> wrapped = UNCHECKER.wrapSupplier(generator);
     return new CheckedStream<>(Stream.generate(wrapped));
   }
@@ -165,8 +165,8 @@ public class CheckedStream<T, X extends Exception> {
   /**
    * @see Stream#flatMap(Function)
    */
-  public <R> CheckedStream<R, X> flatMap(
-      Throwing.Function<? super T, ? extends Stream<? extends R>, ? extends X> mapper) {
+  public <R> CheckedStream<R, X>
+      flatMap(Throwing.Function<? super T, ? extends Stream<? extends R>, ? extends X> mapper) {
     final Function<? super T, ? extends Stream<? extends R>> wrapped =
         UNCHECKER.wrapFunction(mapper);
     return new CheckedStream<>(delegate.flatMap(wrapped));
@@ -182,8 +182,8 @@ public class CheckedStream<T, X extends Exception> {
   /**
    * @see Stream#map(Function)
    */
-  public <R> CheckedStream<R, X> map(
-      Throwing.Function<? super T, ? extends R, ? extends X> mapper) {
+  public <R> CheckedStream<R, X>
+      map(Throwing.Function<? super T, ? extends R, ? extends X> mapper) {
     final Function<? super T, ? extends R> wrapped = UNCHECKER.wrapFunction(mapper);
     return new CheckedStream<>(delegate.map(wrapped));
   }
