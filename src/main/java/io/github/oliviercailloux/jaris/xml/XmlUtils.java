@@ -36,6 +36,7 @@ public class XmlUtils {
   public static final String XHTML_NAME_SPACE = "http://www.w3.org/1999/xhtml";
 
   private XmlUtils() {
+    /* Should not be instanciated. */
   }
 
   private static class NodeListWrapper extends AbstractList<Node> implements RandomAccess {
