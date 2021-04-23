@@ -310,24 +310,23 @@ public class CheckedStream<T, X extends Exception> {
    *          items in all the orders:
    *
    *          <pre>
-   * {@code
-   *     orders.flatMap(order -> order.getLineItems().stream())...
-   * }
-   * </pre>
+   * {@code orders.flatMap(order -> order.getLineItems().stream());}
+   *          </pre>
    *
-   * <p>
-   * If {@code path} is the path to a file, then the following produces a stream of the
-   * {@code words} contained in that file:
+   *          <p>
+   *          If {@code path} is the path to a file, then the following produces a stream of the
+   *          {@code words} contained in that file:
    *
-   * <pre>
-   * {@code
+   *          <pre>
+   *          {@code
    *     Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8);
    *     Stream<String> words = lines.flatMap(line -> Stream.of(line.split(" +")));
    * }
-   * </pre>
+   *          </pre>
    *
-   * The {@code mapper} function passed to {@code flatMap} splits a line, using a simple regular
-   * expression, into an array of words, and then creates a stream of words from that array.
+   *          The {@code mapper} function passed to {@code flatMap} splits a line, using a simple
+   *          regular expression, into an array of words, and then creates a stream of words from
+   *          that array.
    *
    * @param <R> The element type of the new stream
    * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
