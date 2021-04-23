@@ -384,16 +384,11 @@ class TryTests {
     final IOException cause = new IOException();
     final TryCatchAll<Integer> t = TryCatchAll.success(1);
 
-    /*
-     * TODO think abou TryCatchAllVoid#orThrows or how to obtain the cause in gnrl. Also, predicate
-     * on cause?
-     */
-
     assertEquals(t, TryCatchAll.get(() -> 1));
     assertNotEquals(t, TryCatchAllVoid.success());
     assertNotEquals(t, TryCatchAllVoid.failure(runtimeExc));
     assertNotEquals(t, TryCatchAllVoid.failure(cause));
-    assertNotEquals(t, Try.success(1));
+    assertEquals(t, Try.success(1));
     assertNotEquals(t, Try.get(() -> 1));
 
     assertEquals(TryCatchAll.success(3), t.and(TryCatchAll.success(2), (i1, i2) -> i1 + i2));
@@ -484,11 +479,6 @@ class TryTests {
     final UnsupportedOperationException runtimeExc = new UnsupportedOperationException();
     final IOException cause = new IOException();
     final TryCatchAll<Integer> t = TryCatchAll.failure(runtimeExc);
-
-    /*
-     * TODO think abou TryCatchAllVoid#orThrows or how to obtain the cause in gnrl. Also, predicate
-     * on cause?
-     */
 
     assertNotEquals(t, TryCatchAll.get(() -> 1));
     assertEquals(t, TryCatchAll.get(() -> {
@@ -582,4 +572,3 @@ class TryTests {
     throw new IOException();
   }
 }
-

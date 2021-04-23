@@ -34,9 +34,9 @@ abstract class TryOptional<T, X extends Throwable> {
 
   /**
    * A sort of try optional such that a success has an associated value. Is homeomorphic to a
-   * {@code T} xor {@code X} (plus indication of catching checked or catching all). Suitable for
-   * {@link Try} and {@link TryCatchAll}, depending on the catching strategy. The name (“variable
-   * catch”) indicates that this interface applies to both catching strategies.
+   * {@code T} xor {@code X}. Suitable for {@link Try} and {@link TryCatchAll}, depending on the
+   * catching strategy. The name (“variable catch”) indicates that this interface applies to both
+   * catching strategies.
    *
    * @param <T> the type of result kept in this object if it is a success.
    * @param <X> the type of cause kept in this object if it is a failure.
@@ -492,11 +492,6 @@ abstract class TryOptional<T, X extends Throwable> {
       super(result);
     }
 
-    @Override
-    protected boolean catchesAll() {
-      return false;
-    }
-
     private <Y extends Exception> Try<T, Y> cast() {
       /*
        * Safe: there is no cause in this (immutable) instance, thus its declared type does not
@@ -546,11 +541,6 @@ abstract class TryOptional<T, X extends Throwable> {
 
     private TryFailure(X cause) {
       super(cause);
-    }
-
-    @Override
-    protected boolean catchesAll() {
-      return false;
     }
 
     private <U> Try<U, X> cast() {
@@ -604,11 +594,6 @@ abstract class TryOptional<T, X extends Throwable> {
       /* Reducing visibility. */
     }
 
-    @Override
-    protected boolean catchesAll() {
-      return false;
-    }
-
     private <Y extends Exception> TryVoid<Y> cast() {
       /*
        * Safe: there is no cause in this (immutable) instance, thus its declared type does not
@@ -646,11 +631,6 @@ abstract class TryOptional<T, X extends Throwable> {
     }
 
     @Override
-    protected boolean catchesAll() {
-      return false;
-    }
-
-    @Override
     public <T> Try<T, X> andGet(Supplier<? extends T, ? extends X> supplier) {
       return Try.failure(cause);
     }
@@ -674,11 +654,6 @@ abstract class TryOptional<T, X extends Throwable> {
 
     private TryCatchAllSuccess(T result) {
       super(result);
-    }
-
-    @Override
-    protected boolean catchesAll() {
-      return true;
     }
 
     @Override
@@ -720,11 +695,6 @@ abstract class TryOptional<T, X extends Throwable> {
 
     private TryCatchAllFailure(Throwable cause) {
       super(cause);
-    }
-
-    @Override
-    protected boolean catchesAll() {
-      return true;
     }
 
     private <U> TryCatchAll<U> cast() {
@@ -775,11 +745,6 @@ abstract class TryOptional<T, X extends Throwable> {
     }
 
     @Override
-    protected boolean catchesAll() {
-      return true;
-    }
-
-    @Override
     public <T> TryCatchAll<T> andGet(Throwing.Supplier<? extends T, ?> supplier) {
       return TryCatchAll.get(supplier);
     }
@@ -803,11 +768,6 @@ abstract class TryOptional<T, X extends Throwable> {
 
     private TryCatchAllVoidFailure(Throwable cause) {
       super(cause);
-    }
-
-    @Override
-    protected boolean catchesAll() {
-      return true;
     }
 
     @Override
@@ -848,14 +808,12 @@ abstract class TryOptional<T, X extends Throwable> {
     return getCause().isPresent();
   }
 
-  protected abstract boolean catchesAll();
-
   abstract Optional<T> getResult();
 
   abstract Optional<X> getCause();
 
   /**
-   * Returns {@code true} iff both instances have the same “catching” behavior, and either:
+   * Returns {@code true} iff either:
    * <ul>
    * <li>the given object is a {@link Try} and this object and the given one are both successes and
    * hold equal results;
@@ -870,13 +828,12 @@ abstract class TryOptional<T, X extends Throwable> {
     }
 
     final TryOptional<?, ?> t2 = (TryOptional<?, ?>) o2;
-    return getResult().equals(t2.getResult()) && getCause().equals(t2.getCause())
-        && (catchesAll() == t2.catchesAll());
+    return getResult().equals(t2.getResult()) && getCause().equals(t2.getCause());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(catchesAll(), getResult(), getCause());
+    return Objects.hash(getResult(), getCause());
   }
 
   /**
