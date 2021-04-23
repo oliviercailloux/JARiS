@@ -359,7 +359,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
   }
 
   public abstract static class TryVariableCatchFailure<X extends Z, Z extends Throwable>
-      extends TryVariableCatch<Void, X, Z> {
+      extends TryVariableCatch<Object, X, Z> {
 
     protected final X cause;
 
@@ -368,7 +368,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public Optional<Void> getResult() {
+    public Optional<Object> getResult() {
       return Optional.empty();
     }
 
@@ -379,20 +379,20 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
 
     @Override
     public <U, Y extends Exception> U map(
-        Throwing.Function<? super Void, ? extends U, ? extends Y> transformation,
+        Throwing.Function<? super Object, ? extends U, ? extends Y> transformation,
         Throwing.Function<? super X, ? extends U, ? extends Y> causeTransformation) throws Y {
       return causeTransformation.apply(cause);
     }
 
     @Override
-    public <Y extends Exception> Optional<Void>
+    public <Y extends Exception> Optional<Object>
         orConsumeCause(Throwing.Consumer<? super X, Y> consumer) throws Y {
       consumer.accept(cause);
       return Optional.empty();
     }
 
     @Override
-    public <Y extends Z> Void orThrow(Function<X, Y> causeTransformation) throws Y {
+    public <Y extends Z> Object orThrow(Function<X, Y> causeTransformation) throws Y {
       throw causeTransformation.apply(cause);
     }
   }
@@ -532,7 +532,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
   }
 
   public static class TryFailure<X extends Exception>
-      extends TryOptionalImpl.TryVariableCatchFailure<X, Exception> implements Try<Void, X> {
+      extends TryOptionalImpl.TryVariableCatchFailure<X, Exception> implements Try<Object, X> {
     public static <T, X extends Exception> Try<T, X> given(X cause) {
       return new TryFailure<>(cause).cast();
     }
@@ -552,32 +552,32 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public Try<Void, X> andRun(Throwing.Runnable<? extends X> runnable) {
+    public Try<Object, X> andRun(Throwing.Runnable<? extends X> runnable) {
       return this;
     }
 
     @Override
-    public Try<Void, X> andConsume(Throwing.Consumer<? super Void, ? extends X> consumer) {
+    public Try<Object, X> andConsume(Throwing.Consumer<? super Object, ? extends X> consumer) {
       return this;
     }
 
     @Override
     public <U, V, Y extends Exception> Try<V, X> and(Try<U, ? extends X> t2,
-        Throwing.BiFunction<? super Void, ? super U, ? extends V, Y> merger) throws Y {
+        Throwing.BiFunction<? super Object, ? super U, ? extends V, Y> merger) throws Y {
       return cast();
     }
 
     @Override
     public <U> Try<U, X>
-        andApply(Throwing.Function<? super Void, ? extends U, ? extends X> mapper) {
+        andApply(Throwing.Function<? super Object, ? extends U, ? extends X> mapper) {
       return cast();
     }
 
     @Override
-    public <Y extends Exception, Z extends Exception, W extends Exception> Try<Void, Z> or(
-        Throwing.Supplier<? extends Void, Y> supplier,
+    public <Y extends Exception, Z extends Exception, W extends Exception> Try<Object, Z> or(
+        Throwing.Supplier<? extends Object, Y> supplier,
         Throwing.BiFunction<? super X, ? super Y, ? extends Z, W> exceptionsMerger) throws W {
-      final Try<Void, Y> t2 = Try.get(supplier);
+      final Try<Object, Y> t2 = Try.get(supplier);
       return t2.map(Try::success, y -> Try.failure(exceptionsMerger.apply(cause, y)));
     }
   }
@@ -687,7 +687,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
   }
 
   public static class TryCatchAllFailure extends
-      TryOptionalImpl.TryVariableCatchFailure<Throwable, Throwable> implements TryCatchAll<Void> {
+      TryOptionalImpl.TryVariableCatchFailure<Throwable, Throwable> implements TryCatchAll<Object> {
     public static <T> TryCatchAll<T> given(Throwable cause) {
       return new TryCatchAllFailure(cause).cast();
     }
@@ -703,33 +703,32 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public <W extends Exception> TryCatchAll<Void> or(Throwing.Supplier<? extends Void, ?> supplier,
-        Throwing.BiFunction<? super Throwable, ? super Throwable, ? extends Throwable,
-            W> exceptionsMerger)
-        throws W {
-      final TryCatchAll<Void> t2 = TryCatchAll.get(supplier);
+    public <W extends Exception> TryCatchAll<Object>
+        or(Throwing.Supplier<? extends Object, ?> supplier, Throwing.BiFunction<? super Throwable,
+            ? super Throwable, ? extends Throwable, W> exceptionsMerger) throws W {
+      final TryCatchAll<Object> t2 = TryCatchAll.get(supplier);
       return t2.map(TryCatchAll::success,
           y -> TryCatchAll.failure(exceptionsMerger.apply(cause, y)));
     }
 
     @Override
-    public TryCatchAll<Void> andRun(Throwing.Runnable<?> runnable) {
+    public TryCatchAll<Object> andRun(Throwing.Runnable<?> runnable) {
       return this;
     }
 
     @Override
-    public TryCatchAll<Void> andConsume(Throwing.Consumer<? super Void, ?> consumer) {
+    public TryCatchAll<Object> andConsume(Throwing.Consumer<? super Object, ?> consumer) {
       return this;
     }
 
     @Override
     public <U, V, Y extends Exception> TryCatchAll<V> and(TryCatchAll<U> t2,
-        Throwing.BiFunction<? super Void, ? super U, ? extends V, Y> merger) throws Y {
+        Throwing.BiFunction<? super Object, ? super U, ? extends V, Y> merger) throws Y {
       return cast();
     }
 
     @Override
-    public <U> TryCatchAll<U> andApply(Throwing.Function<? super Void, ? extends U, ?> mapper) {
+    public <U> TryCatchAll<U> andApply(Throwing.Function<? super Object, ? extends U, ?> mapper) {
       return cast();
     }
   }
