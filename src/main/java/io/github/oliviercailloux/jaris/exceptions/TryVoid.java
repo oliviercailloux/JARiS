@@ -1,6 +1,7 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
 /**
+ * A variant of {@link Try} that contains no result in case of success.
  * <p>
  * An instance of this class is either a <em>success</em> or a <em>failure</em>. In the latter case,
  * it contains a <em>cause</em> (some {@link Exception}) of type {@code X}.

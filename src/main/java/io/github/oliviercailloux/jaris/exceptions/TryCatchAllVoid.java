@@ -3,6 +3,18 @@ package io.github.oliviercailloux.jaris.exceptions;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
 import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
 
+/**
+ * A variant of {@link TryCatchAll} that contains no result in case of success.
+ * <p>
+ * An instance of this class is either a <em>success</em> or a <em>failure</em>. In the latter case,
+ * it contains a <em>cause</em> (some {@link Exception}) of type {@code X}.
+ * </p>
+ * <p>
+ * Instances of this type are immutable.
+ * </p>
+ *
+ * @param <X> the type of cause possibly kept in the instance.
+ */
 public interface TryCatchAllVoid
     extends TryOptional.TryVariableCatchVoidInterface<Throwable, Throwable> {
   public static TryCatchAllVoid success() {

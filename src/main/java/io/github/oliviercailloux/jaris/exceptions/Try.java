@@ -1,6 +1,8 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
 /**
+ * Represents either a result or a failure and provides operations to deal with cases of successes
+ * and of failures in a unified way.
  * <p>
  * An instance of this class contains either a result, in which case it is called a “success”; or a
  * cause of type {@code X} (some {@link Exception}), in which case it is called a “failure”.
@@ -9,10 +11,13 @@ package io.github.oliviercailloux.jaris.exceptions;
  * Instances of this type are immutable.
  * </p>
  * <p>
- * When the documentation of a method indicates that it catches checked exceptions thrown by some
- * provided functional interface, it is implicit that if the provided functional interface throws
- * anything that is not a checked exception, then it is not caught, and simply thrown back to the
- * caller.
+ * This type provides transformation operations that admit functional operators that can throw
+ * exceptions. Some of these methods will catch checked exceptions thrown by such functional
+ * operators, while others will propagate any exception thrown to the caller (see the method
+ * documentation). When the documentation of a method indicates that it catches checked exceptions
+ * thrown by some provided functional interface, it is implicit that if the provided functional
+ * interface throws anything that is not a checked exception, then it is not caught, and simply
+ * propagated to the caller.
  * </p>
  * <p>
  * Inspired by <a href="https://github.com/vavr-io/vavr">Vavr</a>. One notable difference is that
