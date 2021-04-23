@@ -543,8 +543,9 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
 
     private <U> Try<U, X> cast() {
       /*
-       * Safe: there is no result in this (immutable) instance, thus its declared type does not
-       * matter.
+       * We can thus have a declared Try<String, X> t which will be treated as a Try<Object, X> by
+       * this class. This is fine. But do not replace with Try<Void, X>, otherwise, or() or
+       * orMapCause() can attempt to produce Void instances.
        */
       @SuppressWarnings("unchecked")
       final Try<U, X> casted = (Try<U, X>) this;
