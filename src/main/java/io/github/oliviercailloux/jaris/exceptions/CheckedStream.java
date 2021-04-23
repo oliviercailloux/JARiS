@@ -921,20 +921,21 @@ public class CheckedStream<T, X extends Exception> {
    *          they flow past a certain point in a pipeline:
    *
    *          <pre>
-   * {@code
-   *     Stream.of("one", "two", "three", "four")
-   *         .filter(e -> e.length() > 3)
-   *         .peek(e -> System.out.println("Filtered value: " + e))
-   *         .map(String::toUpperCase)
-   *         .peek(e -> System.out.println("Mapped value: " + e))
-   *         .collect(Collectors.toList());
+   *          {@code
+   * Stream<String> s = Stream.of("one", "two", "three", "four");
+   * s.filter(e -> e.length() > 3)
+   *     .peek(e -> System.out.println("Filtered value: " + e))
+   *     .map(String::toUpperCase)
+   *     .peek(e -> System.out.println("Mapped value: " + e))
+   *     .collect(Collectors.toList());
    * }
-   * </pre>
+   *          </pre>
    *
-   * <p>
-   * In cases where the stream implementation is able to optimize away the production of some or all
-   * the elements (such as with short-circuiting operations like {@code findFirst}, or in the
-   * example described in {@link #count}), the action will not be invoked for those elements.
+   *          <p>
+   *          In cases where the stream implementation is able to optimize away the production of
+   *          some or all the elements (such as with short-circuiting operations like
+   *          {@code findFirst}, or in the example described in {@link #count}), the action will not
+   *          be invoked for those elements.
    *
    * @param action a <a href="package-summary.html#NonInterference"> non-interfering</a> action to
    *        perform on the elements as they are consumed from the stream
