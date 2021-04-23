@@ -567,9 +567,9 @@ public class CheckedStream<T, X extends Exception> {
    * @return an {@link Optional} describing the result of the reduction
    * @throws NullPointerException if the result of the reduction is null
    * @throws X if any functional interface operating on this stream throws a checked exception
-   * @see #reduce(Object, BinaryOperator)
-   * @see #min(Comparator)
-   * @see #max(Comparator)
+   * @see #reduce(Object, Throwing.BinaryOperator)
+   * @see #min(Throwing.Comparator)
+   * @see #max(Throwing.Comparator)
    * @see Stream#reduce(BinaryOperator)
    */
   public Optional<T> reduce(Throwing.BinaryOperator<T, ? extends X> accumulator) throws X {
@@ -633,8 +633,8 @@ public class CheckedStream<T, X extends Exception> {
    *        values, which must be compatible with the accumulator function
    * @return the result of the reduction
    * @throws X if any functional interface operating on this stream throws a checked exception
-   * @see #reduce(BinaryOperator)
-   * @see #reduce(Object, BinaryOperator)
+   * @see #reduce(Throwing.BinaryOperator)
+   * @see #reduce(Object, Throwing.BinaryOperator)
    * @see Stream#reduce(Object, BiFunction, BinaryOperator)
    *      {@code Stream.reduce(U, BiFunction, BinaryOperator)}
    */
@@ -668,8 +668,8 @@ public class CheckedStream<T, X extends Exception> {
    * </pre>
    *
    * <p>
-   * Like {@link #reduce(Object, BinaryOperator)}, {@code collect} operations can be parallelized
-   * without requiring additional synchronization.
+   * Like {@link #reduce(Object, Throwing.BinaryOperator)}, {@code collect} operations can be
+   * parallelized without requiring additional synchronization.
    *
    * <p>
    * This is a <a href="package-summary.html#StreamOps">terminal operation</a>.
@@ -734,7 +734,8 @@ public class CheckedStream<T, X extends Exception> {
   /**
    * Performs a <a href="package-summary.html#MutableReduction">mutable reduction</a> operation on
    * the elements of this stream using a {@code Collector}. A {@code Collector} encapsulates the
-   * functions used as arguments to {@link #collect(Supplier, BiConsumer, BiConsumer)}, allowing for
+   * functions used as arguments to
+   * {@link #collect(Throwing.Supplier, Throwing.BiConsumer, Throwing.BiConsumer)}, allowing for
    * reuse of collection strategies and composition of collect operations such as multiple-level
    * grouping or partitioning.
    *
@@ -788,7 +789,7 @@ public class CheckedStream<T, X extends Exception> {
    * @param collector the {@code Collector} describing the reduction
    * @return the result of the reduction
    * @throws X if any functional interface operating on this stream throws a checked exception
-   * @see #collect(Supplier, BiConsumer, BiConsumer)
+   * @see #collect(Throwing.Supplier, Throwing.BiConsumer, Throwing.BiConsumer)
    * @see Collectors
    * @see Stream#collect(Collector)
    */
@@ -1106,7 +1107,7 @@ public class CheckedStream<T, X extends Exception> {
    * @param action a <a href="package-summary.html#NonInterference"> non-interfering</a> action to
    *        perform on the elements
    * @throws X if any functional interface operating on this stream throws a checked exception
-   * @see #forEach(Consumer)
+   * @see #forEach(Throwing.Consumer)
    * @see Stream#forEachOrdered(Consumer)
    */
   public void forEachOrdered(Throwing.Consumer<? super T, ? extends X> action) throws X {
@@ -1165,9 +1166,10 @@ public class CheckedStream<T, X extends Exception> {
    * @throws X if any functional interface operating on this stream throws a checked exception
    * @see Stream#min(Comparator)
    */
-  public Optional<T> min(Comparator<? super T> comparator) throws X {
+  public Optional<T> min(Throwing.Comparator<? super T, ? extends X> comparator) throws X {
+    final Comparator<? super T> wrapped = UNCHECKER.wrapComparator(comparator);
     try {
-      return delegate.min(comparator);
+      return delegate.min(wrapped);
     } catch (InternalException e) {
       final Exception cause = e.getCause();
       @SuppressWarnings("unchecked")
