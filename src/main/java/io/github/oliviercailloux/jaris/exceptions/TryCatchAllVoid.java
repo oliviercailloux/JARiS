@@ -12,15 +12,11 @@ import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
  * <p>
  * Instances of this type are immutable.
  * </p>
- *
- * @param <X> the type of cause possibly kept in the instance.
  */
 public interface TryCatchAllVoid
     extends TryOptional.TryVariableCatchVoidInterface<Throwable, Throwable> {
   /**
    * Returns a success.
-   *
-   * @param <X> the type of cause declared to be (but not effectively) kept in the instance.
    */
   public static TryCatchAllVoid success() {
     return TryOptional.TryCatchAllVoidSuccess.given();
@@ -29,7 +25,6 @@ public interface TryCatchAllVoid
   /**
    * Returns a failure containing the given cause.
    *
-   * @param <X> the type of cause declared to be (and effectively) kept in the instance.
    * @param cause the cause to contain
    */
   public static TryCatchAllVoid failure(Throwable cause) {

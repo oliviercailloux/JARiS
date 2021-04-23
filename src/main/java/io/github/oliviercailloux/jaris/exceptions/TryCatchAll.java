@@ -30,7 +30,6 @@ package io.github.oliviercailloux.jaris.exceptions;
  * </p>
  *
  * @param <T> the type of result possibly kept in the instance.
- * @param <X> the type of cause possibly kept in the instance.
  */
 public interface TryCatchAll<T>
     extends TryOptional.TryVariableCatchInterface<T, Throwable, Throwable> {
@@ -38,7 +37,6 @@ public interface TryCatchAll<T>
    * Returns a success containing the given result.
    *
    * @param <T> the type of result declared to be (and effectively) kept in the instance
-   * @param <X> the type of cause declared to be (but not effectively) kept in the instance.
    * @param result the result to contain
    */
   public static <T> TryCatchAll<T> success(T result) {
@@ -49,7 +47,6 @@ public interface TryCatchAll<T>
    * Returns a failure containing the given cause.
    *
    * @param <T> the type of result declared to be (but not effectively) kept in the instance
-   * @param <X> the type of cause declared to be (and effectively) kept in the instance.
    * @param cause the cause to contain
    */
   public static <T> TryCatchAll<T> failure(Throwable cause) {
@@ -62,8 +59,6 @@ public interface TryCatchAll<T>
    * This method returns a failure iff the given supplier throws.
    *
    * @param <T> the type of result declared to be kept in the instance
-   * @param <X> the type of cause declared to be kept in the instance; a sort of exception that the
-   *        supplier may throw.
    * @param supplier the supplier to get a result from
    * @return a success containing the result if the supplier returns a result; a failure containing
    *         the throwable if the supplier throws
