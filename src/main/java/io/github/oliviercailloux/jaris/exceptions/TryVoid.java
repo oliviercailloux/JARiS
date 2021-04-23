@@ -13,14 +13,14 @@ package io.github.oliviercailloux.jaris.exceptions;
  * @param <X> the type of cause possibly kept in the instance.
  */
 public interface TryVoid<X extends Exception>
-    extends TryOptional.TryVariableCatchVoidInterface<X, Exception> {
+    extends TryOptionalImpl.TryVariableCatchVoidInterface<X, Exception> {
   /**
    * Returns a success.
    *
    * @param <X> the type of cause declared to be (but not effectively) kept in the instance.
    */
   public static <X extends Exception> TryVoid<X> success() {
-    return TryOptional.TryVoidSuccess.given();
+    return TryOptionalImpl.TryVoidSuccess.given();
   }
 
   /**
@@ -30,7 +30,7 @@ public interface TryVoid<X extends Exception>
    * @param cause the cause to contain
    */
   public static <X extends Exception> TryVoid<X> failure(X cause) {
-    return TryOptional.TryVoidFailure.given(cause);
+    return TryOptionalImpl.TryVoidFailure.given(cause);
   }
 
   /**

@@ -14,12 +14,12 @@ import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
  * </p>
  */
 public interface TryCatchAllVoid
-    extends TryOptional.TryVariableCatchVoidInterface<Throwable, Throwable> {
+    extends TryOptionalImpl.TryVariableCatchVoidInterface<Throwable, Throwable> {
   /**
    * Returns a success.
    */
   public static TryCatchAllVoid success() {
-    return TryOptional.TryCatchAllVoidSuccess.given();
+    return TryOptionalImpl.TryCatchAllVoidSuccess.given();
   }
 
   /**
@@ -28,7 +28,7 @@ public interface TryCatchAllVoid
    * @param cause the cause to contain
    */
   public static TryCatchAllVoid failure(Throwable cause) {
-    return TryOptional.TryCatchAllVoidFailure.given(cause);
+    return TryOptionalImpl.TryCatchAllVoidFailure.given(cause);
   }
 
   /**

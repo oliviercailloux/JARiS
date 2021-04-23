@@ -32,7 +32,7 @@ package io.github.oliviercailloux.jaris.exceptions;
  * @param <T> the type of result possibly kept in the instance.
  */
 public interface TryCatchAll<T>
-    extends TryOptional.TryVariableCatchInterface<T, Throwable, Throwable> {
+    extends TryOptionalImpl.TryVariableCatchInterface<T, Throwable, Throwable> {
   /**
    * Returns a success containing the given result.
    *
@@ -40,7 +40,7 @@ public interface TryCatchAll<T>
    * @param result the result to contain
    */
   public static <T> TryCatchAll<T> success(T result) {
-    return TryOptional.TryCatchAllSuccess.given(result);
+    return TryOptionalImpl.TryCatchAllSuccess.given(result);
   }
 
   /**
@@ -50,7 +50,7 @@ public interface TryCatchAll<T>
    * @param cause the cause to contain
    */
   public static <T> TryCatchAll<T> failure(Throwable cause) {
-    return TryOptional.TryCatchAllFailure.given(cause);
+    return TryOptionalImpl.TryCatchAllFailure.given(cause);
   }
 
   /**

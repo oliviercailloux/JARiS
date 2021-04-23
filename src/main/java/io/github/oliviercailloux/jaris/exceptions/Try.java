@@ -31,7 +31,7 @@ package io.github.oliviercailloux.jaris.exceptions;
  * @param <X> the type of cause possibly kept in the instance.
  */
 public interface Try<T, X extends Exception>
-    extends TryOptional.TryVariableCatchInterface<T, X, Exception> {
+    extends TryOptionalImpl.TryVariableCatchInterface<T, X, Exception> {
   /**
    * Returns a success containing the given result.
    *
@@ -40,7 +40,7 @@ public interface Try<T, X extends Exception>
    * @param result the result to contain
    */
   public static <T, X extends Exception> Try<T, X> success(T result) {
-    return TryOptional.TrySuccess.given(result);
+    return TryOptionalImpl.TrySuccess.given(result);
   }
 
   /**
@@ -51,7 +51,7 @@ public interface Try<T, X extends Exception>
    * @param cause the cause to contain
    */
   public static <T, X extends Exception> Try<T, X> failure(X cause) {
-    return TryOptional.TryFailure.given(cause);
+    return TryOptionalImpl.TryFailure.given(cause);
   }
 
   /**
