@@ -22,10 +22,10 @@ import java.util.function.Function;
 abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T, X> {
 
   /**
-   * A sort of try optional such that a success has an associated value. Is homeomorphic to a
-   * {@code T} xor {@code X}. Suitable for {@link Try} and {@link TryCatchAll}, depending on the
-   * catching strategy. The name (“variable catch”) indicates that this interface applies to both
-   * catching strategies.
+   * A sort of try optional that guarantees that a success has an associated value. Is homeomorphic
+   * to a {@code T} xor {@code X}. Suitable for {@link Try} and {@link TryCatchAll}, depending on
+   * the catching strategy. The name (“variable catch”) indicates that this interface applies to
+   * both catching strategies.
    *
    * @param <T> the type of result kept in this object if it is a success.
    * @param <X> the type of cause kept in this object if it is a failure.
@@ -155,11 +155,22 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
      */
     public <U> TryVariableCatchInterface<U, X, Z>
         andApply(Throwing.Function<? super T, ? extends U, ? extends X> mapper);
+
+    /**
+     * Returns {@code true} iff the given object is a {@code TryOptional}, this and the given object
+     * are both successes and have equal results, or are both failures and have equal causes.
+     *
+     * @param o2 the object to compare this instance to
+     * @return {@code true} iff {@code o2} is a {@code TryOptional} and this instance and {@code o2}
+     *         have present and equal results or present and equal causes
+     */
+    @Override
+    public boolean equals(Object o2);
   }
 
   /**
-   * A sort of try optional such that a success has no associated value. Is homeomorphic to an
-   * {@code Optional<X>} (plus indication of catching checked or catching all). Suitable for
+   * A sort of try optional that guarantees that a success has no associated value. Is homeomorphic
+   * to an {@code Optional<X>} (plus indication of catching checked or catching all). Suitable for
    * {@link TryVoid} and {@link TryCatchAllVoid}, depending on the catching strategy. The name
    * (“variable catch”) indicates that this interface applies to both catching strategies.
    *
@@ -278,6 +289,17 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
      *         throwing.
      */
     public TryVariableCatchVoidInterface<X, Z> or(Throwing.Runnable<? extends X> runnable);
+
+    /**
+     * Returns {@code true} iff the given object is a {@code TryOptional}, this and the given object
+     * are both successes, or are both failures and have equal causes.
+     *
+     * @param o2 the object to compare this instance to
+     * @return {@code true} iff {@code o2} is a {@code TryOptional} and this instance and {@code o2}
+     *         are both successes or have present and equal causes
+     */
+    @Override
+    public boolean equals(Object o2);
   }
 
   public abstract static class TryVariableCatch<T, X extends Z, Z extends Throwable>
@@ -780,11 +802,11 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
 
   @Override
   public boolean equals(Object o2) {
-    if (!(o2 instanceof TryOptionalImpl)) {
+    if (!(o2 instanceof TryOptional)) {
       return false;
     }
 
-    final TryOptionalImpl<?, ?> t2 = (TryOptionalImpl<?, ?>) o2;
+    final TryOptional<?, ?> t2 = (TryOptional<?, ?>) o2;
     return getResult().equals(t2.getResult()) && getCause().equals(t2.getCause());
   }
 

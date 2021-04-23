@@ -389,7 +389,7 @@ class TryTests {
     assertNotEquals(t, TryCatchAllVoid.failure(runtimeExc));
     assertNotEquals(t, TryCatchAllVoid.failure(cause));
     assertEquals(t, Try.success(1));
-    assertNotEquals(t, Try.get(() -> 1));
+    assertEquals(t, Try.get(() -> 1));
 
     assertEquals(TryCatchAll.success(3), t.and(TryCatchAll.success(2), (i1, i2) -> i1 + i2));
     assertEquals(TryCatchAll.failure(cause),
@@ -486,7 +486,7 @@ class TryTests {
     }));
     assertNotEquals(t, Try.get(() -> 1));
     assertNotEquals(t, Try.success(1));
-    assertNotEquals(t, TryVoid.failure(runtimeExc));
+    assertEquals(t, TryVoid.failure(runtimeExc));
     assertNotEquals(t, TryCatchAllVoid.success());
     assertEquals(t, TryCatchAllVoid.failure(runtimeExc));
 
