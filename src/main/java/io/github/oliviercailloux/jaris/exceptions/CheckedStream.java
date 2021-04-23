@@ -157,7 +157,7 @@ public class CheckedStream<T, X extends Exception> {
    *          If consistency with encounter order is required, and you are experiencing poor
    *          performance or memory utilization with {@code distinct()} in parallel pipelines,
    *          switching to sequential execution with {@link #sequential()} may improve performance.
-   * 
+   *
    * @see Stream#distinct()
    */
   public CheckedStream<T, X> distinct() {
@@ -308,7 +308,7 @@ public class CheckedStream<T, X extends Exception> {
    *          If {@code orders} is a stream of purchase orders, and each purchase order contains a
    *          collection of line items, then the following produces a stream containing all the line
    *          items in all the orders:
-   * 
+   *
    *          <pre>
    * {@code
    *     orders.flatMap(order -> order.getLineItems().stream())...
@@ -318,14 +318,14 @@ public class CheckedStream<T, X extends Exception> {
    * <p>
    * If {@code path} is the path to a file, then the following produces a stream of the
    * {@code words} contained in that file:
-   * 
+   *
    * <pre>
    * {@code
    *     Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8);
    *     Stream<String> words = lines.flatMap(line -> Stream.of(line.split(" +")));
    * }
    * </pre>
-   * 
+   *
    * The {@code mapper} function passed to {@code flatMap} splits a line, using a simple regular
    * expression, into an array of words, and then creates a stream of words from that array.
    *
@@ -465,7 +465,7 @@ public class CheckedStream<T, X extends Exception> {
    * stream, using the provided identity value and an
    * <a href="package-summary.html#Associativity">associative</a> accumulation function, and returns
    * the reduced value. This is equivalent to:
-   * 
+   *
    * <pre>
    * {@code
    *     T result = identity;
@@ -535,7 +535,7 @@ public class CheckedStream<T, X extends Exception> {
    * stream, using an <a href="package-summary.html#Associativity">associative</a> accumulation
    * function, and returns an {@code Optional} describing the reduced value, if any. This is
    * equivalent to:
-   * 
+   *
    * <pre>
    * {@code
    *     boolean foundAny = false;
@@ -589,7 +589,7 @@ public class CheckedStream<T, X extends Exception> {
    * Performs a <a href="package-summary.html#Reduction">reduction</a> on the elements of this
    * stream, using the provided identity, accumulation and combining functions. This is equivalent
    * to:
-   * 
+   *
    * <pre>
    * {@code
    *     U result = identity;
@@ -606,7 +606,7 @@ public class CheckedStream<T, X extends Exception> {
    * all {@code u}, {@code combiner(identity, u)} is equal to {@code u}. Additionally, the
    * {@code combiner} function must be compatible with the {@code accumulator} function; for all
    * {@code u} and {@code t}, the following must hold:
-   * 
+   *
    * <pre>
    * {@code
    *     combiner.apply(u, accumulator.apply(identity, t)) == accumulator.apply(u, t)
@@ -658,7 +658,7 @@ public class CheckedStream<T, X extends Exception> {
    * the elements of this stream. A mutable reduction is one in which the reduced value is a mutable
    * result container, such as an {@code ArrayList}, and elements are incorporated by updating the
    * state of the result rather than by replacing the result. This produces a result equivalent to:
-   * 
+   *
    * <pre>
    * {@code
    *     R result = supplier.get();
@@ -678,7 +678,7 @@ public class CheckedStream<T, X extends Exception> {
    * @apiNote There are many existing classes in the JDK whose signatures are well-suited for use
    *          with method references as arguments to {@code collect()}. For example, the following
    *          will accumulate strings into an {@code ArrayList}:
-   * 
+   *
    *          <pre>
    *          {@code
    *     List<String> asList = stringStream.collect(ArrayList::new, ArrayList::add,
@@ -689,7 +689,7 @@ public class CheckedStream<T, X extends Exception> {
    *          <p>
    *          The following will take a stream of strings and concatenates them into a single
    *          string:
-   * 
+   *
    *          <pre>
    *          {@code
    *     String concat = stringStream.collect(StringBuilder::new, StringBuilder::append,
@@ -755,7 +755,7 @@ public class CheckedStream<T, X extends Exception> {
    * synchronization is needed for a parallel reduction.
    *
    * @apiNote The following will accumulate strings into an ArrayList:
-   * 
+   *
    *          <pre>
    *          {@code
    *     List<String> asList = stringStream.collect(Collectors.toList());
@@ -764,7 +764,7 @@ public class CheckedStream<T, X extends Exception> {
    *
    *          <p>
    *          The following will classify {@code Person} objects by city:
-   * 
+   *
    *          <pre>
    *          {@code
    *     Map<String, List<Person>> peopleByCity
@@ -775,7 +775,7 @@ public class CheckedStream<T, X extends Exception> {
    *          <p>
    *          The following will classify {@code Person} objects by state and city, cascading two
    *          {@code Collector}s together:
-   * 
+   *
    *          <pre>
    *          {@code
    *     Map<String, Map<String, List<Person>>> peopleByStateAndCity
@@ -920,7 +920,7 @@ public class CheckedStream<T, X extends Exception> {
    *
    * @apiNote This method exists mainly to support debugging, where you want to see the elements as
    *          they flow past a certain point in a pipeline:
-   * 
+   *
    *          <pre>
    * {@code
    *     Stream.of("one", "two", "three", "four")
@@ -958,7 +958,7 @@ public class CheckedStream<T, X extends Exception> {
   /**
    * Returns the count of elements in this stream. This is a special case of a
    * <a href="package-summary.html#Reduction">reduction</a> and is equivalent to:
-   * 
+   *
    * <pre>
    * {@code
    *     return mapToLong(e -> 1L).sum();
@@ -974,14 +974,14 @@ public class CheckedStream<T, X extends Exception> {
    *          operations will be evaluated. Behavioral parameters with side-effects, which are
    *          strongly discouraged except for harmless cases such as debugging, may be affected. For
    *          example, consider the following stream:
-   * 
+   *
    *          <pre>
    *          {@code
    *     List<String> l = Arrays.asList("A", "B", "C", "D");
    *     long count = l.stream().peek(System.out::println).count();
    * }
    *          </pre>
-   * 
+   *
    *          The number of elements covered by the stream source, a {@code List}, is known and the
    *          intermediate operation, {@code peek}, does not inject into or remove elements from the
    *          stream (as may be the case for {@code flatMap} or {@code filter} operations). Thus the
