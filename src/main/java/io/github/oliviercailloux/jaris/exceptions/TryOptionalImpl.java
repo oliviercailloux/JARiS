@@ -4,10 +4,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
-import io.github.oliviercailloux.jaris.exceptions.Throwing.BiFunction;
-import io.github.oliviercailloux.jaris.exceptions.Throwing.Consumer;
-import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
-import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -503,19 +499,20 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public Try<T, Exception> andRun(Runnable<? extends Exception> runnable) {
+    public Try<T, Exception> andRun(Throwing.Runnable<? extends Exception> runnable) {
       final TryVoid<? extends Exception> ran = TryVoid.run(runnable);
       return ran.map(() -> this, Try::failure);
     }
 
     @Override
-    public Try<T, Exception> andConsume(Consumer<? super T, ? extends Exception> consumer) {
+    public Try<T, Exception>
+        andConsume(Throwing.Consumer<? super T, ? extends Exception> consumer) {
       return andRun(() -> consumer.accept(result));
     }
 
     @Override
     public <U, V, Y extends Exception> Try<V, Exception> and(Try<U, ? extends Exception> t2,
-        BiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y {
+        Throwing.BiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y {
       return t2.map(u -> Try.success(merger.apply(result, u)), Try::failure);
     }
 
@@ -527,8 +524,9 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
 
     @Override
     public <Y extends Exception, Z extends Exception, W extends Exception> Try<T, Z> or(
-        Supplier<? extends T, Y> supplier,
-        BiFunction<? super Exception, ? super Y, ? extends Z, W> exceptionsMerger) throws W {
+        Throwing.Supplier<? extends T, Y> supplier,
+        Throwing.BiFunction<? super Exception, ? super Y, ? extends Z, W> exceptionsMerger)
+        throws W {
       return cast();
     }
   }
@@ -565,7 +563,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
 
     @Override
     public <U, V, Y extends Exception> Try<V, X> and(Try<U, ? extends X> t2,
-        BiFunction<? super Void, ? super U, ? extends V, Y> merger) throws Y {
+        Throwing.BiFunction<? super Void, ? super U, ? extends V, Y> merger) throws Y {
       return cast();
     }
 
@@ -605,17 +603,18 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public <T> Try<T, Exception> andGet(Supplier<? extends T, ? extends Exception> supplier) {
+    public <T> Try<T, Exception>
+        andGet(Throwing.Supplier<? extends T, ? extends Exception> supplier) {
       return Try.get(supplier);
     }
 
     @Override
-    public TryVoid<Exception> andRun(Runnable<? extends Exception> runnable) {
+    public TryVoid<Exception> andRun(Throwing.Runnable<? extends Exception> runnable) {
       return TryVoid.run(runnable);
     }
 
     @Override
-    public TryVoid<Exception> or(Runnable<? extends Exception> runnable) {
+    public TryVoid<Exception> or(Throwing.Runnable<? extends Exception> runnable) {
       return this;
     }
   }
@@ -631,17 +630,17 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public <T> Try<T, X> andGet(Supplier<? extends T, ? extends X> supplier) {
+    public <T> Try<T, X> andGet(Throwing.Supplier<? extends T, ? extends X> supplier) {
       return Try.failure(cause);
     }
 
     @Override
-    public TryVoid<X> andRun(Runnable<? extends X> runnable) {
+    public TryVoid<X> andRun(Throwing.Runnable<? extends X> runnable) {
       return this;
     }
 
     @Override
-    public TryVoid<X> or(Runnable<? extends X> runnable) {
+    public TryVoid<X> or(Throwing.Runnable<? extends X> runnable) {
       return TryVoid.run(runnable);
     }
   }
