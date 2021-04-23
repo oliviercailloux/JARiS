@@ -563,6 +563,18 @@ class TryTests {
     assertTrue(t.toString().startsWith("TryCatchAll"), t.toString());
   }
 
+  /**
+   * Illustrates that one can view a failure as a Try<Anything, X>.
+   */
+  @Test
+  void testCast() {
+    final IOException cause = new IOException();
+    final Try<String, IOException> t0 = Try.failure(cause);
+    final Try<Integer, IOException> t0AsInt = t0.andApply(s -> 1);
+    final int t1 = t0AsInt.orMapCause(e -> 3);
+    assertEquals(3, t1);
+  }
+
   static int mergeAdding(int i1, int i2) {
     return i1 + i2;
   }
