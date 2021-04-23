@@ -17,14 +17,31 @@ import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
  */
 public interface TryCatchAllVoid
     extends TryOptional.TryVariableCatchVoidInterface<Throwable, Throwable> {
+  /**
+   * Returns a success.
+   *
+   * @param <X> the type of cause declared to be (but not effectively) kept in the instance.
+   */
   public static TryCatchAllVoid success() {
     return TryOptional.TryCatchAllVoidSuccess.given();
   }
 
+  /**
+   * Returns a failure containing the given cause.
+   *
+   * @param <X> the type of cause declared to be (and effectively) kept in the instance.
+   * @param cause the cause to contain
+   */
   public static TryCatchAllVoid failure(Throwable cause) {
     return TryOptional.TryCatchAllVoidFailure.given(cause);
   }
 
+  /**
+   * Attempts to run the given runnable, and returns a success if it succeeds or a failure
+   * containing the throwable thrown by the runnable if it throws.
+   *
+   * @return a success iff the given runnable did not throw.
+   */
   public static TryCatchAllVoid run(Throwing.Runnable<?> runnable) {
     try {
       runnable.run();
