@@ -3,7 +3,6 @@ package io.github.oliviercailloux.jaris.credentials;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
@@ -144,17 +143,12 @@ public class CredsReader {
    *
    * @throws IllegalStateException if no valid source is found, or if the file source has non empty
    *         line content after the second line.
-   * @throws UncheckedIOException if an I/O error occurs reading from the file or a malformed or
-   *         unmappable byte sequence is read from the file.
+   * @throws IOException if an I/O error occurs reading from the file or a malformed or unmappable
+   *         byte sequence is read from the file.
    * @see CredsReader
    */
-  public Credentials getCredentials() throws IllegalStateException, UncheckedIOException {
-    final CredsOpt credsOpt;
-    try {
-      credsOpt = readCredentials();
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+  public Credentials getCredentials() throws IllegalStateException, IOException {
+    final CredsOpt credsOpt = readCredentials();
 
     if (credsOpt.getUsername().isEmpty() && credsOpt.getPassword().isEmpty()) {
       throw new IllegalStateException("Login information not found.");
