@@ -564,7 +564,7 @@ class TryTests {
   }
 
   /**
-   * Illustrates that one can view a failure as a Try<Anything, X>.
+   * Illustrates that one can declare a failure as a {@code Try<Anything, X>}.
    */
   @Test
   void testCast() {
