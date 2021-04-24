@@ -91,7 +91,7 @@ public class CredsReader {
    *        environment.
    * @param filePath the file path to use for reading from the file.
    * @return a configured instance.
-   * @see #defaultCreds()
+   * @see #defaultCredsReader()
    */
   public static CredsReader given(String usernameKey, String passwordKey, Path filePath) {
     CredsReader credsReader = new CredsReader(usernameKey, passwordKey, filePath);
@@ -105,7 +105,7 @@ public class CredsReader {
    * @return a default instance.
    * @see #given(String, String, Path)
    */
-  public static CredsReader defaultCreds() {
+  public static CredsReader defaultCredsReader() {
     CredsReader credsReader =
         new CredsReader(DEFAULT_USERNAME_KEY, DEFAULT_PASSWORD_KEY, DEFAULT_FILE_PATH);
     return credsReader;
