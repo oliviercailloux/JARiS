@@ -399,5 +399,4 @@ class CredsReaderTests {
   void closeJimFs() throws IOException {
     jimfs.close();
   }
-
 }
