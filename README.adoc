@@ -13,6 +13,8 @@ This library focuses on code and API quality, not on performance. Open an issue 
 
 This project adheres to the https://github.com/classgraph/classgraph/blob/master/Zero-Bugs-Commitment.md[Zero Bugs Commitment].
 
+The API is _not_ stable. Write to me if you are interested in using this library and wonder about stabilizing its API.
+
 The following sections list the utilities that this library provides (by package).
 
 == Credentials
