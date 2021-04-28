@@ -10,6 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.jimfs.Jimfs;
+import io.github.oliviercailloux.jaris.collections.ImmutableCompleteMap;
+import io.github.oliviercailloux.jaris.credentials.GeneralCredsReader.ClassicalCredentials;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -49,14 +51,14 @@ class CredsReaderTests {
   @SetSystemProperty(key = DEFAULT_PASSWORD_KEY, value = "prop password")
   @Test
   public void testPropReadCredentials() throws Exception {
-    CredsReader credsReader =
-        CredsReader.given(DEFAULT_USERNAME_KEY, DEFAULT_PASSWORD_KEY, getNonExistentFile());
+    GeneralCredsReader<ClassicalCredentials> credsReader =
+        GeneralCredsReader.readingFrom(ClassicalCredentials.class, getNonExistentFile());
     credsReader.env = Map.of();
 
-    final CredsOpt myAuth = credsReader.readCredentials();
+    final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
 
-    assertEquals("prop username", myAuth.getUsername().get());
-    assertEquals("prop password", myAuth.getPassword().get());
+    assertEquals("prop username", myAuth.get(ClassicalCredentials.USERNAME));
+    assertEquals("prop password", myAuth.get(ClassicalCredentials.PASSWORD));
   }
 
   @SetSystemProperty(key = DEFAULT_USERNAME_KEY, value = "prop username")
