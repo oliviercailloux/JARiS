@@ -16,18 +16,21 @@ import java.util.NoSuchElementException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.ClearSystemProperty;
 import org.junitpioneer.jupiter.SetSystemProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@ClearSystemProperty(key = CredsReaderClassicalCredentialsTests.API_USERNAME)
+@ClearSystemProperty(key = CredsReaderClassicalCredentialsTests.API_PASSWORD)
 class CredsReaderClassicalCredentialsTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER =
       LoggerFactory.getLogger(CredsReaderClassicalCredentialsTests.class);
 
-  private static final String API_USERNAME = "API_USERNAME";
+  static final String API_USERNAME = "API_USERNAME";
 
-  private static final String API_PASSWORD = "API_PASSWORD";
+  static final String API_PASSWORD = "API_PASSWORD";
 
   private FileSystem jimfs;
 
