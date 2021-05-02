@@ -93,9 +93,20 @@ public class CredentialsReader<K extends Enum<K>> {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(CredentialsReader.class);
 
+  /**
+   * The enum type used in a key reader.
+   *
+   * @see CredentialsReader#keyReader()
+   */
   public static enum KeyCredential {
     API_KEY
   }
+
+  /**
+   * The enum type used in a classical reader.
+   *
+   * @see CredentialsReader#classicalReader()
+   */
   public static enum ClassicalCredentials {
     API_USERNAME, API_PASSWORD
   }

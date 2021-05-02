@@ -49,7 +49,7 @@ class CredsReaderOtherCredentialsTests {
   @SetSystemProperty(key = API_KEY, value = "prop key")
   @Test
   public void test1SysProp() throws Exception {
-    CredentialsReader<KeyCredential> credsReader =
+    final CredentialsReader<KeyCredential> credsReader =
         CredentialsReader.using(KeyCredential.class, getNonExistentFile());
     credsReader.env = Map.of();
 
@@ -61,7 +61,7 @@ class CredsReaderOtherCredentialsTests {
   @SetSystemProperty(key = API_KEY, value = "prop key")
   @Test
   public void test1SysPropAnd1Env() throws Exception {
-    CredentialsReader<KeyCredential> credsReader =
+    final CredentialsReader<KeyCredential> credsReader =
         CredentialsReader.using(KeyCredential.class, getNonExistentFile());
     credsReader.env = Map.of(API_KEY, "env key");
 
@@ -73,7 +73,7 @@ class CredsReaderOtherCredentialsTests {
   @SetSystemProperty(key = API_KEY, value = "prop key")
   @Test
   public void test1SysPropAnd1InFile() throws Exception {
-    CredentialsReader<KeyCredential> credsReader =
+    final CredentialsReader<KeyCredential> credsReader =
         CredentialsReader.using(KeyCredential.class, createApiLoginFile("file key"));
     credsReader.env = Map.of();
 
@@ -85,7 +85,7 @@ class CredsReaderOtherCredentialsTests {
   @SetSystemProperty(key = API_KEY, value = "prop key")
   @Test
   public void test1SysPropAnd2InFile() throws Exception {
-    CredentialsReader<KeyCredential> credsReader =
+    final CredentialsReader<KeyCredential> credsReader =
         CredentialsReader.using(KeyCredential.class, createApiLoginFile("file key", "spurious"));
     credsReader.env = Map.of();
 
@@ -96,7 +96,7 @@ class CredsReaderOtherCredentialsTests {
 
   @Test
   public void test0SysPropsAnd1Env() throws Exception {
-    CredentialsReader<KeyCredential> credsReader =
+    final CredentialsReader<KeyCredential> credsReader =
         CredentialsReader.using(KeyCredential.class, getNonExistentFile());
     credsReader.env = Map.of(API_KEY, "env key");
 
@@ -107,7 +107,7 @@ class CredsReaderOtherCredentialsTests {
 
   @Test
   public void test0SysPropsAnd0EnvAnd0InFile() throws Exception {
-    CredentialsReader<KeyCredential> credsReader =
+    final CredentialsReader<KeyCredential> credsReader =
         CredentialsReader.using(KeyCredential.class, createApiLoginFile());
     credsReader.env = Map.of();
 
@@ -118,7 +118,7 @@ class CredsReaderOtherCredentialsTests {
 
   @Test
   public void test0SysPropsAnd0EnvAnd1InFile() throws Exception {
-    CredentialsReader<KeyCredential> credsReader =
+    final CredentialsReader<KeyCredential> credsReader =
         CredentialsReader.using(KeyCredential.class, createApiLoginFile("file key"));
     credsReader.env = Map.of();
 
@@ -129,7 +129,7 @@ class CredsReaderOtherCredentialsTests {
 
   @Test
   public void test0SysPropsAnd0EnvAnd1InFileThen1EmptyLine() throws Exception {
-    CredentialsReader<KeyCredential> credsReader =
+    final CredentialsReader<KeyCredential> credsReader =
         CredentialsReader.using(KeyCredential.class, createApiLoginFile("file key", ""));
     credsReader.env = Map.of();
 
@@ -140,7 +140,7 @@ class CredsReaderOtherCredentialsTests {
 
   @Test
   public void test0SysPropsAnd0EnvAnd2InFile() throws Exception {
-    CredentialsReader<KeyCredential> credsReader =
+    final CredentialsReader<KeyCredential> credsReader =
         CredentialsReader.using(KeyCredential.class, createApiLoginFile("file key", "spurious"));
     credsReader.env = Map.of();
 
@@ -149,7 +149,7 @@ class CredsReaderOtherCredentialsTests {
 
   @Test
   public void test0SysPropsAnd0EnvAnd1EmptyLineThen1InFile() throws Exception {
-    CredentialsReader<KeyCredential> credsReader =
+    final CredentialsReader<KeyCredential> credsReader =
         CredentialsReader.using(KeyCredential.class, createApiLoginFile("", "spurious"));
     credsReader.env = Map.of();
 
@@ -158,7 +158,7 @@ class CredsReaderOtherCredentialsTests {
 
   @Test
   public void test0SysPropsAnd0EnvAndNoFile() throws Exception {
-    CredentialsReader<KeyCredential> credsReader =
+    final CredentialsReader<KeyCredential> credsReader =
         CredentialsReader.using(KeyCredential.class, getNonExistentFile());
     credsReader.env = Map.of();
 
@@ -170,7 +170,8 @@ class CredsReaderOtherCredentialsTests {
 
   @Test
   public void testNoKeyNoFile() throws Exception {
-    CredentialsReader<EmptyEnum> credsReader = CredentialsReader.using(EmptyEnum.class, getNonExistentFile());
+    CredentialsReader<EmptyEnum> credsReader =
+        CredentialsReader.using(EmptyEnum.class, getNonExistentFile());
     credsReader.env = Map.of();
 
     assertDoesNotThrow(() -> credsReader.getCredentials());
@@ -178,7 +179,8 @@ class CredsReaderOtherCredentialsTests {
 
   @Test
   public void testNoKeyAnd0InFile() throws Exception {
-    CredentialsReader<EmptyEnum> credsReader = CredentialsReader.using(EmptyEnum.class, createApiLoginFile());
+    CredentialsReader<EmptyEnum> credsReader =
+        CredentialsReader.using(EmptyEnum.class, createApiLoginFile());
     credsReader.env = Map.of();
 
     assertDoesNotThrow(() -> credsReader.getCredentials());
