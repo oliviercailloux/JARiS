@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static io.github.oliviercailloux.jaris.exceptions.Unchecker.IO_UNCHECKER;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -17,6 +18,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -234,5 +236,32 @@ public class CredentialsReader<K extends Enum<K>> {
       LOGGER.info("Found credentials in file {}.", filePath);
       return ImmutableCompleteMap.fromEnumType(keysType, credentials);
     }
+  }
+
+  /**
+   * Returns {@code true} iff the given object also is a credentials reader and is configured to
+   * read from the same sources (meaning, key values and file path).
+   */
+  @Override
+  public boolean equals(Object o2) {
+    if (!(o2 instanceof CredentialsReader)) {
+      return false;
+    }
+    final CredentialsReader<?> t2 = (CredentialsReader<?>) o2;
+    return keysType.equals(t2.keysType) && filePath.equals(t2.filePath);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(keysType, filePath);
+  }
+
+  /**
+   * Returns a short debug string representing this object’s state.
+   */
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("Keys type", keysType).add("File path", filePath)
+        .toString();
   }
 }
