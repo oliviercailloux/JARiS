@@ -1,83 +1,85 @@
 package io.github.oliviercailloux.jaris.credentials;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static io.github.oliviercailloux.jaris.exceptions.Unchecker.IO_UNCHECKER;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
+import io.github.oliviercailloux.jaris.collections.ImmutableCompleteMap;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.TreeMap;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * <p>
- * This class permits to read a user’s credentials (authentication information), meaning, a username
- * and a password, from various sources.
+ * This class permits to read a user’s credentials (authentication information) from various
+ * sources.
  * </p>
  * <p>
- * Instances of this class will read from the following three sources of information, and return the
- * credentials from the first <em>valid</em> source it found (following the order of priority
- * displayed here). A source is valid iff it provides the two pieces of information required:
- * username and password. Be aware that a piece of information may be provided and empty.
+ * This object is associated to an ordered set of {@code keys} and to a {@code filePath}. It will
+ * attempt to read credentials from several sources in turn.
  * </p>
- * <ol>
- * <li>System properties {@code usernameKey} and {@code passwordKey}. Each property may be set,
- * including to the empty string, or not set. This source is valid iff both properties are set.</li>
- * <li>Environment variables {@code usernameKey} and {@code passwordKey}. Each variable may be set,
- * including to the empty string, or not set. This source is valid iff both environment variables
- * are set.</li>
- * <li>File {@code filePath}. This source is valid iff the file exists. The first line of the file
- * gives the username, the second one gives the password. If the file has only one line, the
- * password is considered to be the empty string. If the file is empty, the username and the
- * password are both considered to be the empty string. Empty lines are not considered at all. If
- * the file has non empty line content after the second line, it is an error. Both classical end of
- * line marks ({@code \r} and {@code \r\n}) are considered as end of lines, and the file is
- * considered as encoded in UTF-8.</li>
- * </ol>
+ * <ul>
+ * <li>This object will read credentials from the system properties if all the keys in {@code keys}
+ * exist as system properties. If some keys exist as system properties but not all, it will throw an
+ * exception as this is probably a configuration problem.</li>
+ * <li>If none of the keys exist as system properties, it will attempt to read credentials from
+ * environment variables. Similarly, if they are all set, it returns credentials read from there; if
+ * some but not all are set, it throws.</li>
+ * <li>Finally, if no keys exist in the system properties or environment variables, it reads the
+ * file {@code filePath}. Each line of the file provides the information corresponding to one key
+ * from {@code keys}, in order. All usual line terminators are recognized: CR+LF, LF, and CR. The
+ * file is considered UTF-8 encoded. If the file has more lines than there are keys in {@code keys},
+ * the read method throws.</li>
+ * </ul>
  * <p>
- * This class also permits to configure the sources that it attempts to read from, at instance
- * creation time (using the factory methods). If not provided, the default value for
- * {@code usernameKey} is {@value #DEFAULT_USERNAME_KEY}; the default value for {@code passwordKey}
- * is {@value #DEFAULT_PASSWORD_KEY} (both for system properties and environment); and the default
- * value for {@code filePath} is {@code "API_login.txt"} in the current directory.
+ * Note that a piece of information may be provided and empty: a system property or environment
+ * variable may exist and be empty; and the file may exist and contain less lines than keys in
+ * {@code keys} or contain empty lines.
+ * </p>
+ * <p>
+ * This object will read from system properties and environment variables named according to
+ * {@code keys}, transformed to string using {@link Object#toString()}. It is suggested to use
+ * uppercase to follow the usual <a href=
+ * "https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html">convention</a> about
+ * environment variables.
  * </p>
  * <p>
  * Instances of this class are immutable.
  * </p>
+ * <p>
+ * Reading from the file throws {@link UncheckedIOException} instead of {@link IOException} because
+ * the file is considered as under control of the developer using this class, not of an end-user,
+ * and thus it is reasonable to assume that the developer does not want to be resilient to failures
+ * of the file system or unexpected file format.
+ * </p>
  */
-public class CredsReader {
+public class CredsReader<K extends Enum<K>> {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(CredsReader.class);
 
-  /**
-   * The default value of the username key used in {@code CredsReader.defaultCreds()}. (All
-   * uppercase to follow the usual <a href=
-   * "https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html">convention</a> when
-   * used as an environment variable.)
-   */
-  public static final String DEFAULT_USERNAME_KEY = "API_USERNAME";
-
-  /**
-   * The default value of the password key used in {@code CredsReader.defaultCreds()}. (All
-   * uppercase to follow the usual <a href=
-   * "https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html">convention</a> when
-   * used as an environment variable.)
-   */
-  public static final String DEFAULT_PASSWORD_KEY = "API_PASSWORD";
+  public static enum ClassicalCredentials {
+    API_USERNAME, API_PASSWORD
+  }
 
   /**
    * The default value of the file path.
    */
   public static final Path DEFAULT_FILE_PATH = Path.of("API_login.txt");
 
-  private final String usernameKey;
-
-  private final String passwordKey;
-
+  private final Class<K> keysType;
   private final Path filePath;
 
   Map<String, String> env = System.getenv();
@@ -85,159 +87,124 @@ public class CredsReader {
   /**
    * Returns an instance that will read from the sources configured with the given parameters.
    *
-   * @param usernameKey the username key to use for reading from system properties and the
-   *        environment.
-   * @param passwordKey the password key to use for reading from system properties and the
-   *        environment.
-   * @param filePath the file path to use for reading from the file.
+   * @param keys the keys to use for reading from system properties and the environment.
+   * @param filePath the file path to use for reading from the file source.
    * @return a configured instance.
    * @see #defaultCredsReader()
    */
-  public static CredsReader given(String usernameKey, String passwordKey, Path filePath) {
-    CredsReader credsReader = new CredsReader(usernameKey, passwordKey, filePath);
-    return credsReader;
+  public static <K extends Enum<K>> CredsReader<K> readingFrom(Class<K> keysType,
+      Path filePath) {
+    return new CredsReader<>(keysType, filePath);
   }
 
   /**
-   * Returns an instance that will use the default values {@link #DEFAULT_USERNAME_KEY},
-   * {@link #DEFAULT_PASSWORD_KEY}, {@link #DEFAULT_FILE_PATH}.
+   * Returns an instance reading from the default key values {@link #DEFAULT_USERNAME_KEY} and
+   * {@link #DEFAULT_PASSWORD_KEY}, and the default file {@link #DEFAULT_FILE_PATH}.
    *
    * @return a default instance.
-   * @see #given(String, String, Path)
+   * @see #readingFrom(Path)
    */
-  public static CredsReader defaultCredsReader() {
-    CredsReader credsReader =
-        new CredsReader(DEFAULT_USERNAME_KEY, DEFAULT_PASSWORD_KEY, DEFAULT_FILE_PATH);
-    return credsReader;
+  public static CredsReader<ClassicalCredentials> defaultCredsReader() {
+    return new CredsReader<>(ClassicalCredentials.class, DEFAULT_FILE_PATH);
   }
 
-  private CredsReader(String usernameKey, String passwordKey, Path filePath) {
-    this.usernameKey = checkNotNull(usernameKey);
-    this.passwordKey = checkNotNull(passwordKey);
+  private CredsReader(Class<K> keysType, Path filePath) {
+    this.keysType = checkNotNull(keysType);
     this.filePath = checkNotNull(filePath);
   }
 
   /**
-   * Returns the username key, used to read from the system properties and the environment.
+   * Returns the keys that this object is configure to read from the system properties and the
+   * environment.
    */
-  public String getUsernameKey() {
-    return usernameKey;
+  public Class<K> getKeysType() {
+    return keysType;
   }
 
   /**
-   * Returns the password key, used to read from the system properties and the environment.
-   */
-  public String getPasswordKey() {
-    return passwordKey;
-  }
-
-  /**
-   * Returns the file path that is read from, considering the file source.
+   * Returns the file path that is read from when considering the file source.
    */
   public Path getFilePath() {
     return filePath;
   }
 
   /**
-   * Returns the credentials found from the first valid source, unless an exception is raised.
+   * Returns the credentials read from the first source containing credentials.
    *
-   * @throws IllegalStateException if no valid source is found, or if the file source has non empty
-   *         line content after the second line.
-   * @throws IOException if an I/O error occurs reading from the file or a malformed or unmappable
-   *         byte sequence is read from the file.
+   * @throws NoSuchElementException if no credentials are found: {@code keys} is not empty, none of
+   *         these keys exist as system properties or environment variables, and the source file
+   *         does not exist
+   * @throws IllegalStateException if some keys, but not all, exist as system properties or
+   *         environment variables, or if the file source has non empty line content after the
+   *         <i>n</i>th line, where <i>n</i> is the number of {@code keys}.
+   * @throws UncheckedIOException if an I/O error occurs reading from the file or a malformed or
+   *         unmappable byte sequence is read from the file.
    * @see CredsReader
    */
-  public Credentials getCredentials() throws IllegalStateException, IOException {
-    final CredsOpt credsOpt = readCredentials();
-
-    if (credsOpt.getUsername().isEmpty() && credsOpt.getPassword().isEmpty()) {
-      throw new IllegalStateException("Login information not found.");
-    }
-    if (credsOpt.getUsername().isEmpty()) {
-      throw new IllegalStateException("Found password but no username.");
-    }
-    if (credsOpt.getPassword().isEmpty()) {
-      throw new IllegalStateException("Found username but no password.");
-    }
-    final Credentials credentials =
-        Credentials.given(credsOpt.getUsername().get(), credsOpt.getPassword().get());
-    return credentials;
-  }
-
-  /**
-   * <p>
-   * Returns the best credentials it could find, throwing no error if some is missing.
-   * </p>
-   *
-   * @throws IllegalStateException if a file source is provided but has non empty line content after
-   *         the second line.
-   *
-   */
-  CredsOpt readCredentials() throws IOException, IllegalStateException {
-    final CredsOpt propertyAuthentication;
+  public ImmutableCompleteMap<K, String> getCredentials()
+      throws IllegalStateException, UncheckedIOException {
+    final ImmutableSet<K> keys = ImmutableSet.copyOf(keysType.getEnumConstants());
     {
-      final String username = System.getProperty(usernameKey);
-      final String password = System.getProperty(passwordKey);
-      propertyAuthentication =
-          CredsOpt.given(Optional.ofNullable(username), Optional.ofNullable(password));
-      final int informationalValue = propertyAuthentication.getInformationalValue();
-      LOGGER.info(
-          "Found {} piece" + (informationalValue == 2 ? "s" : "")
-              + " of login information in properties {} and {}.",
-          informationalValue, usernameKey, passwordKey);
-    }
-
-    final CredsOpt envAuthentication;
-    {
-      final String username = env.get(usernameKey);
-      final String password = env.get(passwordKey);
-      envAuthentication =
-          CredsOpt.given(Optional.ofNullable(username), Optional.ofNullable(password));
-      final int informationalValue = envAuthentication.getInformationalValue();
-      LOGGER.info(
-          "Found {} piece" + (informationalValue == 2 ? "s" : "")
-              + " of login information in environment variables {} and {}.",
-          informationalValue, usernameKey, passwordKey);
-    }
-
-    final CredsOpt fileAuthentication;
-    {
-      final Optional<String> optUsername;
-      final Optional<String> optPassword;
-      final Path path = filePath;
-      if (!Files.exists(path)) {
-        optUsername = Optional.empty();
-        optPassword = Optional.empty();
-      } else {
-        final List<String> lines = Files.readAllLines(path);
-        final Iterator<String> iterator = lines.iterator();
-        if (iterator.hasNext()) {
-          optUsername = Optional.of(iterator.next());
-        } else {
-          optUsername = Optional.of("");
-        }
-        if (iterator.hasNext()) {
-          optPassword = Optional.of(iterator.next());
-        } else {
-          optPassword = Optional.of("");
-        }
-        while (iterator.hasNext()) {
-          if (!iterator.next().isEmpty()) {
-            throw new IllegalStateException(
-                "File " + filePath + " is too long: " + lines.size() + " lines");
-          }
-        }
+      final ImmutableMap.Builder<K, String> builder = ImmutableMap.builder();
+      for (K key : keys) {
+        final Optional<String> info = Optional.ofNullable(System.getProperty(key.toString()));
+        LOGGER.info("Got {} from {}.", info, key);
+        info.ifPresent(s -> builder.put(key, s));
       }
-      fileAuthentication = CredsOpt.given(optUsername, optPassword);
-      final int informationalValue = fileAuthentication.getInformationalValue();
-      LOGGER.info("Found {} piece" + (informationalValue == 2 ? "s" : "")
-          + " of login information in file.", informationalValue);
+      final ImmutableMap<K, String> credentials = builder.build();
+
+      final int size = credentials.size();
+      if (size > 0 && size < keys.size()) {
+        throw new IllegalStateException(
+            "Partial credential information found in system properties: " + credentials.keySet()
+                + ", missing: " + Sets.difference(keys, credentials.keySet()));
+      }
+
+      if (credentials.keySet().equals(keys)) {
+        LOGGER.info("Found credentials in system properties {}.", keys);
+        return ImmutableCompleteMap.fromEnumType(keysType, credentials);
+      }
     }
 
-    final TreeMap<Double, CredsOpt> map = new TreeMap<>();
-    map.put(propertyAuthentication.getInformationalValue() * 1.2d, propertyAuthentication);
-    map.put(envAuthentication.getInformationalValue() * 1.1d, envAuthentication);
-    map.put(fileAuthentication.getInformationalValue() * 1.0d, fileAuthentication);
-    return map.lastEntry().getValue();
+    {
+      final ImmutableMap.Builder<K, String> builder = ImmutableMap.builder();
+      for (K key : keys) {
+        final Optional<String> info = Optional.ofNullable(env.get(key.toString()));
+        info.ifPresent(s -> builder.put(key, s));
+      }
+      final ImmutableMap<K, String> credentials = builder.build();
+
+      final int size = credentials.size();
+      if (size > 0 && size < keys.size()) {
+        throw new IllegalStateException(
+            "Partial credential information found in environment variables: " + credentials.keySet()
+                + ", missing: " + Sets.difference(keys, credentials.keySet()));
+      }
+
+      if (credentials.keySet().equals(keys)) {
+        LOGGER.info("Found credentials in environment variables {}.", keys);
+        return ImmutableCompleteMap.fromEnumType(keysType, credentials);
+      }
+    }
+
+    {
+      if (!Files.exists(filePath)) {
+        throw new NoSuchElementException("No credential information found (searching in keys "
+            + keys + " and in file " + filePath + ").");
+      }
+
+      final List<String> lines = IO_UNCHECKER.getUsing(() -> Files.readAllLines(filePath));
+      final List<String> supplementaryLines = lines.size() < keys.size() ? ImmutableList.of()
+          : lines.subList(keys.size(), lines.size());
+      checkState(supplementaryLines.stream().allMatch(s -> s.equals("")), "File " + filePath
+          + " is too long: it has non-empty content after line number " + keys.size() + ".");
+      final ImmutableMap.Builder<K, String> builder = ImmutableMap.builder();
+      Streams.forEachPair(keys.stream(), Stream.concat(lines.stream(), Stream.generate(() -> "")),
+          builder::put);
+      final ImmutableMap<K, String> credentials = builder.build();
+
+      LOGGER.info("Found credentials in file {}.", filePath);
+      return ImmutableCompleteMap.fromEnumType(keysType, credentials);
+    }
   }
 }

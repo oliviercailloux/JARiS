@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.jimfs.Jimfs;
 import io.github.oliviercailloux.jaris.collections.ImmutableCompleteMap;
-import io.github.oliviercailloux.jaris.credentials.GeneralCredsReader.ClassicalCredentials;
+import io.github.oliviercailloux.jaris.credentials.CredsReader.ClassicalCredentials;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -51,8 +51,8 @@ class CredsReaderTests {
   @SetSystemProperty(key = DEFAULT_PASSWORD_KEY, value = "prop password")
   @Test
   public void testPropReadCredentials() throws Exception {
-    GeneralCredsReader<ClassicalCredentials> credsReader =
-        GeneralCredsReader.readingFrom(ClassicalCredentials.class, getNonExistentFile());
+    CredsReader<ClassicalCredentials> credsReader =
+        CredsReader.readingFrom(ClassicalCredentials.class, getNonExistentFile());
     credsReader.env = Map.of();
 
     final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
