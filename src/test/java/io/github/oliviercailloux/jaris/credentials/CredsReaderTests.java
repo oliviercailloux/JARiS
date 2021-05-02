@@ -57,8 +57,8 @@ class CredsReaderTests {
 
     final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
 
-    assertEquals("prop username", myAuth.get(ClassicalCredentials.USERNAME));
-    assertEquals("prop password", myAuth.get(ClassicalCredentials.PASSWORD));
+    assertEquals("prop username", myAuth.get(ClassicalCredentials.API_USERNAME));
+    assertEquals("prop password", myAuth.get(ClassicalCredentials.API_PASSWORD));
   }
 
   @SetSystemProperty(key = DEFAULT_USERNAME_KEY, value = "prop username")

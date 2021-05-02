@@ -71,7 +71,7 @@ public class GeneralCredsReader<K extends Enum<K>> {
   private static final Logger LOGGER = LoggerFactory.getLogger(GeneralCredsReader.class);
 
   public static enum ClassicalCredentials {
-    USERNAME, PASSWORD;
+    API_USERNAME, API_PASSWORD
   }
 
   /**
