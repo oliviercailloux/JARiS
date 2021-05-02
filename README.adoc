@@ -18,7 +18,7 @@ The API is _not_ stable. Write to me if you are interested in using this library
 The following sections list the utilities that this library provides (by package).
 
 == Credentials
-https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/credentials/CredsReader.html[`CredsReader`] and https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/credentials/Credentials.html[`Credentials`] permit to read a set of user’s credentials (meaning a username and a password). This is useful, for example, to access some online API where your application requires some credentials that you do not want to include directly in the source code. They can be read from system properties; from environment variables; or from a file (using https://docs.oracle.com/javase/tutorial/essential/io/fileio.html[NIO.2], so “file” here should be understood in an enlarged sense).
+https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/credentials/CredentialsReader.html[`CredentialsReader`] permits to read user’s credentials (authentication information) from the system properties, then if not found there, from the environment, then if not found there, from a file.
 
 The focus is on ease of use.
 
@@ -26,17 +26,23 @@ Consider the following code.
 
 [source, java]
 ----
-CredsReader credsReader = CredsReader.given("MY_USERNAME_KEY", "MY_PASSWORD_KEY", Path.of("my-file.txt"));
-Credentials credentials = credsReader.getCredentials();
+CredentialsReader<ClassicalCredentials> reader = CredentialsReader.classicalReader();
+Map<ClassicalCredentials, String> myAuth = reader.getCredentials();
+String username = myAuth.get(ClassicalCredentials.API_USERNAME);
+String password = myAuth.get(ClassicalCredentials.API_PASSWORD);
 ----
 
-Assume the user has set the https://stackoverflow.com/a/7054981[system property] `MY_USERNAME_KEY` to the value `ausername` and the system property `MY_PASSWORD_KEY` to the value `mypassword` (for example, using the `-D` command line argument when starting java): these two values will then be held in the returned `credentials` instance.
+The first line returns a reader configured to read using the `API_USERNAME` and `API_PASSWORD` system properties or environment variables.
 
-Assume these system properties are not set, but the environment variables `MY_USERNAME_KEY` and `MY_PASSWORD_KEY` are set: the values set to these variables will then be held in the returned `credentials` instance.
+Start the software with the https://stackoverflow.com/a/7054981[system properties] `API_USERNAME` set to the value `my username` and `API_PASSWORD` to the value `my password` (for example, using the `-D` command line argument when starting java), and these values will be passed to the variables `username` and `password`.
 
-Assume that neither these system properties nor these environment variables are set, but a file `my-file.txt` exists, containing two lines of text: in this case, the returned `credentials` instance will contain as username the first line of the file, and as password, the second line.
+Assuming these system properties are not set, but the environment variables `API_USERNAME` and `API_PASSWORD` are set:, these variables will then hold the corresponding values.
 
-This mechanism is particularly appropriate for developing open source projects, where you do not want the credentials (for example, those used for testing the software) to be committed in the version control system. In such a situation, a classical problem is that such private credentials will also not be directly available from the continuous integration server. To solve this, put the credentials in a file on your own machine, so that they are available while you develop (it is easier and cleaner than configuring environment variables), and store the credentials in environment variables on the continuous integration server (which is usually made easy by the continuous integration web interface). The code above will make your application adapt automatically and find the credentials in both situations. Note that you can also override them manually when starting the application, using system properties, if necessary.
+Assume that neither these system properties nor these environment variables are set, but a file `API_credentials.txt` exists, containing two lines of text: in this case, the returned `credentials` instance will contain as username the first line of the file, and as password, the second line.
+
+This mechanism is particularly appropriate for developing open source projects, where you do not want the credentials (for example, those used for testing the software) to be committed in the version control system. In such a situation, a classical problem is that such private credentials will also not be directly available from the continuous integration server. To solve this, put the credentials in a file on your own machine, so that they are available while you develop (it is easier and cleaner than configuring environment variables), and store the credentials in environment variables on the continuous integration server (which is usually made easy by the continuous integration web interface). The code above will make your application adapt automatically and find the credentials in both situations. You can also override them manually when starting the application, using system properties, if necessary.
+
+`CredentialsReader` also allows for using more or less than two keys, other keys than `API_USERNAME` and `API_PASSWORD`, and configuring the path to read from.
 
 == Exceptions
 Objects to deal with code that declare checked exceptions; or that throw exceptions.

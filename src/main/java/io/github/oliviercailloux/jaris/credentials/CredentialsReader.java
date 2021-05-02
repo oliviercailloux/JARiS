@@ -23,10 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <p>
  * This class permits to read a user’s credentials (authentication information) from various
  * sources.
- * </p>
  * <p>
  * This object is associated with an ordered set of {@code keys} and to a {@code filePath}. It will
  * attempt to read credentials from several sources in turn.
@@ -65,6 +63,23 @@ import org.slf4j.LoggerFactory;
  * and thus it is reasonable to assume that the developer does not want to be resilient to failures
  * of the file system or to unexpected file format.
  * </p>
+ * <h2>Usage</h2> If you are happy to use one of the default configurations, use
+ * {@link #keyReader()} or {@link #classicalReader()}. Here is an example use if you want to use
+ * your own keys.
+ * <p>
+ *
+ * <pre>
+ * public static enum MyOwnCredentialKeys {
+ *   MY_FIRST_KEY, MY_SECOND_KEY, MY_THIRD_KEY
+ * }
+ *
+ * CredentialsReader<MyOwnCredentialKeys> reader =
+ *     CredentialsReader.using(MyOwnCredentials.class, Path.of("my file.txt"));
+ * ImmutableCompleteMap<MyOwnCredentialKeys, String> credentials = reader.getCredentials();
+ * String valueReadCorrespondingToMyFirstKey = credentials.get(MyOwnCredentialKeys.MY_FIRST_KEY);
+ * // and so on for other keys.
+ * </pre>
+ * </p>
  */
 public class CredentialsReader<K extends Enum<K>> {
   @SuppressWarnings("unused")
@@ -80,7 +95,7 @@ public class CredentialsReader<K extends Enum<K>> {
   /**
    * The default value of the file path.
    */
-  public static final Path DEFAULT_FILE_PATH = Path.of("API_login.txt");
+  public static final Path DEFAULT_FILE_PATH = Path.of("API_credentials.txt");
 
   private final Class<K> keysType;
   private final Path filePath;
