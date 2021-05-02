@@ -66,9 +66,9 @@ import org.slf4j.LoggerFactory;
  * of the file system or to unexpected file format.
  * </p>
  */
-public class CredsReader<K extends Enum<K>> {
+public class CredentialsReader<K extends Enum<K>> {
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = LoggerFactory.getLogger(CredsReader.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CredentialsReader.class);
 
   public static enum KeyCredential {
     API_KEY
@@ -95,8 +95,8 @@ public class CredsReader<K extends Enum<K>> {
    * @return a configured instance.
    * @see #classical()
    */
-  public static <K extends Enum<K>> CredsReader<K> using(Class<K> keysType, Path filePath) {
-    return new CredsReader<>(keysType, filePath);
+  public static <K extends Enum<K>> CredentialsReader<K> using(Class<K> keysType, Path filePath) {
+    return new CredentialsReader<>(keysType, filePath);
   }
 
   /**
@@ -106,8 +106,8 @@ public class CredsReader<K extends Enum<K>> {
    * @return a default instance.
    * @see #readingFrom(Path)
    */
-  public static CredsReader<KeyCredential> keyReader() {
-    return new CredsReader<>(KeyCredential.class, DEFAULT_FILE_PATH);
+  public static CredentialsReader<KeyCredential> keyReader() {
+    return new CredentialsReader<>(KeyCredential.class, DEFAULT_FILE_PATH);
   }
 
   /**
@@ -117,11 +117,11 @@ public class CredsReader<K extends Enum<K>> {
    * @return a default instance.
    * @see #readingFrom(Path)
    */
-  public static CredsReader<ClassicalCredentials> classicalReader() {
-    return new CredsReader<>(ClassicalCredentials.class, DEFAULT_FILE_PATH);
+  public static CredentialsReader<ClassicalCredentials> classicalReader() {
+    return new CredentialsReader<>(ClassicalCredentials.class, DEFAULT_FILE_PATH);
   }
 
-  private CredsReader(Class<K> keysType, Path filePath) {
+  private CredentialsReader(Class<K> keysType, Path filePath) {
     this.keysType = checkNotNull(keysType);
     this.filePath = checkNotNull(filePath);
   }
@@ -152,7 +152,7 @@ public class CredsReader<K extends Enum<K>> {
    *         <i>n</i>th line, where <i>n</i> is the number of {@code keys}.
    * @throws UncheckedIOException if an I/O error occurs reading from the file or a malformed or
    *         unmappable byte sequence is read from the file.
-   * @see CredsReader
+   * @see CredentialsReader
    */
   public ImmutableCompleteMap<K, String> getCredentials()
       throws IllegalStateException, UncheckedIOException {
