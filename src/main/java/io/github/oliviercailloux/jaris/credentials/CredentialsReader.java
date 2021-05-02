@@ -71,6 +71,7 @@ import org.slf4j.LoggerFactory;
  * <p>
  *
  * <pre>
+ * {@code
  * public static enum MyOwnCredentialKeys {
  *   MY_FIRST_KEY, MY_SECOND_KEY, MY_THIRD_KEY
  * }
@@ -80,7 +81,12 @@ import org.slf4j.LoggerFactory;
  * ImmutableCompleteMap<MyOwnCredentialKeys, String> credentials = reader.getCredentials();
  * String valueReadCorrespondingToMyFirstKey = credentials.get(MyOwnCredentialKeys.MY_FIRST_KEY);
  * // and so on for other keys.
+ * }
  * </pre>
+ *
+ * See also the
+ * <a href="https://github.com/oliviercailloux/JARiS/blob/master/README.adoc">readme</a> of this
+ * library.
  * </p>
  */
 public class CredentialsReader<K extends Enum<K>> {
@@ -107,10 +113,11 @@ public class CredentialsReader<K extends Enum<K>> {
   /**
    * Returns an instance that will read from the sources configured with the given parameters.
    *
-   * @param keys the keys to use for reading from system properties and the environment.
+   * @param keysType the keys to use for reading from system properties and the environment.
    * @param filePath the file path to use for reading from the file source.
    * @return a configured instance.
-   * @see #classical()
+   * @see #keyReader()
+   * @see #classicalReader()
    */
   public static <K extends Enum<K>> CredentialsReader<K> using(Class<K> keysType, Path filePath) {
     return new CredentialsReader<>(keysType, filePath);
@@ -121,7 +128,7 @@ public class CredentialsReader<K extends Enum<K>> {
    * file {@link #DEFAULT_FILE_PATH}.
    *
    * @return a default instance.
-   * @see #readingFrom(Path)
+   * @see #using(Class, Path)
    */
   public static CredentialsReader<KeyCredential> keyReader() {
     return new CredentialsReader<>(KeyCredential.class, DEFAULT_FILE_PATH);
@@ -132,7 +139,7 @@ public class CredentialsReader<K extends Enum<K>> {
    * {@link ClassicalCredentials#API_PASSWORD}, and the default file {@link #DEFAULT_FILE_PATH}.
    *
    * @return a default instance.
-   * @see #readingFrom(Path)
+   * @see #using(Class, Path)
    */
   public static CredentialsReader<ClassicalCredentials> classicalReader() {
     return new CredentialsReader<>(ClassicalCredentials.class, DEFAULT_FILE_PATH);
