@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * sources.
  * </p>
  * <p>
- * This object is associated to an ordered set of {@code keys} and to a {@code filePath}. It will
+ * This object is associated with an ordered set of {@code keys} and to a {@code filePath}. It will
  * attempt to read credentials from several sources in turn.
  * </p>
  * <ul>
@@ -42,11 +42,11 @@ import org.slf4j.LoggerFactory;
  * file {@code filePath}. Each line of the file provides the information corresponding to one key
  * from {@code keys}, in order. All usual line terminators are recognized: CR+LF, LF, and CR. The
  * file is considered UTF-8 encoded. If the file has more lines than there are keys in {@code keys},
- * the read method throws.</li>
+ * it throws an exception.</li>
  * </ul>
  * <p>
  * Note that a piece of information may be provided and empty: a system property or environment
- * variable may exist and be empty; and the file may exist and contain less lines than keys in
+ * variable may exist and be empty; and the file may exist and contain fewer lines than keys in
  * {@code keys} or contain empty lines.
  * </p>
  * <p>
@@ -63,13 +63,16 @@ import org.slf4j.LoggerFactory;
  * Reading from the file throws {@link UncheckedIOException} instead of {@link IOException} because
  * the file is considered as under control of the developer using this class, not of an end-user,
  * and thus it is reasonable to assume that the developer does not want to be resilient to failures
- * of the file system or unexpected file format.
+ * of the file system or to unexpected file format.
  * </p>
  */
 public class CredsReader<K extends Enum<K>> {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(CredsReader.class);
 
+  public static enum KeyCredential {
+    API_KEY
+  }
   public static enum ClassicalCredentials {
     API_USERNAME, API_PASSWORD
   }
@@ -90,21 +93,31 @@ public class CredsReader<K extends Enum<K>> {
    * @param keys the keys to use for reading from system properties and the environment.
    * @param filePath the file path to use for reading from the file source.
    * @return a configured instance.
-   * @see #defaultCredsReader()
+   * @see #classical()
    */
-  public static <K extends Enum<K>> CredsReader<K> readingFrom(Class<K> keysType,
-      Path filePath) {
+  public static <K extends Enum<K>> CredsReader<K> using(Class<K> keysType, Path filePath) {
     return new CredsReader<>(keysType, filePath);
   }
 
   /**
-   * Returns an instance reading from the default key values {@link #DEFAULT_USERNAME_KEY} and
-   * {@link #DEFAULT_PASSWORD_KEY}, and the default file {@link #DEFAULT_FILE_PATH}.
+   * Returns an instance reading from the key value {@link KeyCredential#API_KEY}, and the default
+   * file {@link #DEFAULT_FILE_PATH}.
    *
    * @return a default instance.
    * @see #readingFrom(Path)
    */
-  public static CredsReader<ClassicalCredentials> defaultCredsReader() {
+  public static CredsReader<KeyCredential> keyReader() {
+    return new CredsReader<>(KeyCredential.class, DEFAULT_FILE_PATH);
+  }
+
+  /**
+   * Returns an instance reading from the key values {@link ClassicalCredentials#API_USERNAME} and
+   * {@link ClassicalCredentials#API_PASSWORD}, and the default file {@link #DEFAULT_FILE_PATH}.
+   *
+   * @return a default instance.
+   * @see #readingFrom(Path)
+   */
+  public static CredsReader<ClassicalCredentials> classicalReader() {
     return new CredsReader<>(ClassicalCredentials.class, DEFAULT_FILE_PATH);
   }
 
