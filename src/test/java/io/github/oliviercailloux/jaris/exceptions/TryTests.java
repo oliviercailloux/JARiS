@@ -214,9 +214,9 @@ class TryTests {
     assertTrue(t.isFailure());
     assertFalse(t.isSuccess());
 
-    assertEquals(4, t.map(i -> 3, f -> 4));
+    assertEquals(4, t.map(i -> 3, f -> 4).intValue());
     assertThrows(NullPointerException.class, () -> t.map(i -> 3, f -> null));
-    assertEquals(5, t.map(i -> null, f -> 5));
+    assertEquals(5, t.map(i -> null, f -> 5).intValue());
 
     assertEquals(Optional.empty(), t.orConsumeCause(i -> {
     }));
@@ -377,7 +377,7 @@ class TryTests {
     assertTrue(t.isFailure());
     assertFalse(t.isSuccess());
 
-    assertEquals(3, t.map(() -> null, e -> 3));
+    assertEquals(3, t.map(() -> null, e -> 3).intValue());
     assertThrows(NullPointerException.class, () -> t.map(() -> 2, e -> null));
     assertEquals(3, t.map(() -> 2, e -> 3));
     assertThrows(IOException.class, () -> t.map(() -> 2, e -> {
@@ -509,7 +509,9 @@ class TryTests {
     final IOException cause = new IOException();
     final TryCatchAll<Integer> t = TryCatchAll.failure(runtimeExc);
 
-    assertTrue(TryCatchAll.get(() -> null).map(i -> false, e -> e instanceof NullPointerException));
+    final TryCatchAll<Object> got = TryCatchAll.get(() -> null);
+    assertTrue(
+        got.<Boolean, RuntimeException>map(i -> false, e -> e instanceof NullPointerException));
 
     assertNotEquals(t, TryCatchAll.get(() -> 1));
     assertEquals(t, TryCatchAll.get(() -> {

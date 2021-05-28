@@ -20,8 +20,9 @@ import java.util.stream.Stream;
  * checked exceptions; designed for people who do not like sneaky-throws.
  * <p>
  * The following popular SO questions mention several libraries that deal with the “streams and
- * checked exceptions” issue, but (at the time of writing) all those I found there sneaky throw,
- * apart from <a href= "https://github.com/JeffreyFalgout/ThrowingStream/">ThrowingStream</a>.
+ * checked exceptions” issue, but (at the time of writing) every library that I found there sneaky
+ * throw, apart from
+ * <a href= "https://github.com/JeffreyFalgout/ThrowingStream/">ThrowingStream</a>.
  * </p>
  * <ul>
  * <li><a href="https://stackoverflow.com/questions/23548589">Java 8: How do I work with exception
