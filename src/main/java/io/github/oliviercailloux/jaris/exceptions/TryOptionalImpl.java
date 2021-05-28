@@ -18,10 +18,10 @@ import java.util.function.Function;
 abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T, X> {
 
   /**
-   * A sort of try optional that guarantees that a success has an associated value. Is homeomorphic
-   * to a {@code T} xor {@code X}. Suitable for {@link Try} and {@link TryCatchAll}, depending on
-   * the catching strategy. The name (“variable catch”) indicates that this interface applies to
-   * both catching strategies.
+   * A sort of try optional that guarantees that a success has a (non-{@code null}) associated
+   * value. Is homeomorphic to a {@code T} xor {@code X}. Suitable for {@link Try} and
+   * {@link TryCatchAll}, depending on the catching strategy. The name (“variable catch”) indicates
+   * that this interface applies to both catching strategies.
    *
    * @param <T> the type of result kept in this object if it is a success.
    * @param <X> the type of cause kept in this object if it is a failure.
@@ -61,7 +61,8 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
      * @param transformation a function to apply to the result if this instance is a success
      * @param causeTransformation a function to apply to the cause if this instance is a failure
      * @return the transformed result or cause
-     * @throws Y iff the function that was applied threw an exception of type {@code Y}
+     * @throws Y if the function that was applied threw an exception of type {@code Y}
+     * @throws NullPointerException if the function that was applied returned {@code null}
      */
     public <U, Y extends Exception> U map(
         Throwing.Function<? super T, ? extends U, ? extends Y> transformation,
@@ -72,12 +73,13 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
      * provided function; or returns the transformed cause contained in this instance if it is a
      * failure, using the provided {@code causeTransformation}.
      * <p>
-     * Equivalent to: {@code map(t -> t, causeTransformation)}.
+     * Equivalent to {@code map(t -> t, causeTransformation)}.
      *
      * @param <Y> a type of exception that the provided function may throw
      * @param causeTransformation the function to apply iff this instance is a failure
      * @return the result, or the transformed cause
-     * @throws Y iff the function was applied and threw an exception of type {@code Y}
+     * @throws Y if the function was applied and threw an exception of type {@code Y}
+     * @throws NullPointerException if the function was applied and returned {@code null}
      */
     public <Y extends Exception> T
         orMapCause(Throwing.Function<? super X, ? extends T, Y> causeTransformation) throws Y;
@@ -90,7 +92,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
      * @param <Y> a type of exception that the provided consumer may throw
      * @param consumer the consumer to invoke if this instance is a failure
      * @return an optional, containing the result if this instance is a success, empty otherwise
-     * @throws Y iff the consumer was invoked and threw an exception of type {@code Y}
+     * @throws Y if the consumer was invoked and threw an exception of type {@code Y}
      */
     public <Y extends Exception> Optional<T>
         orConsumeCause(Throwing.Consumer<? super X, Y> consumer) throws Y;
@@ -113,7 +115,8 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
      * @param <Y> the type of throwable to throw if this instance is a failure
      * @param causeTransformation the function to apply to the cause iff this instance is a failure
      * @return the result that this success contains
-     * @throws Y iff this instance is a failure
+     * @throws Y if this instance is a failure
+     * @throws NullPointerException if the provided function was applied and returned {@code null}
      */
     public <Y extends Z> T orThrow(Function<X, Y> causeTransformation) throws Y;
 
@@ -140,10 +143,11 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
 
     /**
      * Applies the given mapper iff this instance is a success, and returns the transformed success
-     * if it succeeds or the cause of the failure if it throws a catchable throwable; otherwise,
-     * returns this instance.
+     * if it returns a non-{@code null} value, the cause of the failure if it throws a catchable
+     * throwable (including possibly a {@link NullPointerException} cause if this is considered
+     * catchable and the function returns {@code null}); otherwise, returns this instance.
      * <p>
-     * Equivalent to: {@code t.map(s -> Try.get(() -> mapper.apply(s)), t)}
+     * Equivalent to {@code t.map(s -> Try.get(() -> mapper.apply(s)), t)}.
      *
      * @param <U> the type of result that the returned try will be declared to contain
      * @param mapper the mapper to apply to the result iff this instance is a success
@@ -196,7 +200,8 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     /**
      * Returns the supplied result if this instance is a success, using the provided
      * {@code supplier}; or the transformed cause contained in this instance if it is a failure,
-     * using the provided {@code causeTransformation}.
+     * using the provided {@code causeTransformation}; unless the invoked function returns
+     * {@code null}.
      * <p>
      * This method necessarily invokes exactly one of the provided functional interfaces.
      *
@@ -206,6 +211,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
      * @param causeTransformation a function to apply to the cause if this instance is a failure
      * @return the supplied result or transformed cause
      * @throws Y iff the functional interface that was invoked threw an exception of type {@code Y}
+     * @throws NullPointerException if the function that was applied returned {@code null}
      */
     public <T, Y extends Exception> T map(Throwing.Supplier<? extends T, ? extends Y> supplier,
         Throwing.Function<? super X, ? extends T, ? extends Y> causeTransformation) throws Y;
@@ -235,23 +241,28 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
      *
      * @param <Y> the type of throwable to throw if this instance is a failure
      * @param causeTransformation the function to apply to the cause iff this instance is a failure
-     * @throws Y iff this instance is a failure
+     * @throws Y if this instance is a failure
+     * @throws NullPointerException if the provided function was applied and returned {@code null}
      */
     public <Y extends Z> void orThrow(Function<X, Y> causeTransformation) throws Y;
 
     /**
      * If this instance is a success, returns a try representing the result of invoking the given
-     * supplier; otherwise, returns this failure.
+     * supplier if it supplies a non-{@code null} result, and a failure if the supplier throws a
+     * catchable throwable (or if the supplier returns {@code null} and a
+     * {@link NullPointerException} is considered catchable); otherwise, returns this failure.
      * <p>
      * If this instance is a failure, it is returned, without invoking the given supplier.
-     * Otherwise, the given supplier is invoked. If it terminates without throwing, a success is
-     * returned, containing the just supplied result. If the supplier throws a catchable throwable,
-     * a failure is returned, containing the cause it threw.
+     * Otherwise, the given supplier is invoked. If it supplies a non-{@code null} result, a success
+     * is returned, containing the just supplied result. If the supplier throws a catchable
+     * throwable, a failure is returned, containing the cause it threw. If the supplier returns
+     * {@code null} and a {@link NullPointerException} is considered catchable, a failure is
+     * returned, containing a {@link NullPointerException} as a cause.
      *
      * @param <T> the type of result that the returned try will be declared to contain
      * @param supplier the supplier to attempt to get a result from if this instance is a success.
-     * @return a success iff this instance is a success and the given supplier terminated without
-     *         throwing.
+     * @return a success iff this instance is a success and the given supplier returned a
+     *         non-{@code null} result.
      */
     public <T> TryVariableCatchInterface<T, X, Z>
         andGet(Throwing.Supplier<? extends T, ? extends X> supplier);
@@ -343,7 +354,9 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     public <U, Y extends Exception> U map(
         Throwing.Function<? super T, ? extends U, ? extends Y> transformation,
         Throwing.Function<? super X, ? extends U, ? extends Y> causeTransformation) throws Y {
-      return transformation.apply(result);
+      final U transformed = transformation.apply(result);
+      checkNotNull(transformed, "Transformation returned null");
+      return transformed;
     }
 
     @Override
@@ -381,7 +394,9 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     public <U, Y extends Exception> U map(
         Throwing.Function<? super Object, ? extends U, ? extends Y> transformation,
         Throwing.Function<? super X, ? extends U, ? extends Y> causeTransformation) throws Y {
-      return causeTransformation.apply(cause);
+      final U transformed = causeTransformation.apply(cause);
+      checkNotNull(transformed, "Cause transformation returned null");
+      return transformed;
     }
 
     @Override
@@ -393,7 +408,9 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
 
     @Override
     public <Y extends Z> Object orThrow(Function<X, Y> causeTransformation) throws Y {
-      throw causeTransformation.apply(cause);
+      final Y transformed = causeTransformation.apply(cause);
+      checkNotNull(transformed, "Cause transformation returned null");
+      throw transformed;
     }
   }
 
@@ -433,7 +450,9 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     @Override
     public <T, Y extends Exception> T map(Throwing.Supplier<? extends T, ? extends Y> supplier,
         Throwing.Function<? super X, ? extends T, ? extends Y> causeTransformation) throws Y {
-      return supplier.get();
+      final T supplied = supplier.get();
+      checkNotNull(supplied, "Supplied null");
+      return supplied;
     }
 
     @Override
@@ -464,7 +483,9 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     @Override
     public <T, Y extends Exception> T map(Throwing.Supplier<? extends T, ? extends Y> supplier,
         Throwing.Function<? super X, ? extends T, ? extends Y> causeTransformation) throws Y {
-      return causeTransformation.apply(cause);
+      final T transformed = causeTransformation.apply(cause);
+      checkNotNull(transformed, "Cause transformation returned null");
+      return transformed;
     }
 
     @Override
@@ -474,7 +495,9 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
 
     @Override
     public <Y extends Z> void orThrow(Function<X, Y> causeTransformation) throws Y {
-      throw causeTransformation.apply(cause);
+      final Y transformed = causeTransformation.apply(cause);
+      checkNotNull(transformed, "Cause transformation returned null");
+      throw transformed;
     }
   }
 
@@ -708,8 +731,11 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
         or(Throwing.Supplier<? extends Object, ?> supplier, Throwing.BiFunction<? super Throwable,
             ? super Throwable, ? extends Throwable, W> exceptionsMerger) throws W {
       final TryCatchAll<Object> t2 = TryCatchAll.get(supplier);
-      return t2.map(TryCatchAll::success,
-          y -> TryCatchAll.failure(exceptionsMerger.apply(cause, y)));
+      return t2.map(TryCatchAll::success, y -> {
+        final Throwable merged = exceptionsMerger.apply(cause, y);
+        checkNotNull(merged, "Exceptions merger returned null");
+        return TryCatchAll.failure(merged);
+      });
     }
 
     @Override

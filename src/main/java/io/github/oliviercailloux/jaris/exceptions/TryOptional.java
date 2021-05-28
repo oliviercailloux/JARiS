@@ -3,8 +3,8 @@ package io.github.oliviercailloux.jaris.exceptions;
 import java.util.Optional;
 
 /**
- * The root of the {@code Try*} implementation hierarchy, defining in the most general way the
- * concepts of success, failure, and equality.
+ * The root of the {@code Try*} hierarchy, defining in the most general way the concepts of success,
+ * failure, and equality.
  * <p>
  * Is homeomorphic to an {@code Optional<T>} xor {@code X}: either is a success, and then
  * <em>may</em> contain a result of type {@code T}, or is a failure, and then <em>does</em> contain

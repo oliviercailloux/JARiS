@@ -32,6 +32,7 @@ class TryTests {
 
     assertEquals(t, Try.get(() -> 1));
 
+    assertThrows(NullPointerException.class, () -> t.and(Try.success(2), (i1, i2) -> null));
     assertEquals(Try.success(3), t.and(Try.success(2), (i1, i2) -> i1 + i2));
     assertEquals(Try.failure(cause),
         t.and(Try.<Integer, Exception>failure(cause), TryTests::mergeAdding));
@@ -58,7 +59,7 @@ class TryTests {
       throw runtimeExc;
     }));
 
-    assertEquals(Try.success(5), t.map(i -> Try.get(() -> i + 4), f -> t));
+    assertThrows(NullPointerException.class, () -> t.andApply(i -> null));
     assertEquals(Try.success(5), t.andApply(i -> i + 4));
     assertEquals(Try.failure(cause), t.andApply(i -> {
       throw cause;
@@ -69,6 +70,10 @@ class TryTests {
 
     assertFalse(t.isFailure());
     assertTrue(t.isSuccess());
+
+    assertEquals(Try.success(5), t.map(i -> Try.get(() -> i + 4), f -> t));
+    assertThrows(NullPointerException.class, () -> t.map(i -> null, f -> t));
+    assertEquals(Try.success(5), t.map(i -> Try.get(() -> i + 4), f -> null));
 
     assertEquals(Optional.of(1), t.orConsumeCause(i -> {
     }));
@@ -83,6 +88,7 @@ class TryTests {
       throw runtimeExc;
     }));
 
+    assertEquals(Try.success(1), t.or(Try.success(6)::orThrow, (e1, e2) -> null));
     assertEquals(Try.success(1), t.or(Try.success(6)::orThrow, (e1, e2) -> cause));
     assertEquals(Try.success(1),
         t.or(Try.<Integer, IOException>failure(cause)::orThrow, (e1, e2) -> cause));
@@ -95,6 +101,7 @@ class TryTests {
       throw runtimeExc;
     }, (e1, e2) -> cause));
 
+    assertEquals(1, t.orMapCause(e -> null));
     assertEquals(1, t.orMapCause(e -> 8));
     try {
       assertEquals(1, t.orMapCause(e -> {
@@ -113,6 +120,7 @@ class TryTests {
       throw new IllegalStateException(e);
     }
 
+    assertEquals(1, t.orThrow(e -> null));
     try {
       assertEquals(1, t.orThrow(Function.identity()));
     } catch (Exception e) {
@@ -155,11 +163,16 @@ class TryTests {
     final IOException cause = new IOException();
     final Try<Integer, IOException> t = Try.failure(cause);
 
+    assertThrows(NullPointerException.class, () -> Try.get(() -> null));
+
     assertEquals(t, Try.get(() -> {
       throw cause;
     }));
 
+    assertEquals(Try.failure(cause), t.and(Try.success(2), (i1, i2) -> null));
     assertEquals(Try.failure(cause), t.and(Try.success(2), (i1, i2) -> i1 + i2));
+    assertEquals(Try.failure(cause),
+        Try.<Integer, Exception>failure(cause).and(Try.failure(runtimeExc), (i1, i2) -> null));
     assertEquals(Try.failure(cause),
         t.and(Try.<Integer, IOException>failure(cause), TryTests::mergeAdding));
     try {
@@ -189,6 +202,7 @@ class TryTests {
       throw runtimeExc;
     }));
 
+    assertEquals(Try.failure(cause), t.andApply(i -> null));
     assertEquals(Try.failure(cause), t.andApply(i -> i + 4));
     assertEquals(Try.failure(cause), t.andApply(i -> {
       throw cause;
@@ -199,6 +213,10 @@ class TryTests {
 
     assertTrue(t.isFailure());
     assertFalse(t.isSuccess());
+
+    assertEquals(4, t.map(i -> 3, f -> 4));
+    assertThrows(NullPointerException.class, () -> t.map(i -> 3, f -> null));
+    assertEquals(5, t.map(i -> null, f -> 5));
 
     assertEquals(Optional.empty(), t.orConsumeCause(i -> {
     }));
@@ -211,7 +229,11 @@ class TryTests {
 
     final FileNotFoundException cause2 = new FileNotFoundException();
     final MalformedParametersException mergedCause = new MalformedParametersException();
+    assertThrows(NullPointerException.class, () -> t.or(() -> null, (e1, e2) -> cause));
+    assertEquals(Try.success(6), t.or(Try.success(6)::orThrow, (e1, e2) -> null));
     assertEquals(Try.success(6), t.or(Try.success(6)::orThrow, (e1, e2) -> cause));
+    assertThrows(NullPointerException.class,
+        () -> t.or(Try.<Integer, IOException>failure(cause2)::orThrow, (e1, e2) -> null));
     assertEquals(Try.failure(mergedCause), t.or(Try.<Integer, IOException>failure(cause2)::orThrow,
         (e1, e2) -> e1.equals(cause) && e2.equals(cause2) ? mergedCause : runtimeExc));
 
@@ -223,6 +245,7 @@ class TryTests {
       throw runtimeExc;
     }, (e1, e2) -> cause));
 
+    assertThrows(NullPointerException.class, () -> t.orMapCause(e -> null));
     assertEquals(8, t.orMapCause(e -> 8));
     assertThrows(IOException.class, () -> t.orMapCause(e -> {
       throw cause;
@@ -232,6 +255,7 @@ class TryTests {
     }));
 
     assertThrows(IOException.class, () -> t.orThrow());
+    assertThrows(NullPointerException.class, () -> t.orThrow(e -> null));
     assertThrows(IOException.class, () -> t.orThrow(Function.identity()));
     assertThrows(UnsupportedOperationException.class, () -> t.orThrow(e -> runtimeExc));
 
@@ -254,6 +278,7 @@ class TryTests {
     assertEquals(Try.failure(cause), t.andGet(() -> {
       throw cause;
     }));
+    assertThrows(NullPointerException.class, () -> t.andGet(() -> null));
     assertThrows(UnsupportedOperationException.class, () -> t.andGet(() -> {
       throw runtimeExc;
     }));
@@ -269,20 +294,16 @@ class TryTests {
       throw runtimeExc;
     }));
 
-    // final Consumer<Exception, IOException> c = Mockito.mock(Consumer.class);
-    // t.ifFailed(c);
-    // Mockito.verifyNoInteractions(c);
     assertDoesNotThrow(() -> t.ifFailed(e -> {
       throw cause;
     }));
-    // assertThrows(UnsupportedOperationException.class, () -> t.ifFailed(e -> {
-    // throw runtimeExc;
-    // }));
 
     assertFalse(t.isFailure());
     assertTrue(t.isSuccess());
 
+    assertThrows(NullPointerException.class, () -> t.map(() -> null, e -> 3));
     assertEquals(2, t.map(() -> 2, e -> 3));
+    assertEquals(2, t.map(() -> 2, e -> null));
     assertThrows(IOException.class, () -> t.map(() -> {
       throw cause;
     }, e -> 3));
@@ -302,6 +323,8 @@ class TryTests {
     final Executable executable = t::orThrow;
     assertDoesNotThrow(executable);
 
+    assertDoesNotThrow(() -> t.orThrow(e -> null));
+
     assertTrue(t.toString().startsWith("TryVoid"), t.toString());
   }
 
@@ -316,6 +339,7 @@ class TryTests {
 
     assertEquals(t, t.andGet(Try.success(1)::orThrow));
     assertEquals(t, t.andGet(Try.failure(cause)::orThrow));
+    assertEquals(t, t.andGet(() -> null));
     assertEquals(t, t.andGet(() -> 1));
     assertEquals(t, t.andGet(() -> {
       throw new URISyntaxException("", "");
@@ -353,6 +377,8 @@ class TryTests {
     assertTrue(t.isFailure());
     assertFalse(t.isSuccess());
 
+    assertEquals(3, t.map(() -> null, e -> 3));
+    assertThrows(NullPointerException.class, () -> t.map(() -> 2, e -> null));
     assertEquals(3, t.map(() -> 2, e -> 3));
     assertThrows(IOException.class, () -> t.map(() -> 2, e -> {
       if (e.equals(cause)) {
@@ -374,12 +400,15 @@ class TryTests {
     }));
 
     assertThrows(IOException.class, t::orThrow);
+    assertThrows(NullPointerException.class, () -> t.orThrow(e -> null));
 
     assertTrue(t.toString().startsWith("TryVoid"), t.toString());
   }
 
   @Test
   void testSafeSuccess() {
+    /* Missing many tests of null behavior (map, or, orMapCause, orThrow, andApply, and). */
+
     final UnsupportedOperationException runtimeExc = new UnsupportedOperationException();
     final IOException cause = new IOException();
     final TryCatchAll<Integer> t = TryCatchAll.success(1);
@@ -479,6 +508,8 @@ class TryTests {
     final UnsupportedOperationException runtimeExc = new UnsupportedOperationException();
     final IOException cause = new IOException();
     final TryCatchAll<Integer> t = TryCatchAll.failure(runtimeExc);
+
+    assertTrue(TryCatchAll.get(() -> null).map(i -> false, e -> e instanceof NullPointerException));
 
     assertNotEquals(t, TryCatchAll.get(() -> 1));
     assertEquals(t, TryCatchAll.get(() -> {

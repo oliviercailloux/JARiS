@@ -4,8 +4,9 @@ package io.github.oliviercailloux.jaris.exceptions;
  * Represents either a result or a failure and provides operations to deal with cases of successes
  * and of failures in a unified way.
  * <p>
- * An instance of this class contains either a result, in which case it is called a “success”; or a
- * cause of type {@code X} (some {@link Exception}), in which case it is called a “failure”.
+ * An instance of this class contains either a (non-{@code null}) result, in which case it is called
+ * a “success”; or a cause of type {@code X} (some {@link Exception}), in which case it is called a
+ * “failure”.
  * </p>
  * <p>
  * Instances of this type are immutable.
@@ -56,7 +57,7 @@ public interface TryCatchAll<T>
   /**
    * Attempts to get and encapsulate a result from the given supplier.
    * <p>
-   * This method returns a failure iff the given supplier throws.
+   * This method returns a failure iff the given supplier throws or returns {@code null}.
    *
    * @param <T> the type of result declared to be kept in the instance
    * @param supplier the supplier to get a result from
@@ -109,7 +110,8 @@ public interface TryCatchAll<T>
   /**
    * Returns this failure if this instance is a failure; the provided failure if it is a failure and
    * this instance is a success; and a success containing the merge of the result contained in this
-   * instance and the one contained in {@code t2}, if they both are successes.
+   * instance and the one contained in {@code t2}, if they both are successes and {@code merger}
+   * does not return {@code null}.
    *
    * @param <U> the type of result that the provided try is declared to contain
    * @param <V> the type of result that the returned try will be declared to contain
@@ -118,31 +120,43 @@ public interface TryCatchAll<T>
    * @param merger the function invoked to merge the results if both this and the given try are
    *        successes
    * @return a success if this instance and the given try are two successes
-   * @throws Y iff the merger was applied and threw a checked exception
+   * @throws Y if the merger was applied and threw a checked exception
+   * @throws NullPointerException if the merger was applied and returned {@code null}
    */
   public abstract <U, V, Y extends Exception> TryCatchAll<V> and(TryCatchAll<U> t2,
       Throwing.BiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y;
 
   /**
    * Returns this failure if this instance is a failure; a failure containing the cause thrown by
-   * the given function if it threw a checked exception; or a success containing the result of
-   * applying the provided mapper to the result contained in this instance if it is a success and
-   * the mapper did not throw.
+   * the given function if it threw a checked exception; a failure containing a
+   * {@link NullPointerException} as a cause if the provided mapper returned {@code null}; or a
+   * success containing the result of applying the provided mapper to the result contained in this
+   * instance if it is a success and the mapper returned a non-{@code null} result.
+   * <p>
+   * Equivalent to {@code t.map(r -> TryCatchAll.get(() -> mapper.apply(r)), c -> t)}.
    *
    * @param <U> the type of result that the returned try will be declared to contain
    * @param mapper the mapper to apply to the result contained in this instance if it is a success
-   * @return a success iff this instance is a success and the provided mapper does not throw
+   * @return a success iff this instance is a success and the provided mapper returns a
+   *         non-{@code null} result
    */
   @Override
   public abstract <U> TryCatchAll<U>
       andApply(Throwing.Function<? super T, ? extends U, ? extends Throwable> mapper);
 
   /**
+   * Returns this instance if it is a success, or merges this instance with the one provided by the
+   * supplier.
+   * <p>
    * Returns this instance if it is a success. Otherwise, attempts to get a result from the given
-   * supplier. If this succeeds, that is, if the supplier returns a result, returns a success
-   * containing that result. Otherwise, if the supplier throws a checked exception, merges both
-   * exceptions using the given {@code exceptionMerger} and returns a failure containing that merged
-   * cause.
+   * supplier. If this succeeds, that is, if the supplier returns a non-{@code null} result, returns
+   * a success containing that result. Otherwise, if the supplier throws, merges both throwables
+   * using the given {@code exceptionMerger} and returns a failure containing that merged cause,
+   * provided it is not {@code null}. If the supplier returns {@code null}, it is treated as if it
+   * had thrown a {@link NullPointerException}: this method merges the {@link NullPointerException}
+   * with the cause contained in this instance using the provided {@code exceptionMerger} and
+   * returns a failure containing that merged cause, provided it is not {@code null}.
+   * </p>
    *
    * @param <W> a type of exception that the provided merger may throw
    * @param supplier the supplier that is invoked if this try is a failure

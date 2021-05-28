@@ -59,14 +59,15 @@ public interface TryVoid<X extends Exception>
    * supplier; otherwise, returns this failure as a try.
    * <p>
    * If this instance is a failure, a try containing the cause is returned, without invoking the
-   * given supplier. Otherwise, the given supplier is invoked. If it terminates without throwing, a
-   * success is returned, containing the result just supplied by the supplier. If the supplier
-   * throws a checked exception, a failure is returned, containing the cause it threw.
+   * given supplier. Otherwise, the given supplier is invoked. If it supplies a non-{@code null}
+   * result, a success is returned, containing that result. If the supplier throws a checked
+   * exception, a failure is returned, containing the cause it threw.
    *
    * @param <T> the type of result that the returned try will be declared to contain
    * @param supplier the supplier to attempt to get a result from if this instance is a success.
    * @return a success iff this instance is a success and the given supplier terminated without
    *         throwing.
+   * @throws NullPointerException if the supplier returns {@code null}
    * @see Try#get(Throwing.Supplier)
    */
   @Override

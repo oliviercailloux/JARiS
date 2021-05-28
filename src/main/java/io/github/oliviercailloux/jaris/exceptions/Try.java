@@ -4,8 +4,9 @@ package io.github.oliviercailloux.jaris.exceptions;
  * Represents either a result or a failure and provides operations to deal with cases of successes
  * and of failures in a unified way.
  * <p>
- * An instance of this class contains either a result, in which case it is called a “success”; or a
- * cause of type {@code X} (some {@link Exception}), in which case it is called a “failure”.
+ * An instance of this class contains either a (non-{@code null}) result, in which case it is called
+ * a “success”; or a cause of type {@code X} (some {@link Exception}), in which case it is called a
+ * “failure”.
  * </p>
  * <p>
  * Instances of this type are immutable.
@@ -65,6 +66,7 @@ public interface Try<T, X extends Exception>
    * @param supplier the supplier to get a result from
    * @return a success containing the result if the supplier returns a result; a failure containing
    *         the throwable if the supplier throws a checked exception
+   * @throws NullPointerException if the supplier returns {@code null}
    */
   public static <T, X extends Exception> Try<T, X>
       get(Throwing.Supplier<? extends T, ? extends X> supplier) {
@@ -115,7 +117,8 @@ public interface Try<T, X extends Exception>
   /**
    * Returns this failure if this instance is a failure; the provided failure if the provided try is
    * a failure and this instance is a success; and a success containing the merge of the result
-   * contained in this instance and the one contained in {@code t2}, if they both are successes.
+   * contained in this instance and the one contained in {@code t2}, if they both are successes and
+   * {@code merger} does not return {@code null}.
    *
    * @param <U> the type of result that the provided try is declared to contain
    * @param <V> the type of result that the returned try will be declared to contain
@@ -124,7 +127,8 @@ public interface Try<T, X extends Exception>
    * @param merger the function invoked to merge the results if both this and the given try are
    *        successes
    * @return a success if this instance and the given try are two successes
-   * @throws Y iff the merger was applied and threw an exception of type {@code Y}
+   * @throws Y if the merger was applied and threw an exception of type {@code Y}
+   * @throws NullPointerException if the merger was applied and returned {@code null}
    */
   public abstract <U, V, Y extends Exception> Try<V, X> and(Try<U, ? extends X> t2,
       Throwing.BiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y;
@@ -133,27 +137,29 @@ public interface Try<T, X extends Exception>
    * Returns this failure if this instance is a failure; a failure containing the cause thrown by
    * the given function if it threw a checked exception; or a success containing the result of
    * applying the provided mapper to the result contained in this instance if it is a success and
-   * the mapper did not throw.
+   * the mapper returned a non-{@code null} result.
    * <p>
-   * Equivalent to: {@code t.map(r -> Try.get(() -> mapper.apply(r)), c -> t)}
+   * Equivalent to {@code t.map(r -> Try.get(() -> mapper.apply(r)), c -> t)}.
    *
    * @param <U> the type of result that the returned try will be declared to contain
    * @param mapper the mapper to apply to the result contained in this instance if it is a success
-   * @return a success iff this instance is a success and the provided mapper does not throw
+   * @return a success iff this instance is a success and the provided mapper returns a
+   *         non-{@code null} value
+   * @throws NullPointerException if the mapper was applied and returned {@code null}
    */
   @Override
   public abstract <U> Try<U, X>
       andApply(Throwing.Function<? super T, ? extends U, ? extends X> mapper);
 
   /**
-   * Returns this instance if it is a success; otherwise, returns a success if the supplier succeeds
-   * and a failure if it throws a checked exception.
+   * Returns this instance if it is a success; otherwise, returns a success if the supplier returns
+   * a non-{@code null} result.
    * <p>
    * Returns this instance if it is a success. Otherwise, attempts to get a result from the given
-   * supplier. If this succeeds, that is, if the supplier returns a result, returns a success
-   * containing that result. Otherwise, if the supplier throws a checked exception, merges both
-   * exceptions using the given {@code exceptionMerger} and returns a failure containing that merged
-   * cause.
+   * supplier. If this succeeds, that is, if the supplier returns a non-{@code null} result, returns
+   * a success containing that result. Otherwise, if the supplier throws a checked exception, this
+   * method merges both exceptions using the given {@code exceptionMerger} and returns a failure
+   * containing that merged cause.
    *
    * @param <Y> a type of exception that the provided supplier may throw
    * @param <Z> the type of cause that the returned try will be declared to contain
@@ -162,7 +168,9 @@ public interface Try<T, X extends Exception>
    * @param exceptionsMerger the function invoked to merge both exceptions iff this try is a failure
    *        and the given supplier threw a checked exception
    * @return a success if this instance is a success or the given supplier returned a result
-   * @throws W iff the merger was applied and threw a checked exception
+   * @throws W if the merger was applied and threw an exception of type {@code W}
+   * @throws NullPointerException if the supplier or the merger was applied and returned
+   *         {@code null}
    */
   public abstract <Y extends Exception, Z extends Exception, W extends Exception> Try<T, Z> or(
       Throwing.Supplier<? extends T, Y> supplier,

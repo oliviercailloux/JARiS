@@ -51,9 +51,11 @@ public interface TryCatchAllVoid
    * supplier; otherwise, returns this failure.
    * <p>
    * If this instance is a failure, it is returned, without invoking the given supplier. Otherwise,
-   * the given supplier is invoked. If it terminates without throwing, a success is returned,
-   * containing the result just supplied by the supplier. If the supplier throws a checked
-   * exception, a failure is returned, containing the cause it threw.
+   * the given supplier is invoked. If it supplies a non {@code null} result, a success is returned,
+   * containing that result. If the supplier throws a checked exception (or returns {@code null}), a
+   * failure is returned, containing the cause it threw (or a {@link NullPointerException},
+   * respectively).
+   * </p>
    *
    * @param <T> the type of result that the returned try will be declared to contain
    * @param supplier the supplier to attempt to get a result from if this instance is a success.
@@ -71,6 +73,7 @@ public interface TryCatchAllVoid
    * If this instance is a failure, it is returned, without invoking the given runnable. Otherwise,
    * the given runnable is invoked. If it terminates without throwing, a success is returned. If the
    * runnable throws a checked exception, a failure is returned, containing the cause it threw.
+   * </p>
    *
    * @param runnable the runnable to attempt to run if this instance is a success.
    * @return a success iff this instance is a success and the given runnable terminated without
@@ -87,6 +90,7 @@ public interface TryCatchAllVoid
    * If this instance is a success, it is returned, without invoking the given runnable. Otherwise,
    * the given runnable is invoked. If it terminates without throwing, a success is returned. If the
    * runnable throws a checked exception, a failure is returned, containing the cause it threw.
+   * </p>
    *
    * @param runnable the runnable to attempt to run if this instance is a failure.
    * @return a success iff this instance is a success or the given runnable terminated without
