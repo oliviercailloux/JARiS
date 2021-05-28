@@ -359,6 +359,7 @@ class TryTests {
       throw runtimeExc;
     }));
 
+    @SuppressWarnings("unchecked")
     final Throwing.Consumer<Exception, URISyntaxException> c =
         Mockito.mock(Throwing.Consumer.class);
     try {
