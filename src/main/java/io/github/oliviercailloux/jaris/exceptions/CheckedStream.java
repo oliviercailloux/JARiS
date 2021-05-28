@@ -103,7 +103,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @return a new infinite sequential unordered {@code CheckedStream}
    * @see Stream#generate(Supplier)
    */
-  public static <T, X extends Exception> CheckedStreamImpl<T, X>
+  public static <T, X extends Exception> CheckedStream<T, X>
       generate(Throwing.Supplier<? extends T, ? extends X> generator) {
     return CheckedStreamImpl.generate(generator);
   }
@@ -132,7 +132,7 @@ public interface CheckedStream<T, X extends Exception> {
    *
    * @see Stream#distinct()
    */
-  CheckedStreamImpl<T, X> distinct();
+  CheckedStream<T, X> distinct();
 
   /**
    * Returns, if this stream is ordered, a checked stream consisting of the remaining elements of
@@ -185,7 +185,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @return the new stream
    * @see Stream#dropWhile(Predicate)
    */
-  CheckedStreamImpl<T, X> dropWhile(Throwing.Predicate<? super T, ? extends X> predicate);
+  CheckedStream<T, X> dropWhile(Throwing.Predicate<? super T, ? extends X> predicate);
 
   /**
    * Returns, if this stream is ordered, a checked stream consisting of the longest prefix of
@@ -231,7 +231,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @return the new stream
    * @see Stream#takeWhile(Predicate)
    */
-  CheckedStreamImpl<T, X> takeWhile(Throwing.Predicate<? super T, ? extends X> predicate);
+  CheckedStream<T, X> takeWhile(Throwing.Predicate<? super T, ? extends X> predicate);
 
   /**
    * Returns a checked stream consisting of the elements of this stream that match the given
@@ -246,7 +246,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @return the new stream
    * @see Stream#filter(Predicate)
    */
-  CheckedStreamImpl<T, X> filter(Throwing.Predicate<? super T, ? extends X> predicate);
+  CheckedStream<T, X> filter(Throwing.Predicate<? super T, ? extends X> predicate);
 
   /**
    * Returns a checked stream consisting of the results of replacing each element of this stream
@@ -296,7 +296,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @return the new stream
    * @see Stream#flatMap(Function)
    */
-  <R> CheckedStreamImpl<R, X>
+  <R> CheckedStream<R, X>
       flatMap(Throwing.Function<? super T, ? extends Stream<? extends R>, ? extends X> mapper);
 
   /**
@@ -323,7 +323,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @throws IllegalArgumentException if {@code maxSize} is negative
    * @see Stream#limit(long)
    */
-  CheckedStreamImpl<T, X> limit(long maxSize);
+  CheckedStream<T, X> limit(long maxSize);
 
   /**
    * Returns a checked stream consisting of the results of applying the given function to the
@@ -339,7 +339,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @return the new stream
    * @see Stream#map(Function)
    */
-  <R> CheckedStreamImpl<R, X> map(Throwing.Function<? super T, ? extends R, ? extends X> mapper);
+  <R> CheckedStream<R, X> map(Throwing.Function<? super T, ? extends R, ? extends X> mapper);
 
   /**
    * Returns a checked stream consisting of the remaining elements of this stream after discarding
@@ -365,7 +365,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @throws IllegalArgumentException if {@code n} is negative
    * @see Stream#skip(long)
    */
-  CheckedStreamImpl<T, X> skip(long n);
+  CheckedStream<T, X> skip(long n);
 
   /**
    * Returns a checked stream consisting of the elements of this stream, sorted according to natural
@@ -382,7 +382,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @return the new stream
    * @see Stream#sorted()
    */
-  CheckedStreamImpl<T, X> sorted();
+  CheckedStream<T, X> sorted();
 
   /**
    * Returns a checked stream consisting of the elements of this stream, sorted according to the
@@ -401,7 +401,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @return the new stream
    * @see Stream#sorted(Comparator)
    */
-  CheckedStreamImpl<T, X> sorted(Throwing.Comparator<? super T, ? extends X> comparator);
+  CheckedStream<T, X> sorted(Throwing.Comparator<? super T, ? extends X> comparator);
 
   /**
    * Performs a <a href="package-summary.html#Reduction">reduction</a> on the elements of this
@@ -801,7 +801,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @throws X if any functional interface operating on this stream throws a checked exception
    * @see Stream#peek(Consumer)
    */
-  CheckedStreamImpl<T, X> peek(Throwing.Consumer<? super T, ? extends X> action) throws X;
+  CheckedStream<T, X> peek(Throwing.Consumer<? super T, ? extends X> action) throws X;
 
   /**
    * Returns the count of elements in this stream. This is a special case of a
