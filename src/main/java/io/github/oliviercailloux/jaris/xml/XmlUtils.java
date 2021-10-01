@@ -1,18 +1,31 @@
 package io.github.oliviercailloux.jaris.xml;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
+import io.github.oliviercailloux.jaris.xml.XmlUtils.DomHelper.InitializationException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.io.StringWriter;
 import java.util.AbstractList;
 import java.util.RandomAccess;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
+import javax.xml.transform.Source;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -21,13 +34,26 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSInput;
 import org.w3c.dom.ls.LSOutput;
+import org.w3c.dom.ls.LSParser;
 import org.w3c.dom.ls.LSSerializer;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
  * A few helper methods to deal with XML, especially using the
  * <a href= "https://github.com/oliviercailloux/java-course/blob/master/DOM.adoc">Document Object
  * Model</a>.
+ * <p>
+ * The public API of this class favors {@link StreamSource} (from {@code javax.xml.transform}) to
+ * {@link InputSource} (from {@code org.xml.sax}). Both classes come from the {@code java.xml}
+ * module, and their APIs are almost identical, the only difference being that {@code InputSource}
+ * has an “encoding” parameter; and that {@code StreamSource} is part of a hierarchy (as it
+ * implements {@link Source}), which makes it nicer to use in this context. See also
+ * <a href="https://stackoverflow.com/q/69194590">SO</a>.
  */
 public class XmlUtils {
   @SuppressWarnings("unused")
@@ -39,127 +65,446 @@ public class XmlUtils {
     /* Should not be instanciated. */
   }
 
-  private static class NodeListWrapper extends AbstractList<Node> implements RandomAccess {
-    private final NodeList delegate;
+  private static InputSource toInputSource(StreamSource document) {
+    final InputSource inputSource = new InputSource();
 
-    NodeListWrapper(NodeList l) {
-      delegate = l;
+    {
+      @SuppressWarnings("resource")
+      final InputStream inputStream = document.getInputStream();
+      if (inputStream != null) {
+        inputSource.setByteStream(inputStream);
+      }
     }
-
-    @Override
-    public Node get(int index) {
-      return delegate.item(index);
+    {
+      @SuppressWarnings("resource")
+      final Reader reader = document.getReader();
+      if (reader != null) {
+        inputSource.setCharacterStream(reader);
+      }
     }
-
-    @Override
-    public int size() {
-      return delegate.getLength();
+    {
+      final String publicId = document.getPublicId();
+      if (publicId != null) {
+        inputSource.setPublicId(publicId);
+      }
     }
+    {
+      final String systemId = document.getSystemId();
+      if (systemId != null) {
+        inputSource.setSystemId(systemId);
+      }
+    }
+    return inputSource;
   }
 
-  private static class NodeListToElementsWrapper extends AbstractList<Element>
-      implements RandomAccess {
-    private final NodeList delegate;
-
-    NodeListToElementsWrapper(NodeList l) {
-      delegate = l;
-    }
-
-    @Override
-    public Element get(int index) {
-      return (Element) delegate.item(index);
-    }
-
-    @Override
-    public int size() {
-      return delegate.getLength();
-    }
-  }
-
-  /**
-   * Returns an immutable copy of the given list of nodes, using a proper generic collection.
-   *
-   * @param nodes the nodes to copy
-   * @return an immutable copy of the nodes
-   */
-  public static ImmutableList<Node> toList(NodeList nodes) {
-    return ImmutableList.copyOf(new NodeListWrapper(nodes));
-  }
-
-  /**
-   * Returns an immutable copy of the given list of nodes as a list of elements, using a proper
-   * generic collection.
-   *
-   * @param nodes the nodes to copy
-   * @return an immutable copy of the nodes
-   * @throws ClassCastException if some node in the provided list cannot be cast to an element.
-   */
-  public static ImmutableList<Element> toElements(NodeList nodes) throws ClassCastException {
-    return ImmutableList.copyOf(new NodeListToElementsWrapper(nodes));
-  }
-
-  /**
-   * Returns the node type, its local name, its namespace, its value, and its name.
-   *
-   * @param node the node from which to extract debug information
-   * @return a string containing information pertaining to the node
-   */
-  public static String toDebugString(Node node) {
-    return String.format("Node type %s, Local %s, NS %s, Value %s, Name %s.", node.getNodeType(),
-        node.getLocalName(), node.getNamespaceURI(), node.getNodeValue(), node.getNodeName());
-  }
-
-  /**
-   * Returns a pretty-printed textual representation of the node.
-   */
-  public static String toString(Node node) {
-    checkNotNull(node);
+  public static DomHelper loadAndSave() throws InitializationException {
     final DOMImplementationRegistry registry;
     try {
       registry = DOMImplementationRegistry.newInstance();
     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
         | ClassCastException e) {
-      throw new IllegalStateException(e);
+      throw new InitializationException(e);
     }
     final DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("LS");
-    final LSSerializer ser = impl.createLSSerializer();
-    ser.getDomConfig().setParameter("format-pretty-print", true);
-    final StringWriter writer = new StringWriter();
-    final LSOutput output = impl.createLSOutput();
-    output.setCharacterStream(writer);
-    ser.write(node, output);
-    /*
-     * See <a href="https://bugs.openjdk.java.net/browse/JDK-7150637">7150637</a> and <a
-     * href="https://bugs.openjdk.java.net/browse/JDK-8054115">8054115 - LSSerializer remove a '\n'
-     * following the xml declaration</a>. I filed bug
-     * https://bugs.openjdk.java.net/browse/JDK-8249867 in July 2020.
-     *
-     * I got an email on the 10th of March, 2021 about JDK-8249867/Incident Report 9153520, stating
-     * that the incident has been fixed at https://jdk.java.net/17/. I have not checked.
-     */
-    return writer.toString();
+    return new DomHelper(impl);
   }
 
-  static String toStringUsingTransformer(Document document) {
-    final StringWriter writer = new StringWriter();
+  public static Transformer transformer() {
+    final TransformerFactory factory = TransformerFactory.newDefaultInstance();
+    return transformer(factory);
+  }
 
-    TransformerFactory tf = TransformerFactory.newDefaultInstance();
-    final Transformer transformer;
-    try {
-      transformer = tf.newTransformer();
-    } catch (TransformerConfigurationException e) {
-      throw new IllegalStateException(e);
+  public static Transformer transformer(TransformerFactory factory) {
+    factory.setErrorListener(Transformer.LOGGING_OR_THROWING_ERROR_LISTENER);
+    LOGGER.info("Using factory {}.", factory);
+    return new Transformer(factory);
+  }
+
+  public static Validator validator() {
+    final SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    return validator(factory);
+  }
+
+  public static Validator validator(SchemaFactory factory) {
+    factory.setErrorHandler(Validator.THROWING_ERROR_HANDLER);
+    LOGGER.info("Using factory {}.", factory);
+    return new Validator(factory);
+  }
+
+  public static class DomHelper {
+    @SuppressWarnings("serial")
+    public static class InitializationException extends RuntimeException {
+      public InitializationException() {
+        super();
+      }
+
+      public InitializationException(String message, Throwable cause) {
+        super(message, cause);
+      }
+
+      public InitializationException(String message) {
+        super(message);
+      }
+
+      public InitializationException(Throwable cause) {
+        super(cause);
+      }
     }
-    /* Doesn’t seem to take these properties into account. */
-    transformer.setOutputProperty(OutputKeys.INDENT, "no");
-    transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-    // transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-    try {
+
+    private static class NodeListWrapper extends AbstractList<Node> implements RandomAccess {
+      private final NodeList delegate;
+
+      NodeListWrapper(NodeList l) {
+        delegate = l;
+      }
+
+      @Override
+      public Node get(int index) {
+        return delegate.item(index);
+      }
+
+      @Override
+      public int size() {
+        return delegate.getLength();
+      }
+    }
+
+    private static class NodeListToElementsWrapper extends AbstractList<Element>
+        implements RandomAccess {
+      private final NodeList delegate;
+
+      NodeListToElementsWrapper(NodeList l) {
+        delegate = l;
+      }
+
+      @Override
+      public Element get(int index) {
+        return (Element) delegate.item(index);
+      }
+
+      @Override
+      public int size() {
+        return delegate.getLength();
+      }
+    }
+
+    private final DOMImplementationLS impl;
+    private LSSerializer ser;
+
+    private LSParser deser;
+
+    private DomHelper(DOMImplementationLS impl) {
+      this.impl = checkNotNull(impl);
+      ser = null;
+      deser = null;
+    }
+
+    LSInput toLsInput(StreamSource document) {
+      final LSInput input = impl.createLSInput();
+
+      {
+        @SuppressWarnings("resource")
+        final InputStream inputStream = document.getInputStream();
+        if (inputStream != null) {
+          input.setByteStream(inputStream);
+        }
+      }
+      {
+        @SuppressWarnings("resource")
+        final Reader reader = document.getReader();
+        if (reader != null) {
+          input.setCharacterStream(reader);
+        }
+      }
+      {
+        final String publicId = document.getPublicId();
+        if (publicId != null) {
+          input.setPublicId(publicId);
+        }
+      }
+      {
+        final String systemId = document.getSystemId();
+        if (systemId != null) {
+          input.setSystemId(systemId);
+        }
+      }
+      return input;
+    }
+
+    private void lazyInitSer() {
+      if (ser != null) {
+        return;
+      }
+      ser = impl.createLSSerializer();
+      ser.getDomConfig().setParameter("format-pretty-print", true);
+    }
+
+    private void lazyInitDeser() {
+      if (deser != null) {
+        return;
+      }
+      deser = impl.createLSParser(DOMImplementationLS.MODE_SYNCHRONOUS, null);
+      ser.getDomConfig().setParameter("format-pretty-print", true);
+    }
+
+    public Document asDocument(StreamSource input) {
+      lazyInitDeser();
+      final Document doc = deser.parse(toLsInput(input));
+
+      final Element docE = doc.getDocumentElement();
+      LOGGER.debug("Main tag name: {}.", docE.getTagName());
+
+      return doc;
+    }
+
+    /**
+     * I favor the DOM LS parser to the DocumentBuilder: DOM LS is a W3C standard (see
+     * <a href="https://stackoverflow.com/a/38153986">SO</a>) and I need an LS serializer anyway.
+     */
+    @SuppressWarnings("unused")
+    private Document asDocumentUsingBuilder(StreamSource input)
+        throws ParserConfigurationException, SAXException, IOException {
+      final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+      factory.setNamespaceAware(true);
+      final DocumentBuilder builder = factory.newDocumentBuilder();
+
+      final Document doc = builder.parse(toInputSource(input));
+
+      final Element docE = doc.getDocumentElement();
+      LOGGER.debug("Main tag name: {}.", docE.getTagName());
+
+      return doc;
+    }
+
+    /**
+     * Returns an immutable copy of the given list of nodes, using a proper generic collection.
+     *
+     * @param nodes the nodes to copy
+     * @return an immutable copy of the nodes
+     */
+    public ImmutableList<Node> toList(NodeList nodes) {
+      return ImmutableList.copyOf(new NodeListWrapper(nodes));
+    }
+
+    /**
+     * Returns an immutable copy of the given list of nodes as a list of elements, using a proper
+     * generic collection.
+     *
+     * @param nodes the nodes to copy
+     * @return an immutable copy of the nodes
+     * @throws ClassCastException if some node in the provided list cannot be cast to an element.
+     */
+    public ImmutableList<Element> toElements(NodeList nodes) throws ClassCastException {
+      return ImmutableList.copyOf(new NodeListToElementsWrapper(nodes));
+    }
+
+    /**
+     * Returns the node type, its local name, its namespace, its value, and its name.
+     *
+     * @param node the node from which to extract debug information
+     * @return a string containing information pertaining to the node
+     */
+    public String toDebugString(Node node) {
+      return String.format("Node type %s, Local %s, NS %s, Value %s, Name %s.", node.getNodeType(),
+          node.getLocalName(), node.getNamespaceURI(), node.getNodeValue(), node.getNodeName());
+    }
+
+    /** Returns a pretty-printed textual representation of the node. */
+    public String toString(Node node) {
+      checkNotNull(node);
+      lazyInitSer();
+      final StringWriter writer = new StringWriter();
+      final LSOutput output = impl.createLSOutput();
+      output.setCharacterStream(writer);
+      ser.write(node, output);
+      /*
+       * See <a href="https://bugs.openjdk.java.net/browse/JDK-7150637">7150637</a> and <a
+       * href="https://bugs.openjdk.java.net/browse/JDK-8054115">8054115 - LSSerializer remove a
+       * '\n' following the xml declaration</a>. I filed bug
+       * https://bugs.openjdk.java.net/browse/JDK-8249867 in July 2020.
+       *
+       * I got an email on the 10th of March, 2021 about JDK-8249867/Incident Report 9153520,
+       * stating that the incident has been fixed at https://jdk.java.net/17/. I have not checked.
+       */
+      return writer.toString();
+    }
+  }
+
+  public static class Transformer {
+    private static final class LoggingErrorListener implements ErrorListener {
+      @Override
+      public void warning(TransformerException exception) {
+        LOGGER.debug("Warning while processing.", exception);
+      }
+
+      @Override
+      public void fatalError(TransformerException exception) {
+        LOGGER.debug("Fatal error while processing.", exception);
+      }
+
+      @Override
+      public void error(TransformerException exception) {
+        LOGGER.debug("Error while processing.", exception);
+      }
+    }
+
+    private static final class LoggingOrThrowingErrorListener implements ErrorListener {
+      @Override
+      public void warning(TransformerException exception) throws TransformerException {
+        LOGGER.debug("Warning while processing.", exception);
+      }
+
+      @Override
+      public void fatalError(TransformerException exception) throws TransformerException {
+        throw exception;
+      }
+
+      @Override
+      public void error(TransformerException exception) throws TransformerException {
+        throw exception;
+      }
+    }
+
+    private static final class ThrowingErrorListener implements ErrorListener {
+      @Override
+      public void warning(TransformerException exception) throws TransformerException {
+        throw exception;
+      }
+
+      @Override
+      public void fatalError(TransformerException exception) throws TransformerException {
+        throw exception;
+      }
+
+      @Override
+      public void error(TransformerException exception) throws TransformerException {
+        throw exception;
+      }
+    }
+
+    private final TransformerFactory factory;
+    private static final ErrorListener LOGGING_OR_THROWING_ERROR_LISTENER =
+        new LoggingOrThrowingErrorListener();
+    static final ErrorListener LOGGING_ERROR_LISTENER = new LoggingErrorListener();
+
+    private static final ErrorListener THROWING_ERROR_LISTENER = new ThrowingErrorListener();
+
+    private Transformer(TransformerFactory tf) {
+      this.factory = checkNotNull(tf);
+    }
+
+    /**
+     * @param document
+     * @param stylesheet
+     * @return
+     * @throws TransformerConfigurationException Thrown if there are errors when parsing the Source
+     *         or it is not possible to create a Transformer instance.
+     * @throws TransformerException If any error or warning occurs during the course of the
+     *         transformation.
+     */
+    public String transform(Source document, Source stylesheet)
+        throws TransformerConfigurationException, TransformerException {
+      checkNotNull(document);
+      checkNotNull(stylesheet);
+      checkArgument(!stylesheet.isEmpty());
+      final StringWriter result = new StringWriter();
+      /*
+       * https://www.saxonica.com/html/documentation/configuration/config-features. html;
+       * https://stackoverflow.com/a/4699749.
+       *
+       * The default implementation (from Apache Xalan) seems to have a bug preventing it from using
+       * the provided error listener, see https://stackoverflow.com/a/21209904/.
+       */
+      try {
+        factory.setAttribute("http://saxon.sf.net/feature/messageEmitterClass",
+            "net.sf.saxon.serialize.MessageWarner");
+      } catch (@SuppressWarnings("unused") IllegalArgumentException e) {
+        LOGGER.debug("saxon messageEmitterClass attribute not supported, not set");
+      }
+      final javax.xml.transform.Transformer transformer = factory.newTransformer(stylesheet);
+      transformer.setErrorListener(LOGGING_OR_THROWING_ERROR_LISTENER);
+      LOGGER.info("Using transformer {}.", transformer);
+      transformer.transform(document, new StreamResult(result));
+      return result.toString();
+    }
+
+    /**
+     * Not ready.
+     *
+     * @throws TransformerException
+     */
+    String transformToString(Document document)
+        throws TransformerConfigurationException, TransformerException {
+      final StringWriter writer = new StringWriter();
+
+      final javax.xml.transform.Transformer transformer = factory.newTransformer();
+      transformer.setErrorListener(THROWING_ERROR_LISTENER);
+
+      /* Doesn’t seem to take these properties into account. */
+      transformer.setOutputProperty(OutputKeys.INDENT, "no");
+      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+      // transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount",
+      // "2");
+
       transformer.transform(new DOMSource(document), new StreamResult(writer));
-    } catch (TransformerException e) {
-      throw new IllegalStateException(e);
+      return writer.toString();
+    }
+  }
+
+  public static class Validator {
+    private static final class LoggingOrThrowingErrorHandler implements ErrorHandler {
+      @Override
+      public void warning(SAXParseException exception) {
+        LOGGER.debug("Warning while processing.", exception);
+      }
+
+      @Override
+      public void fatalError(SAXParseException exception) throws SAXParseException {
+        throw exception;
+      }
+
+      @Override
+      public void error(SAXParseException exception) throws SAXParseException {
+        throw exception;
+      }
     }
 
-    return writer.toString();
+    private static final class ThrowingErrorHandler implements ErrorHandler {
+      @Override
+      public void warning(SAXParseException exception) throws SAXParseException {
+        throw exception;
+      }
+
+      @Override
+      public void fatalError(SAXParseException exception) throws SAXParseException {
+        throw exception;
+      }
+
+      @Override
+      public void error(SAXParseException exception) throws SAXParseException {
+        throw exception;
+      }
+    }
+
+    static final ErrorHandler LOGGING_OR_THROWING_ERROR_HANDLER =
+        new LoggingOrThrowingErrorHandler();
+    private static final ErrorHandler THROWING_ERROR_HANDLER = new ThrowingErrorHandler();
+    private final SchemaFactory factory;
+    private Schema schema;
+
+    private Validator(SchemaFactory tf) {
+      this.factory = checkNotNull(tf);
+      schema = null;
+    }
+
+    public Validator setSchema(Source schema) throws SAXException {
+      this.schema = factory.newSchema(schema);
+      return this;
+    }
+
+    public void validate(Source document) throws SAXException, IOException {
+      final javax.xml.validation.Validator validator = schema.newValidator();
+      validator.validate(document);
+    }
   }
 }

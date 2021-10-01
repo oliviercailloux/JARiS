@@ -1,13 +1,18 @@
 package io.github.oliviercailloux.jaris.xml;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.collect.ImmutableList;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.stream.StreamSource;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,49 +20,95 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 class XmlUtilsTests {
-  @SuppressWarnings("unused")
-  private static final Logger LOGGER = LoggerFactory.getLogger(XmlUtilsTests.class);
-  private Document document;
-  private Element html;
-  private Element head;
+      @SuppressWarnings("unused")
+      private static final Logger LOGGER = LoggerFactory.getLogger(XmlUtilsTests.class);
+      private Document document;
+      private Element html;
+      private Element head;
 
-  private void initDoc() throws ParserConfigurationException {
-    final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    final DocumentBuilder builder = factory.newDocumentBuilder();
-    document = builder.newDocument();
+      private void initDoc() throws ParserConfigurationException {
+            final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            final DocumentBuilder builder = factory.newDocumentBuilder();
+            document = builder.newDocument();
 
-    html = document.createElementNS(XmlUtils.XHTML_NAME_SPACE, "html");
-    html.setAttribute("lang", "en");
-    document.appendChild(html);
-    head = document.createElementNS(XmlUtils.XHTML_NAME_SPACE, "head");
-    html.appendChild(head);
-    final Element meta = document.createElementNS(XmlUtils.XHTML_NAME_SPACE, "meta");
-    meta.setAttribute("http-equiv", "Content-type");
-    meta.setAttribute("content", "text/html; charset=utf-8");
-    head.appendChild(meta);
-    final Element body = document.createElementNS(XmlUtils.XHTML_NAME_SPACE, "body");
-    html.appendChild(body);
-  }
+            html = document.createElementNS(XmlUtils.XHTML_NAME_SPACE, "html");
+            html.setAttribute("lang", "en");
+            document.appendChild(html);
+            head = document.createElementNS(XmlUtils.XHTML_NAME_SPACE, "head");
+            html.appendChild(head);
+            final Element meta = document.createElementNS(XmlUtils.XHTML_NAME_SPACE, "meta");
+            meta.setAttribute("http-equiv", "Content-type");
+            meta.setAttribute("content", "text/html; charset=utf-8");
+            head.appendChild(meta);
+            final Element body = document.createElementNS(XmlUtils.XHTML_NAME_SPACE, "body");
+            html.appendChild(body);
+      }
 
-  @Test
-  void testToStringDoc() throws Exception {
-    initDoc();
-    final String expected =
-        Files.readString(Path.of(getClass().getResource("simple.html").toURI()));
-    assertEquals(expected, XmlUtils.toString(document));
-  }
+      @Test
+      void testToStringDoc() throws Exception {
+            initDoc();
+            final String expected = Files.readString(Path.of(getClass().getResource("simple.html").toURI()));
+            assertEquals(expected, XmlUtils.loadAndSave().toString(document));
+      }
 
-  @Test
-  void testToStringNode() throws Exception {
-    initDoc();
-    final String expected =
-        Files.readString(Path.of(getClass().getResource("partial.xml").toURI()));
-    assertEquals(expected, XmlUtils.toString(head));
-  }
+      @Test
+      void testToStringNode() throws Exception {
+            initDoc();
+            final String expected = Files.readString(Path.of(getClass().getResource("partial.xml").toURI()));
+            assertEquals(expected, XmlUtils.loadAndSave().toString(head));
+      }
 
-  @Test
-  void testToElements() throws Exception {
-    initDoc();
-    assertEquals(ImmutableList.of(html), XmlUtils.toElements(document.getChildNodes()));
-  }
+      @Test
+      void testToElements() throws Exception {
+            initDoc();
+            assertEquals(ImmutableList.of(html), XmlUtils.loadAndSave().toElements(document.getChildNodes()));
+      }
+
+      @Test
+      void testTransformSimple() throws Exception {
+            try (InputStream style = XmlUtilsTests.class.getResourceAsStream("short.xsl");
+                        InputStream input = XmlUtilsTests.class.getResourceAsStream("short.xml")) {
+                  final String expected = Files
+                              .readString(Path.of(XmlUtilsTests.class.getResource("transformed.txt").toURI()));
+                  assertEquals(expected,
+                              XmlUtils.transformer().transform(new StreamSource(input), new StreamSource(style)));
+            }
+      }
+
+      @Test
+      @Disabled("Too complex for JDK embedded transformer (Apache Xalan)")
+      void testTransformComplex() throws Exception {
+            try (InputStream docBook = XmlUtilsTests.class.getResourceAsStream("docbook howto.xml");
+                        InputStream myStyle = XmlUtilsTests.class.getResourceAsStream("mystyle.xsl")) {
+                  assertEquals("",
+                              XmlUtils.transformer().transform(new StreamSource(docBook), new StreamSource(myStyle)));
+            }
+      }
+
+      @Test
+      void testTransformInvalidXsl() throws Exception {
+            try (InputStream style = XmlUtilsTests.class.getResourceAsStream("short invalid.xsl");
+                        InputStream input = XmlUtilsTests.class.getResourceAsStream("short.xml")) {
+                  assertThrows(TransformerException.class,
+                              () -> XmlUtils.transformer().transform(new StreamSource(input), new StreamSource(style)));
+            }
+      }
+
+      @Test
+      void testTransformInvalidXml() throws Exception {
+            try (InputStream style = XmlUtilsTests.class.getResourceAsStream("short.xsl");
+                        InputStream input = XmlUtilsTests.class.getResourceAsStream("short invalid.xml")) {
+                  assertThrows(TransformerException.class,
+                              () -> XmlUtils.transformer().transform(new StreamSource(input), new StreamSource(style)));
+            }
+      }
+
+      @Test
+      void testTransformMessaging() throws Exception {
+            try (InputStream style = XmlUtilsTests.class.getResourceAsStream("short messaging.xsl");
+                        InputStream input = XmlUtilsTests.class.getResourceAsStream("short.xml")) {
+                  assertThrows(TransformerException.class,
+                              () -> XmlUtils.transformer().transform(new StreamSource(input), new StreamSource(style)));
+            }
+      }
 }
