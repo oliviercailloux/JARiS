@@ -120,14 +120,35 @@ public class XmlUtils {
    */
   @SuppressWarnings("serial")
   public static class XmlException extends RuntimeException {
+    /**
+     * Constructs a new exception with the specified detail message.
+     *
+     * @param message the detail message
+     */
     public XmlException(String message) {
       super(message);
     }
 
+    /**
+     * Constructs a new exception with the specified detail message and cause.
+     *
+     * @param message the detail message
+     * @param cause the cause. (A {@code null} value is permitted, and indicates that the cause is
+     *        nonexistent or unknown.)
+     */
     public XmlException(String message, Throwable cause) {
       super(message, cause);
     }
 
+    /**
+     * Constructs a new exception with the specified cause and a detail message of
+     * {@code (cause==null ? null : cause.toString())} (which typically contains the class and
+     * detail message of {@code cause}). This constructor is useful for XML exceptions that are
+     * little more than wrappers for other throwables.
+     *
+     * @param cause the cause. (A {@code null} value is permitted, and indicates that the cause is
+     *        nonexistent or unknown.)
+     */
     public XmlException(Throwable cause) {
       super(cause);
     }
@@ -187,6 +208,7 @@ public class XmlUtils {
    * to initialize or to obtain an implementation that provides the LS feature.
    * </p>
    *
+   * @return a DOM helper instance
    * @throws XmlException If the {@link DOMImplementationRegistry} initialization fails or it finds
    *         no implementation providing the LS feature.
    */
@@ -456,6 +478,9 @@ public class XmlUtils {
 
     /**
      * Returns a pretty-printed textual representation of the node.
+     *
+     * @param node the node whose textual representation is sought
+     * @return a pretty-printed representation
      */
     public String toString(Node node) {
       checkNotNull(node);
@@ -590,6 +615,7 @@ public class XmlUtils {
      *
      * @param document the document to transform
      * @param stylesheet the stylesheet that indicates the transform to perform
+     * @return the resulting transformation
      * @throws XmlException iff an error occurs when parsing the stylesheet or when transforming the
      *         document.
      */
@@ -699,6 +725,7 @@ public class XmlUtils {
      * Produces the schema corresponding to the given source, or throws.
      *
      * @param schemaSource the source
+     * @return the corresponding schema
      * @throws XmlException iff an error is produced while parsing the schema.
      */
     public Schema asSchema(Source schemaSource) throws XmlException {

@@ -68,7 +68,6 @@ import org.slf4j.LoggerFactory;
  * <h2>Usage</h2> If you are happy to use one of the default configurations, use
  * {@link #keyReader()} or {@link #classicalReader()}. Here is an example use if you want to use
  * your own keys.
- * <p>
  *
  * <pre>
  * {@code
@@ -77,13 +76,13 @@ import org.slf4j.LoggerFactory;
  * }
  *
  * CredentialsReader<MyOwnCredentialKeys> reader =
- *     CredentialsReader.using(MyOwnCredentials.class, Path.of("my file.txt"));
+ *   CredentialsReader.using(MyOwnCredentials.class, Path.of("my file.txt"));
  * ImmutableCompleteMap<MyOwnCredentialKeys, String> credentials = reader.getCredentials();
  * String valueReadCorrespondingToMyFirstKey = credentials.get(MyOwnCredentialKeys.MY_FIRST_KEY);
  * // and so on for other keys.
  * }
  * </pre>
- *
+ * <p>
  * See also the
  * <a href="https://github.com/oliviercailloux/JARiS/blob/master/README.adoc">readme</a> of this
  * library.
@@ -99,16 +98,28 @@ public class CredentialsReader<K extends Enum<K>> {
    * @see CredentialsReader#keyReader()
    */
   public static enum KeyCredential {
+    /**
+     * The unique enum instance for use with single key authentication
+     */
     API_KEY
   }
 
   /**
-   * The enum type used in a classical reader.
+   * The enum type used in a classical reader, for use with username and password style
+   * authentication.
    *
    * @see CredentialsReader#classicalReader()
    */
   public static enum ClassicalCredentials {
-    API_USERNAME, API_PASSWORD
+    /**
+     * The username key, for use with username and password style authentication
+     */
+    API_USERNAME,
+    /**
+     * The password key, for use with username and password style authentication
+     */
+
+    API_PASSWORD
   }
 
   /**
@@ -124,6 +135,7 @@ public class CredentialsReader<K extends Enum<K>> {
   /**
    * Returns an instance that will read from the sources configured with the given parameters.
    *
+   * @param <K> the type of keys used by the returned instance
    * @param keysType the keys to use for reading from system properties and the environment.
    * @param filePath the file path to use for reading from the file source.
    * @return a configured instance.
@@ -164,6 +176,8 @@ public class CredentialsReader<K extends Enum<K>> {
   /**
    * Returns the keys that this object is configure to read from the system properties and the
    * environment.
+   *
+   * @return the keys
    */
   public Class<K> getKeysType() {
     return keysType;
@@ -171,6 +185,8 @@ public class CredentialsReader<K extends Enum<K>> {
 
   /**
    * Returns the file path that is read from when considering the file source.
+   *
+   * @return the file path
    */
   public Path getFilePath() {
     return filePath;
@@ -179,6 +195,7 @@ public class CredentialsReader<K extends Enum<K>> {
   /**
    * Returns the credentials read from the first source containing credentials.
    *
+   * @return the credentials
    * @throws NoSuchElementException if no credentials are found: {@code keys} is not empty, none of
    *         these keys exist as system properties or environment variables, and the source file
    *         does not exist

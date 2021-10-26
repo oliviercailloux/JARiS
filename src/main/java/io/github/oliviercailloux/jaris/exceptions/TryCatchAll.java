@@ -39,6 +39,7 @@ public interface TryCatchAll<T>
    *
    * @param <T> the type of result declared to be (and effectively) kept in the instance
    * @param result the result to contain
+   * @return a success
    */
   public static <T> TryCatchAll<T> success(T result) {
     return TryOptionalImpl.TryCatchAllSuccess.given(result);
@@ -49,6 +50,7 @@ public interface TryCatchAll<T>
    *
    * @param <T> the type of result declared to be (but not effectively) kept in the instance
    * @param cause the cause to contain
+   * @return a failure
    */
   public static <T> TryCatchAll<T> failure(Throwable cause) {
     return TryOptionalImpl.TryCatchAllFailure.given(cause);

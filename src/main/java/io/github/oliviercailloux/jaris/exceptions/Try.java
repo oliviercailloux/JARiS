@@ -39,6 +39,7 @@ public interface Try<T, X extends Exception>
    * @param <T> the type of result declared to be (and effectively) kept in the instance
    * @param <X> the type of cause declared to be (but not effectively) kept in the instance.
    * @param result the result to contain
+   * @return a success
    */
   public static <T, X extends Exception> Try<T, X> success(T result) {
     return TryOptionalImpl.TrySuccess.given(result);
@@ -50,6 +51,7 @@ public interface Try<T, X extends Exception>
    * @param <T> the type of result declared to be (but not effectively) kept in the instance
    * @param <X> the type of cause declared to be (and effectively) kept in the instance.
    * @param cause the cause to contain
+   * @return a failure
    */
   public static <T, X extends Exception> Try<T, X> failure(X cause) {
     return TryOptionalImpl.TryFailure.given(cause);

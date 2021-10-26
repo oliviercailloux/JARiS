@@ -25,6 +25,8 @@ public interface ImmutableCompleteMap<K, V> extends Map<K, V> {
    * which the elements appear in the given map.
    * </p>
    *
+   * @param <K> the type of keys maintained by the returned map
+   * @param <V> the type of mapped values
    * @param enumType the type that is used as key
    * @param map the map to make an immutable copy of
    * @return an immutable map containing those entries

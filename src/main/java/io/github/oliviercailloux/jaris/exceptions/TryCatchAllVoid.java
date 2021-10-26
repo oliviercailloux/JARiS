@@ -17,6 +17,8 @@ public interface TryCatchAllVoid
     extends TryOptionalImpl.TryVariableCatchVoidInterface<Throwable, Throwable> {
   /**
    * Returns a success.
+   *
+   * @return a success
    */
   public static TryCatchAllVoid success() {
     return TryOptionalImpl.TryCatchAllVoidSuccess.given();
@@ -26,6 +28,7 @@ public interface TryCatchAllVoid
    * Returns a failure containing the given cause.
    *
    * @param cause the cause to contain
+   * @return a success
    */
   public static TryCatchAllVoid failure(Throwable cause) {
     return TryOptionalImpl.TryCatchAllVoidFailure.given(cause);
@@ -35,6 +38,7 @@ public interface TryCatchAllVoid
    * Attempts to run the given runnable, and returns a success if it succeeds or a failure
    * containing the throwable thrown by the runnable if it throws.
    *
+   * @param runnable the runnable to attempt to run
    * @return a success iff the given runnable did not throw.
    */
   public static TryCatchAllVoid run(Throwing.Runnable<?> runnable) {

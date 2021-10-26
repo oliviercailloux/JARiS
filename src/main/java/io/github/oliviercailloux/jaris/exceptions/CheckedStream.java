@@ -121,16 +121,7 @@ public interface CheckedStream<T, X extends Exception> {
    * <p>
    * This is a <a href="package-summary.html#StreamOps">stateful intermediate operation</a>.
    *
-   * @apiNote Preserving stability for {@code distinct()} in parallel pipelines is relatively
-   *          expensive (requires that the operation act as a full barrier, with substantial
-   *          buffering overhead), and stability is often not needed. Using an unordered stream
-   *          source (such as {@link #generate(Supplier)}) or removing the ordering constraint with
-   *          {@link #unordered()} may result in significantly more efficient execution for
-   *          {@code distinct()} in parallel pipelines, if the semantics of your situation permit.
-   *          If consistency with encounter order is required, and you are experiencing poor
-   *          performance or memory utilization with {@code distinct()} in parallel pipelines,
-   *          switching to sequential execution with {@link #sequential()} may improve performance.
-   *
+   * @return the new stream
    * @see Stream#distinct()
    */
   CheckedStream<T, X> distinct();
@@ -160,25 +151,6 @@ public interface CheckedStream<T, X extends Exception> {
    *
    * <p>
    * This is a <a href="package-summary.html#StreamOps">stateful intermediate operation</a>.
-   *
-   * @implSpec The default implementation obtains the {@link #spliterator() spliterator} of this
-   *           stream, wraps that spliterator so as to support the semantics of this operation on
-   *           traversal, and returns a new stream associated with the wrapped spliterator. The
-   *           returned stream preserves the execution characteristics of this stream (namely
-   *           parallel or sequential execution as per {@link #isParallel()}) but the wrapped
-   *           spliterator may choose to not support splitting. When the returned stream is closed,
-   *           the close handlers for both the returned and this stream are invoked.
-   *
-   * @apiNote While {@code dropWhile()} is generally a cheap operation on sequential stream
-   *          pipelines, it can be quite expensive on ordered parallel pipelines, since the
-   *          operation is constrained to return not just any valid prefix, but the longest prefix
-   *          of elements in the encounter order. Using an unordered stream source (such as
-   *          {@link #generate(Supplier)}) or removing the ordering constraint with
-   *          {@link #unordered()} may result in significant speedups of {@code dropWhile()} in
-   *          parallel pipelines, if the semantics of your situation permit. If consistency with
-   *          encounter order is required, and you are experiencing poor performance or memory
-   *          utilization with {@code dropWhile()} in parallel pipelines, switching to sequential
-   *          execution with {@link #sequential()} may improve performance.
    *
    * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
    *        <a href="package-summary.html#Statelessness">stateless</a> predicate to apply to
@@ -215,17 +187,6 @@ public interface CheckedStream<T, X extends Exception> {
    * This is a <a href="package-summary.html#StreamOps">short-circuiting stateful intermediate
    * operation</a>.
    *
-   * @apiNote While {@code takeWhile()} is generally a cheap operation on sequential stream
-   *          pipelines, it can be quite expensive on ordered parallel pipelines, since the
-   *          operation is constrained to return not just any valid prefix, but the longest prefix
-   *          of elements in the encounter order. Using an unordered stream source (such as
-   *          {@link #generate(Supplier)}) or removing the ordering constraint with
-   *          {@link #unordered()} may result in significant speedups of {@code takeWhile()} in
-   *          parallel pipelines, if the semantics of your situation permit. If consistency with
-   *          encounter order is required, and you are experiencing poor performance or memory
-   *          utilization with {@code takeWhile()} in parallel pipelines, switching to sequential
-   *          execution with {@link #sequential()} may improve performance.
-   *
    * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
    *        <a href="package-summary.html#Statelessness">stateless</a> predicate to apply to
    *        elements to determine the longest prefix of elements.
@@ -259,37 +220,6 @@ public interface CheckedStream<T, X extends Exception> {
    * <p>
    * This is an <a href="package-summary.html#StreamOps">intermediate operation</a>.
    *
-   * @apiNote The {@code flatMap()} operation has the effect of applying a one-to-many
-   *          transformation to the elements of the stream, and then flattening the resulting
-   *          elements into a new stream.
-   *
-   *          <p>
-   *          <b>Examples.</b>
-   *
-   *          <p>
-   *          If {@code orders} is a stream of purchase orders, and each purchase order contains a
-   *          collection of line items, then the following produces a stream containing all the line
-   *          items in all the orders:
-   *
-   *          <pre>
-   * {@code orders.flatMap(order -> order.getLineItems().stream());}
-   *          </pre>
-   *
-   *          <p>
-   *          If {@code path} is the path to a file, then the following produces a stream of the
-   *          {@code words} contained in that file:
-   *
-   *          <pre>
-   *          {@code
-   *     Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8);
-   *     Stream<String> words = lines.flatMap(line -> Stream.of(line.split(" +")));
-   * }
-   *          </pre>
-   *
-   *          The {@code mapper} function passed to {@code flatMap} splits a line, using a simple
-   *          regular expression, into an array of words, and then creates a stream of words from
-   *          that array.
-   *
    * @param <R> The element type of the new stream
    * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
    *        <a href="package-summary.html#Statelessness">stateless</a> function to apply to each
@@ -307,17 +237,6 @@ public interface CheckedStream<T, X extends Exception> {
    * <p>
    * This is a <a href="package-summary.html#StreamOps">short-circuiting stateful intermediate
    * operation</a>.
-   *
-   * @apiNote While {@code limit()} is generally a cheap operation on sequential stream pipelines,
-   *          it can be quite expensive on ordered parallel pipelines, especially for large values
-   *          of {@code maxSize}, since {@code limit(n)} is constrained to return not just any
-   *          <em>n</em> elements, but the <em>first n</em> elements in the encounter order. Using
-   *          an unordered stream source (such as {@link #generate(Supplier)}) or removing the
-   *          ordering constraint with {@link #unordered()} may result in significant speedups of
-   *          {@code limit()} in parallel pipelines, if the semantics of your situation permit. If
-   *          consistency with encounter order is required, and you are experiencing poor
-   *          performance or memory utilization with {@code limit()} in parallel pipelines,
-   *          switching to sequential execution with {@link #sequential()} may improve performance.
    *
    * @param maxSize the number of elements the stream should be limited to
    * @return the new stream
@@ -349,17 +268,6 @@ public interface CheckedStream<T, X extends Exception> {
    *
    * <p>
    * This is a <a href="package-summary.html#StreamOps">stateful intermediate operation</a>.
-   *
-   * @apiNote While {@code skip()} is generally a cheap operation on sequential stream pipelines, it
-   *          can be quite expensive on ordered parallel pipelines, especially for large values of
-   *          {@code n}, since {@code skip(n)} is constrained to skip not just any <em>n</em>
-   *          elements, but the <em>first n</em> elements in the encounter order. Using an unordered
-   *          stream source (such as {@link #generate(Supplier)}) or removing the ordering
-   *          constraint with {@link #unordered()} may result in significant speedups of
-   *          {@code skip()} in parallel pipelines, if the semantics of your situation permit. If
-   *          consistency with encounter order is required, and you are experiencing poor
-   *          performance or memory utilization with {@code skip()} in parallel pipelines, switching
-   *          to sequential execution with {@link #sequential()} may improve performance.
    *
    * @param n the number of leading elements to skip
    * @return the new stream
@@ -429,29 +337,6 @@ public interface CheckedStream<T, X extends Exception> {
    *
    * <p>
    * This is a <a href="package-summary.html#StreamOps">terminal operation</a>.
-   *
-   * @apiNote Sum, min, max, average, and string concatenation are all special cases of reduction.
-   *          Summing a stream of numbers can be expressed as:
-   *
-   *          <pre>
-   *          {@code
-   *     Integer sum = integers.reduce(0, (a, b) -> a+b);
-   * }
-   *          </pre>
-   *
-   *          or:
-   *
-   *          <pre>
-   *          {@code
-   *     Integer sum = integers.reduce(0, Integer::sum);
-   * }
-   *          </pre>
-   *
-   *          <p>
-   *          While this may seem a more roundabout way to perform an aggregation compared to simply
-   *          mutating a running total in a loop, reduction operations parallelize more gracefully,
-   *          without needing additional synchronization and with greatly reduced risk of data
-   *          races.
    *
    * @param identity the identity value for the accumulating function
    * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
@@ -540,12 +425,6 @@ public interface CheckedStream<T, X extends Exception> {
    * <p>
    * This is a <a href="package-summary.html#StreamOps">terminal operation</a>.
    *
-   * @apiNote Many reductions using this form can be represented more simply by an explicit
-   *          combination of {@code map} and {@code reduce} operations. The {@code accumulator}
-   *          function acts as a fused mapper and accumulator, which can sometimes be more efficient
-   *          than separate mapping and reduction, such as when knowing the previously reduced value
-   *          allows you to avoid some computation.
-   *
    * @param <U> The type of the result
    * @param identity the identity value for the combiner function
    * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
@@ -587,29 +466,6 @@ public interface CheckedStream<T, X extends Exception> {
    *
    * <p>
    * This is a <a href="package-summary.html#StreamOps">terminal operation</a>.
-   *
-   * @apiNote There are many existing classes in the JDK whose signatures are well-suited for use
-   *          with method references as arguments to {@code collect()}. For example, the following
-   *          will accumulate strings into an {@code ArrayList}:
-   *
-   *          <pre>
-   *          {@code
-   *     List<String> asList = stringStream.collect(ArrayList::new, ArrayList::add,
-   *                                                ArrayList::addAll);
-   * }
-   *          </pre>
-   *
-   *          <p>
-   *          The following will take a stream of strings and concatenates them into a single
-   *          string:
-   *
-   *          <pre>
-   *          {@code
-   *     String concat = stringStream.collect(StringBuilder::new, StringBuilder::append,
-   *                                          StringBuilder::append)
-   *                                 .toString();
-   * }
-   *          </pre>
    *
    * @param <R> the type of the mutable result container
    * @param supplier a function that creates a new mutable result container. For a parallel
@@ -656,36 +512,6 @@ public interface CheckedStream<T, X extends Exception> {
    * parallel with non-thread-safe data structures (such as {@code ArrayList}), no additional
    * synchronization is needed for a parallel reduction.
    *
-   * @apiNote The following will accumulate strings into an ArrayList:
-   *
-   *          <pre>
-   *          {@code
-   *     List<String> asList = stringStream.collect(Collectors.toList());
-   * }
-   *          </pre>
-   *
-   *          <p>
-   *          The following will classify {@code Person} objects by city:
-   *
-   *          <pre>
-   *          {@code
-   *     Map<String, List<Person>> peopleByCity
-   *         = personStream.collect(Collectors.groupingBy(Person::getCity));
-   * }
-   *          </pre>
-   *
-   *          <p>
-   *          The following will classify {@code Person} objects by state and city, cascading two
-   *          {@code Collector}s together:
-   *
-   *          <pre>
-   *          {@code
-   *     Map<String, Map<String, List<Person>>> peopleByStateAndCity
-   *         = personStream.collect(Collectors.groupingBy(Person::getState,
-   *                                                      Collectors.groupingBy(Person::getCity)));
-   * }
-   *          </pre>
-   *
    * @param <R> the type of the result
    * @param <A> the intermediate accumulation type of the {@code Collector}
    * @param collector the {@code Collector} describing the reduction
@@ -705,11 +531,6 @@ public interface CheckedStream<T, X extends Exception> {
    * <p>
    * This is a <a href="package-summary.html#StreamOps">short-circuiting terminal operation</a>.
    *
-   * @apiNote This method evaluates the <em>universal quantification</em> of the predicate over the
-   *          elements of the stream (for all x P(x)). If the stream is empty, the quantification is
-   *          said to be <em>vacuously satisfied</em> and is always {@code true} (regardless of
-   *          P(x)).
-   *
    * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
    *        <a href="package-summary.html#Statelessness">stateless</a> predicate to apply to
    *        elements of this stream
@@ -728,9 +549,6 @@ public interface CheckedStream<T, X extends Exception> {
    * <p>
    * This is a <a href="package-summary.html#StreamOps">short-circuiting terminal operation</a>.
    *
-   * @apiNote This method evaluates the <em>existential quantification</em> of the predicate over
-   *          the elements of the stream (for some x P(x)).
-   *
    * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
    *        <a href="package-summary.html#Statelessness">stateless</a> predicate to apply to
    *        elements of this stream
@@ -748,11 +566,6 @@ public interface CheckedStream<T, X extends Exception> {
    *
    * <p>
    * This is a <a href="package-summary.html#StreamOps">short-circuiting terminal operation</a>.
-   *
-   * @apiNote This method evaluates the <em>universal quantification</em> of the negated predicate
-   *          over the elements of the stream (for all x ~P(x)). If the stream is empty, the
-   *          quantification is said to be vacuously satisfied and is always {@code true},
-   *          regardless of P(x).
    *
    * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
    *        <a href="package-summary.html#Statelessness">stateless</a> predicate to apply to
@@ -776,26 +589,6 @@ public interface CheckedStream<T, X extends Exception> {
    * the element is made available by the upstream operation. If the action modifies shared state,
    * it is responsible for providing the required synchronization.
    *
-   * @apiNote This method exists mainly to support debugging, where you want to see the elements as
-   *          they flow past a certain point in a pipeline:
-   *
-   *          <pre>
-   *          {@code
-   * Stream<String> s = Stream.of("one", "two", "three", "four");
-   * s.filter(e -> e.length() > 3)
-   *     .peek(e -> System.out.println("Filtered value: " + e))
-   *     .map(String::toUpperCase)
-   *     .peek(e -> System.out.println("Mapped value: " + e))
-   *     .collect(Collectors.toList());
-   * }
-   *          </pre>
-   *
-   *          <p>
-   *          In cases where the stream implementation is able to optimize away the production of
-   *          some or all the elements (such as with short-circuiting operations like
-   *          {@code findFirst}, or in the example described in {@link #count}), the action will not
-   *          be invoked for those elements.
-   *
    * @param action a <a href="package-summary.html#NonInterference"> non-interfering</a> action to
    *        perform on the elements as they are consumed from the stream
    * @return the new stream
@@ -816,26 +609,6 @@ public interface CheckedStream<T, X extends Exception> {
    *
    * <p>
    * This is a <a href="package-summary.html#StreamOps">terminal operation</a>.
-   *
-   * @apiNote An implementation may choose to not execute the stream pipeline (either sequentially
-   *          or in parallel) if it is capable of computing the count directly from the stream
-   *          source. In such cases no source elements will be traversed and no intermediate
-   *          operations will be evaluated. Behavioral parameters with side-effects, which are
-   *          strongly discouraged except for harmless cases such as debugging, may be affected. For
-   *          example, consider the following stream:
-   *
-   *          <pre>
-   *          {@code
-   *     List<String> l = Arrays.asList("A", "B", "C", "D");
-   *     long count = l.stream().peek(System.out::println).count();
-   * }
-   *          </pre>
-   *
-   *          The number of elements covered by the stream source, a {@code List}, is known and the
-   *          intermediate operation, {@code peek}, does not inject into or remove elements from the
-   *          stream (as may be the case for {@code flatMap} or {@code filter} operations). Thus the
-   *          count is the size of the {@code List} and there is no need to execute the pipeline
-   *          and, as a side-effect, print out the list elements.
    *
    * @return the count of elements in this stream
    * @throws X if any functional interface operating on this stream throws a checked exception

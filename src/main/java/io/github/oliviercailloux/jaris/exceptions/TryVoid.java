@@ -18,6 +18,7 @@ public interface TryVoid<X extends Exception>
    * Returns a success.
    *
    * @param <X> the type of cause declared to be (but not effectively) kept in the instance.
+   * @return a success
    */
   public static <X extends Exception> TryVoid<X> success() {
     return TryOptionalImpl.TryVoidSuccess.given();
@@ -28,6 +29,7 @@ public interface TryVoid<X extends Exception>
    *
    * @param <X> the type of cause declared to be (and effectively) kept in the instance.
    * @param cause the cause to contain
+   * @return a failure
    */
   public static <X extends Exception> TryVoid<X> failure(X cause) {
     return TryOptionalImpl.TryVoidFailure.given(cause);
@@ -38,6 +40,8 @@ public interface TryVoid<X extends Exception>
    * containing the checked exception thrown by the runnable if it threw one; otherwise, rethrows
    * the non-checked throwable that the runnable threw.
    *
+   * @param <X> the type of cause declared to be kept in the returned instance
+   * @param runnable the instance to run
    * @return a success iff the given runnable did not throw.
    */
   public static <X extends Exception> TryVoid<X> run(Throwing.Runnable<? extends X> runnable) {

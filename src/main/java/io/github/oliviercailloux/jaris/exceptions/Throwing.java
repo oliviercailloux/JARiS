@@ -416,6 +416,7 @@ public final class Throwing {
      * to the specified {@code Comparator}.
      *
      * @param <T> the type of the input arguments of the comparator
+     * @param <X> the sort of throwable that the returned instance may throw
      * @param comparator a {@code Throwing.Comparator} for comparing the two values
      * @return a {@code Throwing.BinaryOperator} which returns the lesser of its operands, according
      *         to the supplied {@code Throwing.Comparator}
@@ -431,6 +432,7 @@ public final class Throwing {
      * to the specified {@code Comparator}.
      *
      * @param <T> the type of the input arguments of the comparator
+     * @param <X> the sort of throwable that the returned instance may throw
      * @param comparator a {@code Throwing.Comparator} for comparing the two values
      * @return a {@code Throwing.BinaryOperator} which returns the greater of its operands,
      *         according to the supplied {@code Throwing.Comparator}
@@ -455,8 +457,8 @@ public final class Throwing {
      * Returns a throwing predicate that is the negation of the supplied predicate.
      *
      * @param <T> the type of arguments to the specified predicate
+     * @param <X> the sort of throwable that the returned instance may throw
      * @param target predicate to negate
-     *
      * @return a predicate that negates the results of the supplied predicate
      *
      */
