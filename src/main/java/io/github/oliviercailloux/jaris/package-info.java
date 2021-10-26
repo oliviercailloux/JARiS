@@ -6,7 +6,7 @@
  * library.
  *
  * <p>
- * Every methods in this library are
+ * Every methods in this library (unless explicitly specified) are
  * <a href="https://github.com/google/guava/wiki/UsingAndAvoidingNullExplained">null hostile</a>:
  * they throw {@link java.lang.NullPointerException} if given some {@code null} argument, and never
  * return {@code null} values.
