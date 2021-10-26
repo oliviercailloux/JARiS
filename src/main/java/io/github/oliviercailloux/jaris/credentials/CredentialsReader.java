@@ -99,7 +99,7 @@ public class CredentialsReader<K extends Enum<K>> {
    */
   public static enum KeyCredential {
     /**
-     * The unique enum instance for use with single key authentication
+     * The unique enum instance for use with single key authentication.
      */
     API_KEY
   }
@@ -112,13 +112,12 @@ public class CredentialsReader<K extends Enum<K>> {
    */
   public static enum ClassicalCredentials {
     /**
-     * The username key, for use with username and password style authentication
+     * The username key, for use with username and password style authentication.
      */
     API_USERNAME,
     /**
-     * The password key, for use with username and password style authentication
+     * The password key, for use with username and password style authentication.
      */
-
     API_PASSWORD
   }
 
