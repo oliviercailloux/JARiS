@@ -501,7 +501,10 @@ public class XmlUtils {
        * https://bugs.openjdk.java.net/browse/JDK-8249867 in July 2020.
        *
        * I got an email on the 10th of March, 2021 about JDK-8249867/Incident Report 9153520,
-       * stating that the incident has been fixed at https://jdk.java.net/17/. I have not checked.
+       * stating that the incident has been fixed at https://jdk.java.net/17/. The bug still happens
+       * on my computer running openjdk 17-ea 2021-09-14; OpenJDK Runtime Environment (build
+       * 17-ea+19-Debian-1); OpenJDK 64-Bit Server VM (build 17-ea+19-Debian-1, mixed mode,
+       * sharing). I have not checked with a more recent JDK.
        */
       return writer.toString();
     }
