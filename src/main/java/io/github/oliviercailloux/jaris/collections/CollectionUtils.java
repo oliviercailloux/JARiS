@@ -39,11 +39,12 @@ public class CollectionUtils {
    *
    * @param <K> the key type of the returned map
    * @param <V> the value type of the returned map
-   * @param <X> a sort of exception that the provided function may throw
+   * @param <X> the type of exception that the provided function may throw
    * @param keys the keys to use as the map keys
    * @param valueFunction the function producing the values
    * @return an immutable map
-   * @throws X iff the given function throws a checked exception
+   * @throws X iff the given function throws a checked exception (or throws an unchecked exception
+   *         of type X)
    */
   public static <K, V, X extends Exception> ImmutableMap<K, V> toMap(Set<K> keys,
       Throwing.Function<? super K, V, X> valueFunction) throws X {
