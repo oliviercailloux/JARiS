@@ -247,7 +247,7 @@ public class XmlUtils {
    * @return a transformer instance.
    */
   public static Transformer transformer(TransformerFactory factory) {
-    return transformer(factory, Transformer.LOGGING_OR_THROWING_ERROR_LISTENER);
+    return generalTransformer(factory, Transformer.LOGGING_OR_THROWING_ERROR_LISTENER);
   }
 
   /**
@@ -261,7 +261,7 @@ public class XmlUtils {
    */
   public static Transformer pedanticTransformer() {
     final TransformerFactory factory = TransformerFactory.newDefaultInstance();
-    return transformer(factory, Transformer.THROWING_ERROR_LISTENER);
+    return generalTransformer(factory, Transformer.THROWING_ERROR_LISTENER);
   }
 
   /**
@@ -274,10 +274,11 @@ public class XmlUtils {
    * @return a transformer instance.
    */
   public static Transformer pedanticTransformer(TransformerFactory factory) {
-    return transformer(factory, Transformer.THROWING_ERROR_LISTENER);
+    return generalTransformer(factory, Transformer.THROWING_ERROR_LISTENER);
   }
 
-  private static Transformer transformer(TransformerFactory factory, ErrorListener errorListener) {
+  private static Transformer generalTransformer(TransformerFactory factory,
+      ErrorListener errorListener) {
     factory.setErrorListener(errorListener);
     /*
      * https://www.saxonica.com/html/documentation/configuration/config-features.html;
