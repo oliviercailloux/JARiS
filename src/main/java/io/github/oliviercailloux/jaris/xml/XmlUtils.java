@@ -247,9 +247,40 @@ public class XmlUtils {
    * @return a transformer instance.
    */
   public static Transformer transformer(TransformerFactory factory) {
-    factory.setErrorListener(Transformer.LOGGING_OR_THROWING_ERROR_LISTENER);
+    return transformer(factory, Transformer.LOGGING_OR_THROWING_ERROR_LISTENER);
+  }
+
+  /**
+   * Provides a transformer instance using the TransformerFactory builtin system-default
+   * implementation.
+   * <p>
+   * The returned transformer throws exceptions upon encountering warnings (as well as errors).
+   * </p>
+   *
+   * @return a transformer instance.
+   */
+  public static Transformer pedanticTransformer() {
+    final TransformerFactory factory = TransformerFactory.newDefaultInstance();
+    return transformer(factory, Transformer.THROWING_ERROR_LISTENER);
+  }
+
+  /**
+   * Provides a transformer instance using the provided factory.
+   * <p>
+   * The returned transformer throws exceptions upon encountering warnings (as well as errors).
+   * </p>
+   *
+   * @param factory the factory to use.
+   * @return a transformer instance.
+   */
+  public static Transformer pedanticTransformer(TransformerFactory factory) {
+    return transformer(factory, Transformer.THROWING_ERROR_LISTENER);
+  }
+
+  private static Transformer transformer(TransformerFactory factory, ErrorListener errorListener) {
+    factory.setErrorListener(errorListener);
     /*
-     * https://www.saxonica.com/html/documentation/configuration/config-features. html;
+     * https://www.saxonica.com/html/documentation/configuration/config-features.html;
      * https://stackoverflow.com/a/4699749.
      *
      * The default implementation (from Apache Xalan) seems to have a bug preventing it from using
@@ -518,66 +549,137 @@ public class XmlUtils {
    * </p>
    */
   public static class Transformer {
-    private static final class LoggingErrorListener implements ErrorListener {
+    private static class RecordingErrorListener implements ErrorListener {
+      private TransformerException firstException;
+      private TransformerException firstWarningException;
+      private TransformerException firstErrorException;
+
+      public RecordingErrorListener() {
+        firstException = null;
+      }
+
       @Override
-      public void warning(TransformerException exception) {
+      public void warning(TransformerException exception) throws TransformerException {
+        if (firstException == null) {
+          firstException = exception;
+        }
+        if (firstWarningException == null) {
+          firstWarningException = exception;
+        }
+      }
+
+      @Override
+      public void error(TransformerException exception) throws TransformerException {
+        if (firstException == null) {
+          firstException = exception;
+        }
+        if (firstErrorException == null) {
+          firstErrorException = exception;
+        }
+      }
+
+      @Override
+      public void fatalError(TransformerException exception) throws TransformerException {
+        if (firstException == null) {
+          firstException = exception;
+        }
+        if (firstErrorException == null) {
+          firstErrorException = exception;
+        }
+      }
+
+      public TransformerException getFirstException() {
+        return firstException;
+      }
+
+      @SuppressWarnings("unused")
+      public TransformerException getFirstWarningException() {
+        return firstWarningException;
+      }
+
+      public TransformerException getFirstErrorException() {
+        return firstErrorException;
+      }
+
+      public void reset() {
+        firstException = null;
+        firstWarningException = null;
+        firstErrorException = null;
+      }
+    }
+
+    private static class LoggingErrorListener extends RecordingErrorListener
+        implements ErrorListener {
+      @Override
+      public void warning(TransformerException exception) throws TransformerException {
+        super.warning(exception);
         LOGGER.debug("Warning while processing.", exception);
       }
 
       @Override
-      public void fatalError(TransformerException exception) {
-        LOGGER.debug("Fatal error while processing.", exception);
-      }
-
-      @Override
-      public void error(TransformerException exception) {
+      public void error(TransformerException exception) throws TransformerException {
+        super.error(exception);
         LOGGER.debug("Error while processing.", exception);
       }
+
+      @Override
+      public void fatalError(TransformerException exception) throws TransformerException {
+        super.fatalError(exception);
+        LOGGER.debug("Fatal error while processing.", exception);
+      }
     }
 
-    private static final class LoggingOrThrowingErrorListener implements ErrorListener {
+    private static class LoggingOrThrowingErrorListener extends RecordingErrorListener
+        implements ErrorListener {
       @Override
       public void warning(TransformerException exception) throws TransformerException {
+        super.warning(exception);
         LOGGER.debug("Warning while processing.", exception);
       }
 
       @Override
-      public void fatalError(TransformerException exception) throws TransformerException {
+      public void error(TransformerException exception) throws TransformerException {
+        super.error(exception);
         throw exception;
       }
 
       @Override
-      public void error(TransformerException exception) throws TransformerException {
+      public void fatalError(TransformerException exception) throws TransformerException {
+        super.fatalError(exception);
         throw exception;
       }
     }
 
-    private static final class ThrowingErrorListener implements ErrorListener {
+    private static class ThrowingErrorListener extends RecordingErrorListener
+        implements ErrorListener {
       @Override
       public void warning(TransformerException exception) throws TransformerException {
-        throw exception;
-      }
-
-      @Override
-      public void fatalError(TransformerException exception) throws TransformerException {
+        super.warning(exception);
         throw exception;
       }
 
       @Override
       public void error(TransformerException exception) throws TransformerException {
+        super.error(exception);
+        throw exception;
+      }
+
+      @Override
+      public void fatalError(TransformerException exception) throws TransformerException {
+        super.fatalError(exception);
         throw exception;
       }
     }
 
-    private final TransformerFactory factory;
     private static final ErrorListener LOGGING_OR_THROWING_ERROR_LISTENER =
         new LoggingOrThrowingErrorListener();
     static final ErrorListener LOGGING_ERROR_LISTENER = new LoggingErrorListener();
-
     private static final ErrorListener THROWING_ERROR_LISTENER = new ThrowingErrorListener();
+    private final TransformerFactory factory;
 
     private Transformer(TransformerFactory tf) {
       this.factory = checkNotNull(tf);
+      checkArgument(factory.getErrorListener() instanceof RecordingErrorListener);
     }
 
     /**
@@ -593,6 +695,10 @@ public class XmlUtils {
       checkNotNull(stylesheet);
       checkNotNull(result);
 
+      final RecordingErrorListener recordingErrorListener =
+          (RecordingErrorListener) factory.getErrorListener();
+      recordingErrorListener.reset();
+
       final javax.xml.transform.Transformer transformer;
       try {
         if (stylesheet.isEmpty()) {
@@ -603,12 +709,28 @@ public class XmlUtils {
       } catch (TransformerConfigurationException e) {
         throw new XmlException("Could not parse the provided stylesheet.", e);
       }
-      transformer.setErrorListener(LOGGING_OR_THROWING_ERROR_LISTENER);
+      transformer.setErrorListener(factory.getErrorListener());
       LOGGER.info("Using transformer {}.", transformer);
       try {
         transformer.transform(document, result);
       } catch (TransformerException e) {
         throw new XmlException("Could not transform the provided document.", e);
+      }
+
+      /*
+       * The spec is unclear about whether the error listener throwing should fail processing; and
+       * by experiment, it seems that throwing when warning() goes unnoticed. So let’s crash it
+       * manually, if this behavior has been asked.
+       */
+      if (recordingErrorListener instanceof ThrowingErrorListener) {
+        if (recordingErrorListener.getFirstException() != null) {
+          throw new XmlException("Could not transform the provided document.",
+              recordingErrorListener.getFirstException());
+        }
+      }
+      if (recordingErrorListener.getFirstErrorException() != null) {
+        throw new XmlException("Could not transform the provided document.",
+            recordingErrorListener.getFirstErrorException());
       }
     }
 

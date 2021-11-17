@@ -75,18 +75,33 @@ class XmlUtilsTests {
         new StreamSource(XmlUtilsTests.class.getResource("short.xml").toString());
     final String expected =
         Files.readString(Path.of(XmlUtilsTests.class.getResource("transformed.txt").toURI()));
-    assertEquals(expected, XmlUtils.transformer().transform(input, style));
+    assertEquals(expected, XmlUtils.pedanticTransformer().transform(input, style));
   }
 
   @Test
-  void testTransformComplex() throws Exception {
+  void testTransformSimpleDocBook() throws Exception {
+    final StreamSource docBook =
+        new StreamSource(XmlUtilsTests.class.getResource("docbook.xml").toString());
+    final StreamSource myStyle =
+        // new StreamSource("https://cdn.docbook.org/release/xsl/current/fo/docbook.xsl");
+        new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
+
+    /* This is too complex for JDK embedded transformer (Apache Xalan). */
+    // XmlUtils.transformer().transform(docBook, myStyle);
+    final String transformed =
+        XmlUtils.transformer(new TransformerFactoryImpl()).transform(docBook, myStyle);
+    LOGGER.debug("Transformed docbook howto: {}.", transformed);
+    assertTrue(transformed
+        .contains("<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\" font-family="));
+  }
+
+  @Test
+  void testTransformComplexDocBook() throws Exception {
     final StreamSource docBook =
         new StreamSource(XmlUtilsTests.class.getResource("docbook howto.xml").toString());
     final StreamSource myStyle =
         new StreamSource(XmlUtilsTests.class.getResource("mystyle.xsl").toString());
 
-    /* This is too complex for JDK embedded transformer (Apache Xalan). */
-    // XmlUtils.transformer().transform(docBook, myStyle);
     final String transformed =
         XmlUtils.transformer(new TransformerFactoryImpl()).transform(docBook, myStyle);
     LOGGER.debug("Transformed docbook howto: {}.", transformed);
@@ -116,6 +131,19 @@ class XmlUtilsTests {
   void testTransformMessaging() throws Exception {
     final StreamSource style =
         new StreamSource(XmlUtilsTests.class.getResource("short messaging.xsl").toString());
+    final StreamSource input =
+        new StreamSource(XmlUtilsTests.class.getResource("short.xml").toString());
+    final String expected =
+        Files.readString(Path.of(XmlUtilsTests.class.getResource("transformed.txt").toURI()));
+    assertEquals(expected, XmlUtils.transformer().transform(input, style));
+
+    assertThrows(XmlException.class, () -> XmlUtils.pedanticTransformer().transform(input, style));
+  }
+
+  @Test
+  void testTransformMessagingTerminate() throws Exception {
+    final StreamSource style = new StreamSource(
+        XmlUtilsTests.class.getResource("short messaging terminate.xsl").toString());
     final StreamSource input =
         new StreamSource(XmlUtilsTests.class.getResource("short.xml").toString());
     assertThrows(XmlException.class, () -> XmlUtils.transformer().transform(input, style));

@@ -10,6 +10,6 @@ Authors:<xsl:apply-templates
 	</xsl:template>
 
 	<xsl:template match="Author">
-- <xsl:value-of select="." /><xsl:message>A message that does not terminate</xsl:message></xsl:template>
+- <xsl:value-of select="." /><xsl:message terminate="yes">A message about premature end</xsl:message></xsl:template>
 
 </xsl:stylesheet>
