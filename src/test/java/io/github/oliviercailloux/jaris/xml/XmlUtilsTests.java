@@ -81,7 +81,7 @@ class XmlUtilsTests {
   @Test
   void testTransformSimpleDocBook() throws Exception {
     final StreamSource docBook =
-        new StreamSource(XmlUtilsTests.class.getResource("docbook.xml").toString());
+        new StreamSource(XmlUtilsTests.class.getResource("docbook simple article.xml").toString());
     final StreamSource myStyle =
         // new StreamSource("https://cdn.docbook.org/release/xsl/current/fo/docbook.xsl");
         new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
