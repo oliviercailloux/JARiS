@@ -83,6 +83,13 @@ class XmlUtilsTests {
     final StreamSource docBook =
         new StreamSource(XmlUtilsTests.class.getResource("docbook simple article.xml").toString());
     final StreamSource myStyle =
+        /*
+         * Much faster (obtains transformer from stylesheet in 4 sec instead of 17 sec), but depends
+         * on what is installed locally.
+         */
+        // new
+        // StreamSource(Path.of("/usr/share/xml/docbook/stylesheet/docbook-xsl-ns/fo/docbook.xsl")
+        // .toUri().toString());
         new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
 
     /* This is too complex for JDK embedded transformer (Apache Xalan). */
