@@ -702,10 +702,12 @@ public class XmlUtils {
 
       final javax.xml.transform.Transformer transformer;
       try {
+        LOGGER.debug("Obtaining transformer from stylesheet {}.", stylesheet);
         if (stylesheet.isEmpty()) {
           transformer = factory.newTransformer();
         } else {
           transformer = factory.newTransformer(stylesheet);
+          LOGGER.debug("Obtained transformer from stylesheet {}.", stylesheet);
         }
       } catch (TransformerConfigurationException e) {
         throw new XmlException("Could not parse the provided stylesheet.", e);
