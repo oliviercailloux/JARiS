@@ -83,7 +83,6 @@ class XmlUtilsTests {
     final StreamSource docBook =
         new StreamSource(XmlUtilsTests.class.getResource("docbook simple article.xml").toString());
     final StreamSource myStyle =
-        // new StreamSource("https://cdn.docbook.org/release/xsl/current/fo/docbook.xsl");
         new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
 
     /* This is too complex for JDK embedded transformer (Apache Xalan). */
