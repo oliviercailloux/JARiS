@@ -3,13 +3,13 @@ package io.github.oliviercailloux.jaris.throwing;
 import java.util.Objects;
 import java.util.Optional;
 
-public class TOptional<T, X extends Throwable> {
+public class TOptional<T> {
   /**
    * Common instance for {@code empty()}.
    */
-  private static final TOptional<?, ? extends Throwable> EMPTY = new TOptional<>(null);
+  private static final TOptional<?> EMPTY = new TOptional<>(null);
 
-  public static <T, X extends Throwable> TOptional<T, X> wrapping(Optional<? extends T> delegate) {
+  public static <T> TOptional<T> wrapping(Optional<? extends T> delegate) {
 
   }
 
@@ -19,9 +19,9 @@ public class TOptional<T, X extends Throwable> {
    * @param <T> The type of the non-existent value
    * @return an empty {@code TOptional}
    */
-  public static <T, X extends Throwable> TOptional<T, X> empty() {
+  public static <T> TOptional<T> empty() {
     @SuppressWarnings("unchecked")
-    final TOptional<T, X> t = (TOptional<T, X>) EMPTY;
+    final TOptional<T> t = (TOptional<T>) EMPTY;
     return t;
   }
 
@@ -33,7 +33,7 @@ public class TOptional<T, X extends Throwable> {
    * @return a {@code TOptional} with the value present
    * @throws NullPointerException if value is {@code null}
    */
-  public static <T, X extends Throwable> TOptional<T, X> of(T value) {
+  public static <T> TOptional<T> of(T value) {
     return new TOptional<>(Objects.requireNonNull(value));
   }
 
@@ -47,7 +47,7 @@ public class TOptional<T, X extends Throwable> {
    *         otherwise an empty {@code TOptional}
    */
   @SuppressWarnings("unchecked")
-  public static <T, X extends Throwable> TOptional<T, X> ofNullable(T value) {
-    return value == null ? (TOptional<T, X>) EMPTY : new TOptional<>(value);
+  public static <T> TOptional<T> ofNullable(T value) {
+    return value == null ? (TOptional<T>) EMPTY : new TOptional<>(value);
   }
 }
