@@ -40,8 +40,8 @@ import java.util.stream.Stream;
  * are discussed <a href="https://github.com/JeffreyFalgout/ThrowingStream/issues/3">here</a>.
  * </p>
  * <p>
- * The Javadoc for methods also present in {@code Stream} (most methods of this class) has been
- * copied from the {@code Stream} analog, with minor modifications.
+ * The Javadoc for the methods that are also present in {@code Stream} (that is, most methods of
+ * this class) has been copied from the {@code Stream} analog, with minor modifications.
  * </p>
  *
  * @param <T> the type of the stream elements
@@ -720,6 +720,9 @@ public interface CheckedStream<T, X extends Exception> {
    *
    * <p>
    * This is a <a href="package-summary.html#StreamOps">terminal operation</a>.
+   * <p>
+   * TODO think about returning a CheckedOptional, or TryOptional, that allows for an extended Map
+   * operation.
    *
    * @param comparator a <a href="package-summary.html#NonInterference">non-interfering</a>,
    *        <a href="package-summary.html#Statelessness">stateless</a> {@code Comparator} to compare
