@@ -33,6 +33,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * "https://github.com/diffplug/durian/blob/99100976d27a5ebec74a0a7df48fc23de822fa00/src/com/diffplug/common/base/Throwing.java">durian</a>
  * library; simplified.
  * </p>
+ * <p>
+ * TODO consider renaming to TFunction, etc., to distinguish from the base ones (name shadowing,
+ * esp. of types in java.lang such as Runnable, is not nice). Consider moving to package Throwing
+ * instead of class Throwing, which only plays the role of a namespace here, so should be a package.
+ * Consider adding GFunction, etc., that extend the base types and throw only RExc. Modify doc
+ * “Equivalent of … that may throw non RE” to “Generalization of … that may throw instances of type
+ * X, not just RE”.
+ * </p>
  */
 public final class Throwing {
 
