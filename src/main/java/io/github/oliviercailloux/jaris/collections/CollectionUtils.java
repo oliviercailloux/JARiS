@@ -4,8 +4,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.github.oliviercailloux.jaris.exceptions.Throwing;
 import io.github.oliviercailloux.jaris.exceptions.Unchecker;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collector;
 
 /**
  * A few helper methods generally useful when dealing with collections, felt to miss from the JDK
@@ -56,5 +59,21 @@ public class CollectionUtils {
       final X cause = (X) e.getCause();
       throw cause;
     }
+  }
+
+  public static <K, L, V, X extends Exception> ImmutableMap<L, V> transformKeys(Map<K, V> map,
+      Throwing.Function<? super K, L, X> keyTransformer) throws X {
+    final Function<? super K, L> behavedKeyTransformer = UNCHECKER.wrapFunction(keyTransformer);
+    final Collector<Entry<K, V>, ?, ImmutableMap<L, V>> collector =
+        ImmutableMap.toImmutableMap(e -> behavedKeyTransformer.apply(e.getKey()), Entry::getValue);
+    final ImmutableMap<L, V> collected;
+    try {
+      collected = map.entrySet().stream().collect(collector);
+    } catch (InternalException e) {
+      @SuppressWarnings("unchecked")
+      final X cause = (X) e.getCause();
+      throw cause;
+    }
+    return collected;
   }
 }
