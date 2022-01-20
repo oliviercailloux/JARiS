@@ -138,8 +138,8 @@ public class XmlTransformer {
      */
     private static class ExceptionsRecorder {
       private final ImmutableSet<Severity> graveSeverities;
-      private Optional<XTransformerException> firstGraveException;
-      private final Set<XTransformerException> allNonThrownExceptions = new LinkedHashSet<>();
+      private Optional<QualifiedTransformerException> firstGraveException;
+      private final Set<QualifiedTransformerException> allNonThrownExceptions = new LinkedHashSet<>();
 
       public ExceptionsRecorder(Set<Severity> graveSeverities) {
         this.graveSeverities = ImmutableSet.copyOf(graveSeverities);
@@ -153,10 +153,10 @@ public class XmlTransformer {
        *
        * @param exception the exception to consider in supplement of any previous one
        */
-      public void record(XTransformerException exception) {
+      public void record(QualifiedTransformerException exception) {
         checkNotNull(exception);
         if (exception.severity == Severity.THROWN) {
-          if (allNonThrownExceptions.stream().map(XTransformerException::getException)
+          if (allNonThrownExceptions.stream().map(QualifiedTransformerException::getException)
               .anyMatch(e -> e.equals(exception.exception))) {
             LOGGER.debug("Skipping already seen exception {}.",
                 exception.exception.getLocalizedMessage());
@@ -173,7 +173,7 @@ public class XmlTransformer {
         }
       }
 
-      public boolean isGrave(XTransformerException exception) {
+      public boolean isGrave(QualifiedTransformerException exception) {
         return graveSeverities.contains(exception.severity);
       }
 
@@ -193,7 +193,7 @@ public class XmlTransformer {
        *
        * @param exception the exception to record or log.
        */
-      private void recordGrave(XTransformerException exception) {
+      private void recordGrave(QualifiedTransformerException exception) {
         final boolean isPrimal = firstGraveException.isEmpty();
         firstGraveException = Optional.of(firstGraveException.orElse(exception));
         if (!isPrimal) {
@@ -201,8 +201,8 @@ public class XmlTransformer {
         }
       }
 
-      private void log(XTransformerException exception) {
-        firstGraveException.ifPresent(XTransformerException::ensureLogged);
+      private void log(QualifiedTransformerException exception) {
+        firstGraveException.ifPresent(QualifiedTransformerException::ensureLogged);
         exception.ensureLogged();
       }
 
@@ -210,7 +210,7 @@ public class XmlTransformer {
         return firstGraveException.isPresent();
       }
 
-      public XTransformerException getFirstGraveException() {
+      public QualifiedTransformerException getFirstGraveException() {
         return firstGraveException.orElseThrow();
       }
 
@@ -233,12 +233,12 @@ public class XmlTransformer {
       }
     }
 
-    private static class XTransformerException {
+    private static class QualifiedTransformerException {
       private final TransformerException exception;
       private final Severity severity;
       private boolean hasBeenLogged;
 
-      public XTransformerException(TransformerException exception, Severity severity) {
+      public QualifiedTransformerException(TransformerException exception, Severity severity) {
         this.exception = checkNotNull(exception);
         this.severity = checkNotNull(severity);
         hasBeenLogged = false;
@@ -301,13 +301,13 @@ public class XmlTransformer {
     }
 
     public void thrown(TransformerException exception) {
-      final XTransformerException xExc = new XTransformerException(exception, Severity.THROWN);
+      final QualifiedTransformerException xExc = new QualifiedTransformerException(exception, Severity.THROWN);
       recorder.record(xExc);
     }
 
     private void enact(TransformerException exception, Severity severity)
         throws TransformerException {
-      final XTransformerException xExc = new XTransformerException(exception, severity);
+      final QualifiedTransformerException xExc = new QualifiedTransformerException(exception, severity);
       recorder.record(xExc);
       if (recorder.isGrave(xExc)) {
         throw exception;
