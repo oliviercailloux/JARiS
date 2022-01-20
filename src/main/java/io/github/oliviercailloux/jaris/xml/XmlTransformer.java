@@ -5,8 +5,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableSet;
-import io.github.oliviercailloux.jaris.xml.XmlUtils.XmlException;
 import java.io.StringWriter;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import javax.xml.transform.ErrorListener;
@@ -121,7 +121,7 @@ public class XmlTransformer {
     private static class ExceptionsRecorder {
       private final ImmutableSet<Severity> graveSeverities;
       private Optional<XTransformerException> firstGraveException;
-      private Set<XTransformerException> allNonThrownExceptions;
+      private final Set<XTransformerException> allNonThrownExceptions = new LinkedHashSet<>();
 
       public ExceptionsRecorder(Set<Severity> graveSeverities) {
         this.graveSeverities = ImmutableSet.copyOf(graveSeverities);
