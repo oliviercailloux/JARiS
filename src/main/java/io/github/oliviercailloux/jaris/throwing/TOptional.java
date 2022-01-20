@@ -4,7 +4,6 @@ import io.github.oliviercailloux.jaris.exceptions.Throwing;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -152,21 +151,6 @@ public class TOptional<T> {
    * If the mapping function returns a {@code null} result then this method returns an empty
    * {@code Optional}.
    *
-   * @apiNote This method supports post-processing on {@code Optional} values, without the need to
-   *          explicitly check for a return status. For example, the following code traverses a
-   *          stream of URIs, selects one that has not yet been processed, and creates a path from
-   *          that URI, returning an {@code Optional<Path>}:
-   *
-   *          <pre>{@code
-   *     Optional<Path> p =
-   *         uris.stream().filter(uri -> !isProcessedYet(uri))
-   *                       .findFirst()
-   *                       .map(Paths::get);
-   * }</pre>
-   *
-   *          Here, {@code findFirst} returns an {@code Optional<URI>}, and then {@code map} returns
-   *          an {@code Optional<Path>} for the desired URI if one exists.
-   *
    * @param mapper the mapping function to apply to a value, if present
    * @param <U> The type of the value returned from the mapping function
    * @return an {@code Optional} describing the result of applying a mapping function to the value
@@ -185,11 +169,6 @@ public class TOptional<T> {
   /**
    * If a value is present, returns the result of applying the given {@code Optional}-bearing
    * mapping function to the value, otherwise returns an empty {@code Optional}.
-   *
-   * <p>
-   * This method is similar to {@link #map(Function)}, but the mapping function is one whose result
-   * is already an {@code Optional}, and if invoked, {@code flatMap} does not wrap it within an
-   * additional {@code Optional}.
    *
    * @param <U> The type of value of the {@code Optional} returned by the mapping function
    * @param mapper the mapping function to apply to a value, if present
@@ -233,12 +212,6 @@ public class TOptional<T> {
   /**
    * If a value is present, returns a sequential {@link Stream} containing only that value,
    * otherwise returns an empty {@code Stream}.
-   *
-   * @apiNote This method can be used to transform a {@code Stream} of optional elements to a
-   *          {@code Stream} of present value elements: <pre>{@code
-   *     Stream<Optional<T>> os = ..
-   *     Stream<T> s = os.flatMap(Optional::stream)
-   * }</pre>
    *
    * @return the optional value as a {@code Stream}
    */
@@ -287,9 +260,6 @@ public class TOptional<T> {
   /**
    * If a value is present, returns the value, otherwise throws an exception produced by the
    * exception supplying function.
-   *
-   * @apiNote A method reference to the exception constructor with an empty argument list can be
-   *          used as the supplier. For example, {@code IllegalStateException::new}
    *
    * @param <X> Type of the exception to be thrown
    * @param exceptionSupplier the supplying function that produces an exception to be thrown
@@ -341,9 +311,6 @@ public class TOptional<T> {
   /**
    * Returns a non-empty string representation of this {@code Optional} suitable for debugging. The
    * exact presentation format is unspecified and may vary between implementations and versions.
-   *
-   * @implSpec If a value is present the result must include its string representation in the
-   *           result. Empty and present {@code Optional}s must be unambiguously differentiable.
    *
    * @return the string representation of this instance
    */

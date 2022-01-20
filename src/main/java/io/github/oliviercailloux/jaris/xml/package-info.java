@@ -21,12 +21,14 @@
  * input documents are invalid.
  * </p>
  * <p>
- * The public API of the classes in this package favors {@link StreamSource} (from
- * {@code javax.xml.transform}) to {@link InputSource} (from {@code org.xml.sax}). Both classes come
- * from the {@code java.xml} module, and their APIs are almost identical, the only differences being
- * that {@code StreamSource} is part of a hierarchy (as it implements {@link Source}), which makes
- * it nicer to use in this context; and that {@code InputSource} has an “encoding” parameter, which
- * we do not need. See also <a href="https://stackoverflow.com/q/69194590">SO</a>.
+ * The public API of the classes in this package favors
+ * {@link javax.xml.transform.stream.StreamSource} (from {@code javax.xml.transform}) to
+ * {@link org.xml.sax.InputSource} (from {@code org.xml.sax}). Both classes come from the
+ * {@code java.xml} module, and their APIs are almost identical, the only differences being that
+ * {@code StreamSource} is part of a hierarchy (as it implements
+ * {@link javax.xml.transform.Source}), which makes it nicer to use in this context; and that
+ * {@code InputSource} has an “encoding” parameter, which we do not need. See also
+ * <a href="https://stackoverflow.com/q/69194590">SO</a>.
  * </p>
  */
 package io.github.oliviercailloux.jaris.xml;

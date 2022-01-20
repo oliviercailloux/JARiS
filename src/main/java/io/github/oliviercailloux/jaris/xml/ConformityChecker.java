@@ -36,12 +36,7 @@ public class ConformityChecker {
   }
 
   /**
-   * <p>
    * Throws an exception iff the provided document is invalid.
-   * </p>
-   * <p>
-   * The schema must have been set previously with {@link #setSchema(Source)}.
-   * </p>
    *
    * @param document the document to validate.
    * @throws VerifyException iff the document is invalid, equivalently, iff a warning, error or
