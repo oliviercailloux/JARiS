@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>io.github.oliviercailloux</groupId>
 		<artifactId>pom</artifactId>
-		<version>0.0.13</version>
+		<version>0.0.14</version>
 	</parent>
 	<artifactId>jaris</artifactId>
 	<version>0.0.15-SNAPSHOT</version>
@@ -20,12 +20,6 @@
 						<artifactId>maven-javadoc-plugin</artifactId>
 						<configuration>
 							<failOnWarnings>false</failOnWarnings>
-						</configuration>
-					</plugin>
-					<plugin>
-						<artifactId>maven-checkstyle-plugin</artifactId>
-						<configuration>
-							<configLocation>https://raw.githubusercontent.com/oliviercailloux/Practical-Google-style/v0.5/Practical%20Google%20checks.xml</configLocation>
 						</configuration>
 					</plugin>
 				</plugins>
