@@ -11,6 +11,21 @@
 	<name>JARiS</name>
 	<description>Various utilities that complement those found in Guava.</description>
 	<url>https://github.com/oliviercailloux/JARiS</url>
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<configuration>
+							<failOnWarnings>false</failOnWarnings>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 	<dependencies>
 		<dependency>
 			<groupId>org.junit-pioneer</groupId>
