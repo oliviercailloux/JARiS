@@ -6,6 +6,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -13,7 +14,9 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
 import java.util.AbstractList;
+import java.util.Optional;
 import java.util.RandomAccess;
+import java.util.Set;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -247,7 +250,8 @@ public class XmlUtils {
    * @return a transformer instance.
    */
   public static Transformer transformer(TransformerFactory factory) {
-    return generalTransformer(factory, Transformer.LOGGING_OR_THROWING_ERROR_LISTENER);
+    return generalTransformer(factory,
+        Transformer.RecordingErrorListener.WARNING_NOT_GRAVE_ERROR_LISTENER);
   }
 
   /**
@@ -261,7 +265,8 @@ public class XmlUtils {
    */
   public static Transformer pedanticTransformer() {
     final TransformerFactory factory = TransformerFactory.newDefaultInstance();
-    return generalTransformer(factory, Transformer.THROWING_ERROR_LISTENER);
+    return generalTransformer(factory,
+        Transformer.RecordingErrorListener.EVERYTHING_GRAVE_ERROR_LISTENER);
   }
 
   /**
@@ -274,11 +279,12 @@ public class XmlUtils {
    * @return a transformer instance.
    */
   public static Transformer pedanticTransformer(TransformerFactory factory) {
-    return generalTransformer(factory, Transformer.THROWING_ERROR_LISTENER);
+    return generalTransformer(factory,
+        Transformer.RecordingErrorListener.EVERYTHING_GRAVE_ERROR_LISTENER);
   }
 
   private static Transformer generalTransformer(TransformerFactory factory,
-      ErrorListener errorListener) {
+      Transformer.RecordingErrorListener errorListener) {
     factory.setErrorListener(errorListener);
     /*
      * https://www.saxonica.com/html/documentation/configuration/config-features.html;
@@ -550,132 +556,213 @@ public class XmlUtils {
    * </p>
    */
   public static class Transformer {
+    /**
+     * Defines some exceptions as grave, according to their severity. Always logs non-grave
+     * exceptions. Logs grave exceptions iff there is more than one, in which case, logs all
+     * exceptions in the order of encounter (so instances have memory).
+     */
     private static class RecordingErrorListener implements ErrorListener {
-      private TransformerException firstException;
-      private TransformerException firstWarningException;
-      private TransformerException firstErrorException;
+      public static final RecordingErrorListener WARNING_NOT_GRAVE_ERROR_LISTENER =
+          RecordingErrorListener.withWarningNotGrave();
 
-      public RecordingErrorListener() {
-        firstException = null;
+      public static final RecordingErrorListener EVERYTHING_GRAVE_ERROR_LISTENER =
+          RecordingErrorListener.withEverythingGrave();
+
+      /**
+       * Logs incoming exceptions in order; except that if there is a unique grave exception that is
+       * also the last exception received, it is not logged.
+       */
+      private static class ExceptionsRecorder {
+        private final ImmutableSet<Severity> graveSeverities;
+        private Optional<XTransformerException> firstGraveException;
+        private Set<XTransformerException> allNonThrownExceptions;
+
+        public ExceptionsRecorder(Set<Severity> graveSeverities) {
+          this.graveSeverities = ImmutableSet.copyOf(graveSeverities);
+          reset();
+        }
+
+        /**
+         * Logs any primal exception iff it exists and has not been logged yet, and logs the given
+         * exception unless it is primal. Unless the given exception has severity THROWN and had
+         * been seen already under a non-thrown severity.
+         *
+         * @param exception the exception to consider in supplement of any previous one
+         */
+        public void record(XTransformerException exception) {
+          checkNotNull(exception);
+          if (exception.severity == Severity.THROWN) {
+            if (allNonThrownExceptions.stream().map(XTransformerException::getException)
+                .anyMatch(e -> e.equals(exception.exception))) {
+              LOGGER.debug("Skipping already seen exception {}.",
+                  exception.exception.getLocalizedMessage());
+              return;
+            }
+          } else {
+            allNonThrownExceptions.add(exception);
+          }
+
+          if (isGrave(exception)) {
+            recordGrave(exception);
+          } else {
+            log(exception);
+          }
+        }
+
+        public boolean isGrave(XTransformerException exception) {
+          return graveSeverities.contains(exception.severity);
+        }
+
+        /**
+         * Records or logs exceptions.
+         * <p>
+         * A grave exception recorded by this object is said to be <i>primal</i> iff it is the first
+         * grave exception ever received; <i>secundary</i> iff it is the second grave exception ever
+         * received; <i>supplemental</i> otherwise.
+         * </p>
+         * <ul>
+         * <li>Records this exception iff it is primal.</li>
+         * <li>Logs the primal grave exception (if any) iff this one is secundary; equivalently,
+         * logs the primal exception iff it was recorded previously but had not yet been
+         * logged.</li>
+         * <li>Then, logs this exception iff it is not primal.</li>
+         * </ul>
+         *
+         * @param exception the exception to record or log.
+         */
+        private void recordGrave(XTransformerException exception) {
+          final boolean isPrimal = firstGraveException.isEmpty();
+          firstGraveException = Optional.of(firstGraveException.orElse(exception));
+          if (!isPrimal) {
+            log(exception);
+          }
+        }
+
+        private void log(XTransformerException exception) {
+          firstGraveException.ifPresent(XTransformerException::ensureLogged);
+          exception.ensureLogged();
+        }
+
+        public boolean hasGraveException() {
+          return firstGraveException.isPresent();
+        }
+
+        public XTransformerException getFirstGraveException() {
+          return firstGraveException.orElseThrow();
+        }
+
+        public void reset() {
+          firstGraveException = Optional.empty();
+        }
+      }
+
+      private static enum Severity {
+        WARNING("Warning"), ERROR("Error"), FATAL("Fatal error"), THROWN("Exception");
+
+        private String stringForm;
+
+        private Severity(String stringForm) {
+          this.stringForm = checkNotNull(stringForm);
+        }
+
+        public String asStringForm() {
+          return stringForm;
+        }
+      }
+
+      private static class XTransformerException {
+        private final TransformerException exception;
+        private final Severity severity;
+        private boolean hasBeenLogged;
+
+        public XTransformerException(TransformerException exception, Severity severity) {
+          this.exception = checkNotNull(exception);
+          this.severity = checkNotNull(severity);
+          hasBeenLogged = false;
+        }
+
+        public TransformerException getException() {
+          return exception;
+        }
+
+        @SuppressWarnings("unused")
+        public Severity getSeverity() {
+          return severity;
+        }
+
+        @SuppressWarnings("unused")
+        public boolean hasBeenLogged() {
+          return hasBeenLogged;
+        }
+
+        @SuppressWarnings("unused")
+        public void log() {
+          checkState(!hasBeenLogged);
+          ensureLogged();
+        }
+
+        public void ensureLogged() {
+          LOGGER.info(severity.asStringForm() + " while processing.", exception);
+          hasBeenLogged = true;
+        }
+      }
+
+      private final ExceptionsRecorder recorder;
+
+      private static RecordingErrorListener withEverythingGrave() {
+        return new RecordingErrorListener(ImmutableSet.copyOf(Severity.values()));
+      }
+
+      private static RecordingErrorListener withWarningNotGrave() {
+        return new RecordingErrorListener(
+            ImmutableSet.of(Severity.ERROR, Severity.FATAL, Severity.THROWN));
+      }
+
+      private RecordingErrorListener(Set<Severity> graveSeverities) {
+        this.recorder = new ExceptionsRecorder(graveSeverities);
       }
 
       @Override
       public void warning(TransformerException exception) throws TransformerException {
-        if (firstException == null) {
-          firstException = exception;
-        }
-        if (firstWarningException == null) {
-          firstWarningException = exception;
-        }
+        enact(exception, Severity.WARNING);
       }
 
       @Override
       public void error(TransformerException exception) throws TransformerException {
-        if (firstException == null) {
-          firstException = exception;
-        }
-        if (firstErrorException == null) {
-          firstErrorException = exception;
-        }
+        enact(exception, Severity.ERROR);
       }
 
       @Override
       public void fatalError(TransformerException exception) throws TransformerException {
-        if (firstException == null) {
-          firstException = exception;
+        enact(exception, Severity.FATAL);
+      }
+
+      public void thrown(TransformerException exception) {
+        final XTransformerException xExc = new XTransformerException(exception, Severity.THROWN);
+        recorder.record(xExc);
+      }
+
+      private void enact(TransformerException exception, Severity severity)
+          throws TransformerException {
+        final XTransformerException xExc = new XTransformerException(exception, severity);
+        recorder.record(xExc);
+        if (recorder.isGrave(xExc)) {
+          throw exception;
         }
-        if (firstErrorException == null) {
-          firstErrorException = exception;
+      }
+
+      public void throwFirstGraveAsXmlException() throws XmlException {
+        if (recorder.hasGraveException()) {
+          throw new XmlException("Could not transform the provided document.",
+              recorder.getFirstGraveException().exception);
         }
-      }
-
-      public TransformerException getFirstException() {
-        return firstException;
-      }
-
-      @SuppressWarnings("unused")
-      public TransformerException getFirstWarningException() {
-        return firstWarningException;
-      }
-
-      public TransformerException getFirstErrorException() {
-        return firstErrorException;
       }
 
       public void reset() {
-        firstException = null;
-        firstWarningException = null;
-        firstErrorException = null;
+        recorder.reset();
       }
     }
 
-    private static class LoggingErrorListener extends RecordingErrorListener
-        implements ErrorListener {
-      @Override
-      public void warning(TransformerException exception) throws TransformerException {
-        super.warning(exception);
-        LOGGER.debug("Warning while processing.", exception);
-      }
-
-      @Override
-      public void error(TransformerException exception) throws TransformerException {
-        super.error(exception);
-        LOGGER.debug("Error while processing.", exception);
-      }
-
-      @Override
-      public void fatalError(TransformerException exception) throws TransformerException {
-        super.fatalError(exception);
-        LOGGER.debug("Fatal error while processing.", exception);
-      }
-    }
-
-    private static class LoggingOrThrowingErrorListener extends RecordingErrorListener
-        implements ErrorListener {
-      @Override
-      public void warning(TransformerException exception) throws TransformerException {
-        super.warning(exception);
-        LOGGER.debug("Warning while processing.", exception);
-      }
-
-      @Override
-      public void error(TransformerException exception) throws TransformerException {
-        super.error(exception);
-        throw exception;
-      }
-
-      @Override
-      public void fatalError(TransformerException exception) throws TransformerException {
-        super.fatalError(exception);
-        throw exception;
-      }
-    }
-
-    private static class ThrowingErrorListener extends RecordingErrorListener
-        implements ErrorListener {
-      @Override
-      public void warning(TransformerException exception) throws TransformerException {
-        super.warning(exception);
-        throw exception;
-      }
-
-      @Override
-      public void error(TransformerException exception) throws TransformerException {
-        super.error(exception);
-        throw exception;
-      }
-
-      @Override
-      public void fatalError(TransformerException exception) throws TransformerException {
-        super.fatalError(exception);
-        throw exception;
-      }
-    }
-
-    private static final ErrorListener LOGGING_OR_THROWING_ERROR_LISTENER =
-        new LoggingOrThrowingErrorListener();
-    static final ErrorListener LOGGING_ERROR_LISTENER = new LoggingErrorListener();
-    private static final ErrorListener THROWING_ERROR_LISTENER = new ThrowingErrorListener();
     private final TransformerFactory factory;
 
     private Transformer(TransformerFactory tf) {
@@ -717,36 +804,29 @@ public class XmlUtils {
       try {
         transformer.transform(document, result);
       } catch (TransformerException e) {
-        throw new XmlException("Could not transform the provided document.", e);
+        recordingErrorListener.thrown(e);
       }
 
       /*
        * The spec is unclear about whether the error listener throwing should fail processing; and
        * by experiment, it seems that throwing when warning() goes unnoticed. So let’s crash it
-       * manually, if this behavior has been asked.
+       * manually according to the severity level demanded for, rather than in the catch block
+       * (which may not be triggered).
        */
-      if (recordingErrorListener instanceof ThrowingErrorListener) {
-        if (recordingErrorListener.getFirstException() != null) {
-          throw new XmlException("Could not transform the provided document.",
-              recordingErrorListener.getFirstException());
-        }
-      }
-      if (recordingErrorListener.getFirstErrorException() != null) {
-        throw new XmlException("Could not transform the provided document.",
-            recordingErrorListener.getFirstErrorException());
-      }
+      recordingErrorListener.throwFirstGraveAsXmlException();
       /*
        * We want to log everything; and throw the first grave exception (grave meaning any or at
        * least error, depending on pedantism). We avoid doing both logging and throwing when there
-       * is only one grave exc (then it is the last exc seen so the ordering is clear); but when
-       * there are at least two grave exc, we want to log both in order for the ordering to be
+       * is only one grave exc and it is the last exc seen (so the ordering is clear); but when a
+       * grave exc is followed by another one, we want to log both in order for the ordering to be
        * visible in the logs, even though this leads to double treatment (logging and throwing).
        *
        * We observed that saxonica may send two fatal errors for one terminal message: the message
        * itself, and a second one, “Processing terminated by xsl:message at line 237 in
-       * chunker.xsl”. Hence our desire to throw the first grave exception, which is more
-       * informative, but log everything. We observed that Saxonica terminates with the latter
-       * exception (appearing in our catch block) instead of the former, so we must override this.
+       * chunker.xsl”. Hence our desire to throw the first grave exception (which is more
+       * informative), and log everything (so that the complete order of exceptions is visible). We
+       * observed that Saxonica terminates with the latter exception (appearing in our catch block)
+       * instead of the former, so we must override this.
        *
        * In pedantic mode, everything is grave. Otherwise, errors and supplementary (the one thrown
        * that ends the process) are grave.
@@ -792,12 +872,13 @@ public class XmlUtils {
      * @param document the document
      * @throws TransformerException iff shit happens
      */
-    String transformToString(Document document)
+    @SuppressWarnings("unused")
+    private String transformToString(Document document)
         throws TransformerConfigurationException, TransformerException {
       final StringWriter writer = new StringWriter();
 
       final javax.xml.transform.Transformer transformer = factory.newTransformer();
-      transformer.setErrorListener(THROWING_ERROR_LISTENER);
+      // transformer.setErrorListener(…);
 
       /* Doesn’t seem to take these properties into account. */
       transformer.setOutputProperty(OutputKeys.INDENT, "no");
