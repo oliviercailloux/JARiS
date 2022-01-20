@@ -4,23 +4,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.ImmutableList;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.TransformerFactoryImpl;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 class XmlTransformerTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerTests.class);
+
   @Test
   void testTransformSimple() throws Exception {
     final StreamSource style =
@@ -34,8 +29,8 @@ class XmlTransformerTests {
 
   @Test
   void testTransformSimpleDocBook() throws Exception {
-    final StreamSource docBook =
-        new StreamSource(XmlTransformerTests.class.getResource("docbook simple article.xml").toString());
+    final StreamSource docBook = new StreamSource(
+        XmlTransformerTests.class.getResource("docbook simple article.xml").toString());
     final StreamSource myStyle =
         /*
          * Much faster (obtains transformer from stylesheet in 4 sec instead of 17 sec), but depends
@@ -47,7 +42,11 @@ class XmlTransformerTests {
         new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
 
     /* This is too complex for JDK embedded transformer (Apache Xalan). */
-    // XmlUtils.transformer().transform(docBook, myStyle);
+    final XmlException xalanExc = assertThrows(XmlException.class,
+        () -> XmlTransformer.transformer().transform(docBook, myStyle));
+    final String reason = xalanExc.getCause().getMessage();
+    assertTrue(reason.contains("insertCallouts"), reason);
+
     final String transformed =
         XmlTransformer.transformer(new TransformerFactoryImpl()).transform(docBook, myStyle);
     LOGGER.debug("Transformed docbook howto: {}.", transformed);
@@ -61,6 +60,12 @@ class XmlTransformerTests {
         new StreamSource(XmlTransformerTests.class.getResource("docbook howto.xml").toString());
     final StreamSource myStyle =
         new StreamSource(XmlTransformerTests.class.getResource("mystyle.xsl").toString());
+
+    /* This is too complex for JDK embedded transformer (Apache Xalan). */
+    final XmlException xalanExc = assertThrows(XmlException.class,
+        () -> XmlTransformer.transformer().transform(docBook, myStyle));
+    final String reason = xalanExc.getCause().getMessage();
+    assertTrue(reason.contains("insertCallouts"), reason);
 
     final String transformed =
         XmlTransformer.transformer(new TransformerFactoryImpl()).transform(docBook, myStyle);
@@ -97,7 +102,8 @@ class XmlTransformerTests {
         Files.readString(Path.of(XmlTransformerTests.class.getResource("transformed.txt").toURI()));
     assertEquals(expected, XmlTransformer.transformer().transform(input, style));
 
-    assertThrows(XmlException.class, () -> XmlTransformer.pedanticTransformer().transform(input, style));
+    assertThrows(XmlException.class,
+        () -> XmlTransformer.pedanticTransformer().transform(input, style));
   }
 
   @Test
