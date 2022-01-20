@@ -265,7 +265,7 @@ public class XmlTransformer {
       }
 
       public void ensureLogged() {
-        LOGGER.info(severity.asStringForm() + " while processing.", exception);
+        LOGGER.debug(severity.asStringForm() + " while processing.", exception);
         hasBeenLogged = true;
       }
     }
