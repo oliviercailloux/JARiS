@@ -38,7 +38,7 @@ public class CollectionUtils {
 
   /**
    * Returns an immutable map with the given {@code keys} and whose value for each key was computed
-   * by {@code valueFunction}. The map's iteration order is the order of {@code keys}.
+   * by {@code valueFunction}. The map’s iteration order is the order of {@code keys}.
    *
    * @param <K> the key type of the returned map
    * @param <V> the value type of the returned map

@@ -21,7 +21,7 @@ public interface ImmutableCompleteMap<K, V> extends Map<K, V> {
    * will be backed by an {@link EnumMap}.
    *
    * <p>
-   * The iteration order of the returned map follows the enum's iteration order, not the order in
+   * The iteration order of the returned map follows the enum’s iteration order, not the order in
    * which the elements appear in the given map.
    * </p>
    *
