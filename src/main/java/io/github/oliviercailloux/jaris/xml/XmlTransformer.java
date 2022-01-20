@@ -34,15 +34,33 @@ public class XmlTransformer {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformer.class);
 
+  public static final String FACTORY_PROPERTY = "javax.xml.transform.TransformerFactory";
+
   /**
    * Provides a transformer instance using the TransformerFactory builtin system-default
    * implementation.
    *
    * @return a transformer instance.
    */
-  public static XmlTransformer transformer() {
+  public static XmlTransformer usingSystemDefaultFactory() {
     final TransformerFactory factory = TransformerFactory.newDefaultInstance();
-    return transformer(factory);
+    return usingFactory(factory);
+  }
+
+  /**
+   * Provides a transformer instance using the TransformerFactory found using the
+   * <a href="../../../module-summary.html#LookupMechanism">JAXP Lookup Mechanism</a>, thus,
+   * equivalent to the one obtained with {@link TransformerFactory#newInstance()}.
+   * <p>
+   * The system property that determines which Factory implementation to create is
+   * {@link #FACTORY_PROPERTY}.
+   * </p>
+   *
+   * @return a transformer instance.
+   */
+  public static XmlTransformer usingFoundFactory() {
+    final TransformerFactory factory = TransformerFactory.newInstance();
+    return usingFactory(factory);
   }
 
   /**
@@ -51,7 +69,7 @@ public class XmlTransformer {
    * @param factory the factory to use.
    * @return a transformer instance.
    */
-  public static XmlTransformer transformer(TransformerFactory factory) {
+  public static XmlTransformer usingFactory(TransformerFactory factory) {
     return generalTransformer(factory, RecordingErrorListener.WARNING_NOT_GRAVE_ERROR_LISTENER);
   }
 
