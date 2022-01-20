@@ -26,16 +26,16 @@ class DomHelperTests {
     final DocumentBuilder builder = factory.newDocumentBuilder();
     document = builder.newDocument();
 
-    html = document.createElementNS(XmlUtils.XHTML_NS_URI.toString(), "html");
+    html = document.createElementNS(DomHelper.XHTML_NS_URI.toString(), "html");
     html.setAttribute("lang", "en");
     document.appendChild(html);
-    head = document.createElementNS(XmlUtils.XHTML_NS_URI.toString(), "head");
+    head = document.createElementNS(DomHelper.XHTML_NS_URI.toString(), "head");
     html.appendChild(head);
-    final Element meta = document.createElementNS(XmlUtils.XHTML_NS_URI.toString(), "meta");
+    final Element meta = document.createElementNS(DomHelper.XHTML_NS_URI.toString(), "meta");
     meta.setAttribute("http-equiv", "Content-type");
     meta.setAttribute("content", "text/html; charset=utf-8");
     head.appendChild(meta);
-    final Element body = document.createElementNS(XmlUtils.XHTML_NS_URI.toString(), "body");
+    final Element body = document.createElementNS(DomHelper.XHTML_NS_URI.toString(), "body");
     html.appendChild(body);
   }
 

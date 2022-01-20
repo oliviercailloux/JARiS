@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.net.URI;
 import java.util.AbstractList;
 import java.util.RandomAccess;
 import javax.xml.parsers.DocumentBuilder;
@@ -38,6 +39,10 @@ import org.xml.sax.SAXException;
  * with static methods for manipulating lists of nodes.
  */
 public class DomHelper {
+  /**
+   * The XHTML namespace URI, defined to be {@code http://www.w3.org/1999/xhtml}.
+   */
+  public static final URI XHTML_NS_URI = URI.create("http://www.w3.org/1999/xhtml");
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(DomHelper.class);
 

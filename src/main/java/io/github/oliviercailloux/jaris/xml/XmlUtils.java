@@ -44,11 +44,6 @@ public class XmlUtils {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlUtils.class);
 
-  /**
-   * The XHTML namespace URI, defined to be {@code http://www.w3.org/1999/xhtml}.
-   */
-  public static final URI XHTML_NS_URI = URI.create("http://www.w3.org/1999/xhtml");
-
   private XmlUtils() {
     /* Should not be instanciated. */
   }
