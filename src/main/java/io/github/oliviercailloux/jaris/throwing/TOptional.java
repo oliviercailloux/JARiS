@@ -17,6 +17,7 @@ import java.util.stream.Stream;
  * @param <T> the type of value
  * @see Optional
  */
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public class TOptional<T> {
   /**
    * Common instance for {@code empty()}.
