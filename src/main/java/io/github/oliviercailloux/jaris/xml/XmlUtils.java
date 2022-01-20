@@ -735,6 +735,22 @@ public class XmlUtils {
         throw new XmlException("Could not transform the provided document.",
             recordingErrorListener.getFirstErrorException());
       }
+      /*
+       * We want to log everything; and throw the first grave exception (grave meaning any or at
+       * least error, depending on pedantism). We avoid doing both logging and throwing when there
+       * is only one grave exc (then it is the last exc seen so the ordering is clear); but when
+       * there are at least two grave exc, we want to log both in order for the ordering to be
+       * visible in the logs, even though this leads to double treatment (logging and throwing).
+       *
+       * We observed that saxonica may send two fatal errors for one terminal message: the message
+       * itself, and a second one, “Processing terminated by xsl:message at line 237 in
+       * chunker.xsl”. Hence our desire to throw the first grave exception, which is more
+       * informative, but log everything. We observed that Saxonica terminates with the latter
+       * exception (appearing in our catch block) instead of the former, so we must override this.
+       *
+       * In pedantic mode, everything is grave. Otherwise, errors and supplementary (the one thrown
+       * that ends the process) are grave.
+       */
     }
 
     /**
