@@ -139,7 +139,8 @@ public class XmlTransformer {
     private static class ExceptionsRecorder {
       private final ImmutableSet<Severity> graveSeverities;
       private Optional<QualifiedTransformerException> firstGraveException;
-      private final Set<QualifiedTransformerException> allNonThrownExceptions = new LinkedHashSet<>();
+      private final Set<QualifiedTransformerException> allNonThrownExceptions =
+          new LinkedHashSet<>();
 
       public ExceptionsRecorder(Set<Severity> graveSeverities) {
         this.graveSeverities = ImmutableSet.copyOf(graveSeverities);
@@ -301,13 +302,15 @@ public class XmlTransformer {
     }
 
     public void thrown(TransformerException exception) {
-      final QualifiedTransformerException xExc = new QualifiedTransformerException(exception, Severity.THROWN);
+      final QualifiedTransformerException xExc =
+          new QualifiedTransformerException(exception, Severity.THROWN);
       recorder.record(xExc);
     }
 
     private void enact(TransformerException exception, Severity severity)
         throws TransformerException {
-      final QualifiedTransformerException xExc = new QualifiedTransformerException(exception, severity);
+      final QualifiedTransformerException xExc =
+          new QualifiedTransformerException(exception, severity);
       recorder.record(xExc);
       if (recorder.isGrave(xExc)) {
         throw exception;
