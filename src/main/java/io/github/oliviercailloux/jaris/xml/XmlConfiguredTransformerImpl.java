@@ -3,7 +3,6 @@ package io.github.oliviercailloux.jaris.xml;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.collect.ImmutableMap;
 import java.io.StringWriter;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
@@ -12,23 +11,22 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
-public class XmlSourcedTransformer {
+class XmlConfiguredTransformerImpl implements XmlToStringConfiguredTransformer {
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = LoggerFactory.getLogger(XmlSourcedTransformer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(XmlConfiguredTransformerImpl.class);
 
-  static XmlSourcedTransformer using(Transformer transformer) {
-    return new XmlSourcedTransformer(transformer);
+  static XmlConfiguredTransformerImpl using(Transformer transformer) {
+    return new XmlConfiguredTransformerImpl(transformer);
   }
 
   private final Transformer transformer;
 
-  private XmlSourcedTransformer(Transformer transformer) {
+  private XmlConfiguredTransformerImpl(Transformer transformer) {
     this.transformer = checkNotNull(transformer);
     checkArgument(transformer.getErrorListener() instanceof XmlTransformRecordingErrorListener);
   }
@@ -40,6 +38,7 @@ public class XmlSourcedTransformer {
    * @param result where the result will be held
    * @throws XmlException iff an error occurs when transforming the document.
    */
+  @Override
   public void transform(Source document, Result result) throws XmlException {
     checkNotNull(document);
     checkArgument(!document.isEmpty());
@@ -90,6 +89,7 @@ public class XmlSourcedTransformer {
    * @throws XmlException iff an error occurs when parsing the stylesheet or when transforming the
    *         document.
    */
+  @Override
   public String transform(Source document) throws XmlException {
     checkArgument(!document.isEmpty());
 

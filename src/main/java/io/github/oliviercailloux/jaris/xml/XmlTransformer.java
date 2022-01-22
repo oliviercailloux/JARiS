@@ -126,7 +126,7 @@ public class XmlTransformer {
    * @return a sourced transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet.
    */
-  public XmlSourcedTransformer usingEmptySource() throws XmlException {
+  public XmlToStringConfiguredTransformer usingEmptySource() throws XmlException {
     return forSourceInternal(null, ImmutableMap.of());
   }
 
@@ -141,7 +141,7 @@ public class XmlTransformer {
    * @return a sourced transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet.
    */
-  public XmlSourcedTransformer forSource(Source stylesheet) throws XmlException {
+  public XmlToStringConfiguredTransformer forSource(Source stylesheet) throws XmlException {
     return forSource(stylesheet, ImmutableMap.of());
   }
 
@@ -155,7 +155,7 @@ public class XmlTransformer {
    * @return a sourced transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet.
    */
-  public XmlSourcedTransformer forSource(Source stylesheet, Map<XmlName, String> parameters)
+  public XmlToStringConfiguredTransformer forSource(Source stylesheet, Map<XmlName, String> parameters)
       throws XmlException {
     checkNotNull(stylesheet);
     checkNotNull(parameters);
@@ -168,7 +168,7 @@ public class XmlTransformer {
    * @param parameters
    * @return
    */
-  private XmlSourcedTransformer forSourceInternal(Source stylesheet,
+  private XmlConfiguredTransformerImpl forSourceInternal(Source stylesheet,
       Map<XmlName, String> parameters) {
     checkNotNull(parameters);
 
@@ -188,6 +188,6 @@ public class XmlTransformer {
     parameters.entrySet().stream()
         .forEach(e -> transformer.setParameter(e.getKey().asFullName(), e.getValue()));
 
-    return XmlSourcedTransformer.using(transformer);
+    return XmlConfiguredTransformerImpl.using(transformer);
   }
 }
