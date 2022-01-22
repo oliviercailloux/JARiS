@@ -68,6 +68,17 @@ public class Unchecker<X extends Exception, Y extends RuntimeException> {
     return new Unchecker<>(wrapper);
   }
 
+  /**
+   * Returns an object that will transform checked exception instances to {@link VerifyException}
+   * instances, if any checked exception happens.
+   *
+   * @param <X> the type of checked exception that the returned instance accepts
+   * @return an unchecker instance
+   */
+  public static <X extends Exception> Unchecker<X, VerifyException> convertingToVerifyException() {
+    return new Unchecker<>(VerifyException::new);
+  }
+
   private final Function<X, Y> wrapper;
 
   private Unchecker(Function<X, Y> wrapper) {
