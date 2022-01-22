@@ -6,8 +6,8 @@ import java.net.URI;
 import java.util.Optional;
 
 /**
- * Either just a local name (in which case its namespace name has no value), or an <a
- * href="https://www.w3.org/TR/REC-xml-names/#dt-expname>expanded name</a>, thus consisting in a
+ * Either just a local name (in which case its namespace name has no value), or an
+ * <a href="https://www.w3.org/TR/REC-xml-names/#dt-expname">expanded name</a>, thus consisting in a
  * namespace name and a local name.
  * <p>
  * The namespace name, if present, is an absolute URI.

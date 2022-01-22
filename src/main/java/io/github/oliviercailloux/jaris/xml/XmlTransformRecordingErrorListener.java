@@ -13,9 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Defines some exceptions as grave, according to their severity. Always logs non-grave
- * exceptions. Logs grave exceptions iff there is more than one, in which case, logs all
- * exceptions in the order of encounter (so instances have memory).
+ * Defines some exceptions as grave, according to their severity. Always logs non-grave exceptions.
+ * Logs grave exceptions iff there is more than one, in which case, logs all exceptions in the order
+ * of encounter (so instances have memory).
  */
 class XmlTransformRecordingErrorListener implements ErrorListener {
   @SuppressWarnings("unused")
@@ -34,9 +34,11 @@ class XmlTransformRecordingErrorListener implements ErrorListener {
    */
   private static class ExceptionsRecorder {
     private final ImmutableSet<XmlTransformRecordingErrorListener.Severity> graveSeverities;
-    private Optional<XmlTransformRecordingErrorListener.QualifiedTransformerException> firstGraveException;
-    private final Set<XmlTransformRecordingErrorListener.QualifiedTransformerException> allNonThrownExceptions =
-        new LinkedHashSet<>();
+    private Optional<
+        XmlTransformRecordingErrorListener.QualifiedTransformerException> firstGraveException;
+    private final Set<
+        XmlTransformRecordingErrorListener.QualifiedTransformerException> allNonThrownExceptions =
+            new LinkedHashSet<>();
 
     public ExceptionsRecorder(Set<XmlTransformRecordingErrorListener.Severity> graveSeverities) {
       this.graveSeverities = ImmutableSet.copyOf(graveSeverities);
@@ -70,7 +72,8 @@ class XmlTransformRecordingErrorListener implements ErrorListener {
       }
     }
 
-    public boolean isGrave(XmlTransformRecordingErrorListener.QualifiedTransformerException exception) {
+    public boolean
+        isGrave(XmlTransformRecordingErrorListener.QualifiedTransformerException exception) {
       return graveSeverities.contains(exception.severity);
     }
 
@@ -90,7 +93,8 @@ class XmlTransformRecordingErrorListener implements ErrorListener {
      *
      * @param exception the exception to record or log.
      */
-    private void recordGrave(XmlTransformRecordingErrorListener.QualifiedTransformerException exception) {
+    private void
+        recordGrave(XmlTransformRecordingErrorListener.QualifiedTransformerException exception) {
       final boolean isPrimal = firstGraveException.isEmpty();
       firstGraveException = Optional.of(firstGraveException.orElse(exception));
       if (!isPrimal) {
@@ -107,7 +111,8 @@ class XmlTransformRecordingErrorListener implements ErrorListener {
       return firstGraveException.isPresent();
     }
 
-    public XmlTransformRecordingErrorListener.QualifiedTransformerException getFirstGraveException() {
+    public XmlTransformRecordingErrorListener.QualifiedTransformerException
+        getFirstGraveException() {
       return firstGraveException.orElseThrow();
     }
 
@@ -135,7 +140,8 @@ class XmlTransformRecordingErrorListener implements ErrorListener {
     private final XmlTransformRecordingErrorListener.Severity severity;
     private boolean hasBeenLogged;
 
-    public QualifiedTransformerException(TransformerException exception, XmlTransformRecordingErrorListener.Severity severity) {
+    public QualifiedTransformerException(TransformerException exception,
+        XmlTransformRecordingErrorListener.Severity severity) {
       this.exception = checkNotNull(exception);
       this.severity = checkNotNull(severity);
       hasBeenLogged = false;
@@ -178,7 +184,8 @@ class XmlTransformRecordingErrorListener implements ErrorListener {
         ImmutableSet.of(Severity.ERROR, Severity.FATAL, Severity.THROWN));
   }
 
-  private XmlTransformRecordingErrorListener(Set<XmlTransformRecordingErrorListener.Severity> graveSeverities) {
+  private XmlTransformRecordingErrorListener(
+      Set<XmlTransformRecordingErrorListener.Severity> graveSeverities) {
     this.recorder = new ExceptionsRecorder(graveSeverities);
   }
 
@@ -203,8 +210,8 @@ class XmlTransformRecordingErrorListener implements ErrorListener {
     recorder.record(xExc);
   }
 
-  private void enact(TransformerException exception, XmlTransformRecordingErrorListener.Severity severity)
-      throws TransformerException {
+  private void enact(TransformerException exception,
+      XmlTransformRecordingErrorListener.Severity severity) throws TransformerException {
     final XmlTransformRecordingErrorListener.QualifiedTransformerException xExc =
         new QualifiedTransformerException(exception, severity);
     recorder.record(xExc);
