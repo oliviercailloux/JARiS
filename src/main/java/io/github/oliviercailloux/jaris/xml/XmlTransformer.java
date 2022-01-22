@@ -155,8 +155,8 @@ public class XmlTransformer {
    * @return a sourced transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet.
    */
-  public XmlToStringConfiguredTransformer forSource(Source stylesheet, Map<XmlName, String> parameters)
-      throws XmlException {
+  public XmlToStringConfiguredTransformer forSource(Source stylesheet,
+      Map<XmlName, String> parameters) throws XmlException {
     checkNotNull(stylesheet);
     checkNotNull(parameters);
     checkArgument(!stylesheet.isEmpty());
