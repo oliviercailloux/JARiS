@@ -1,5 +1,6 @@
 package io.github.oliviercailloux.jaris.xml;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.net.URI;
@@ -14,10 +15,23 @@ import java.util.Optional;
  * </p>
  */
 public class XmlName {
+  /**
+   * Returns an expanded name representing the given namespace and local name.
+   *
+   * @param namespace the namespace; an absolute URI
+   * @param localName the local name
+   * @return an expanded name
+   */
   public static XmlName expandedName(URI namespace, String localName) {
     return new XmlName(Optional.of(namespace), localName);
   }
 
+  /**
+   * Returns an xml name representing the given local name, without namespace.
+   *
+   * @param localName the local name
+   * @return an xml name
+   */
   public static XmlName localName(String localName) {
     return new XmlName(Optional.empty(), localName);
   }
@@ -27,6 +41,7 @@ public class XmlName {
 
   private XmlName(Optional<URI> namespace, String localName) {
     this.namespace = checkNotNull(namespace);
+    namespace.ifPresent(n -> checkArgument(n.isAbsolute()));
     this.localName = checkNotNull(localName);
   }
 
