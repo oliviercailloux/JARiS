@@ -24,7 +24,7 @@ class XmlTransformerTests {
         new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
     final String expected =
         Files.readString(Path.of(XmlTransformerTests.class.getResource("transformed.txt").toURI()));
-    assertEquals(expected, XmlTransformer.pedanticTransformer().transform(input, style));
+    assertEquals(expected, XmlTransformer.pedanticTransformer().forSource(style).transform(input));
   }
 
   @Test
@@ -46,7 +46,7 @@ class XmlTransformerTests {
     if (!xalanIsInClassPath) {
       /* This is too complex for pure JDK embedded transformer (Apache Xalan). */
       final XmlException xalanExc = assertThrows(XmlException.class,
-          () -> XmlTransformer.usingSystemDefaultFactory().transform(docBook, myStyle));
+          () -> XmlTransformer.usingSystemDefaultFactory().forSource(myStyle).transform(docBook));
       final String reason = xalanExc.getCause().getMessage();
       assertTrue(reason.contains("insertCallouts"), reason);
     }
@@ -57,20 +57,22 @@ class XmlTransformerTests {
      */
     if (xalanIsInClassPath) {
       final XmlException xalanExc = assertThrows(XmlException.class,
-          () -> XmlTransformer.usingSystemDefaultFactory().transform(docBook, myStyle));
+          () -> XmlTransformer.usingSystemDefaultFactory().forSource(myStyle).transform(docBook));
       final String reason = xalanExc.getCause().getMessage();
       assertTrue(reason.contains("org.apache.xalan.lib.NodeInfo.systemId"), reason);
     }
     /* The external Apache Xalan 2.7.2 implementation works. */
     if (xalanIsInClassPath) {
       System.setProperty(XmlTransformer.FACTORY_PROPERTY, XALAN_FACTORY);
-      final String transformed = XmlTransformer.usingFoundFactory().transform(docBook, myStyle);
+      final String transformed =
+          XmlTransformer.usingFoundFactory().forSource(myStyle).transform(docBook);
       assertTrue(transformed
           .contains("<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\" font-family="));
     }
     {
-      final String transformed = XmlTransformer
-          .usingFactory(new net.sf.saxon.TransformerFactoryImpl()).transform(docBook, myStyle);
+      final String transformed =
+          XmlTransformer.usingFactory(new net.sf.saxon.TransformerFactoryImpl()).forSource(myStyle)
+              .transform(docBook);
       LOGGER.debug("Transformed docbook howto: {}.", transformed);
       assertTrue(transformed
           .contains("<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\" font-family="));
@@ -89,25 +91,27 @@ class XmlTransformerTests {
     LOGGER.info("Xalan in class path? {}.", xalanIsInClassPath);
     if (!xalanIsInClassPath) {
       final XmlException xalanExc = assertThrows(XmlException.class,
-          () -> XmlTransformer.usingSystemDefaultFactory().transform(docBook, myStyle));
+          () -> XmlTransformer.usingSystemDefaultFactory().forSource(myStyle).transform(docBook));
       final String reason = xalanExc.getCause().getMessage();
       assertTrue(reason.contains("insertCallouts"), reason);
     }
     if (xalanIsInClassPath) {
       final XmlException xalanExc = assertThrows(XmlException.class,
-          () -> XmlTransformer.usingSystemDefaultFactory().transform(docBook, myStyle));
+          () -> XmlTransformer.usingSystemDefaultFactory().forSource(myStyle).transform(docBook));
       final String reason = xalanExc.getCause().getMessage();
       assertTrue(reason.contains("org.apache.xalan.lib.NodeInfo.systemId"), reason);
     }
     if (xalanIsInClassPath) {
       System.setProperty(XmlTransformer.FACTORY_PROPERTY, XALAN_FACTORY);
-      final String transformed = XmlTransformer.usingFoundFactory().transform(docBook, myStyle);
+      final String transformed =
+          XmlTransformer.usingFoundFactory().forSource(myStyle).transform(docBook);
       assertTrue(transformed
           .contains("<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\" font-family="));
     }
     {
-      final String transformed = XmlTransformer
-          .usingFactory(new net.sf.saxon.TransformerFactoryImpl()).transform(docBook, myStyle);
+      final String transformed =
+          XmlTransformer.usingFactory(new net.sf.saxon.TransformerFactoryImpl()).forSource(myStyle)
+              .transform(docBook);
       LOGGER.debug("Transformed docbook howto: {}.", transformed);
       assertTrue(transformed
           .contains("<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\" font-family="));
@@ -121,7 +125,7 @@ class XmlTransformerTests {
     final StreamSource input =
         new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
     assertThrows(XmlException.class,
-        () -> XmlTransformer.usingSystemDefaultFactory().transform(input, style));
+        () -> XmlTransformer.usingSystemDefaultFactory().forSource(style).transform(input));
   }
 
   @Test
@@ -131,7 +135,7 @@ class XmlTransformerTests {
     final StreamSource input =
         new StreamSource(XmlTransformerTests.class.getResource("short invalid.xml").toString());
     assertThrows(XmlException.class,
-        () -> XmlTransformer.usingSystemDefaultFactory().transform(input, style));
+        () -> XmlTransformer.usingSystemDefaultFactory().forSource(style).transform(input));
   }
 
   @Test
@@ -142,10 +146,11 @@ class XmlTransformerTests {
         new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
     final String expected =
         Files.readString(Path.of(XmlTransformerTests.class.getResource("transformed.txt").toURI()));
-    assertEquals(expected, XmlTransformer.usingSystemDefaultFactory().transform(input, style));
+    assertEquals(expected,
+        XmlTransformer.usingSystemDefaultFactory().forSource(style).transform(input));
 
     assertThrows(XmlException.class,
-        () -> XmlTransformer.pedanticTransformer().transform(input, style));
+        () -> XmlTransformer.pedanticTransformer().forSource(style).transform(input));
   }
 
   @Test
@@ -155,6 +160,6 @@ class XmlTransformerTests {
     final StreamSource input =
         new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
     assertThrows(XmlException.class,
-        () -> XmlTransformer.usingSystemDefaultFactory().transform(input, style));
+        () -> XmlTransformer.usingSystemDefaultFactory().forSource(style).transform(input));
   }
 }
