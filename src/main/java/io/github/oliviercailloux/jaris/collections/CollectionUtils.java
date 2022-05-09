@@ -76,4 +76,8 @@ public class CollectionUtils {
     }
     return collected;
   }
+
+  private CollectionUtils() {
+    /* No need to instantiate. */
+  }
 }
