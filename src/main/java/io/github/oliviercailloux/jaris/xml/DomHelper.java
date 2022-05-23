@@ -1,9 +1,11 @@
 package io.github.oliviercailloux.jaris.xml;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Verify.verify;
 
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -11,6 +13,7 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.util.AbstractList;
 import java.util.RandomAccess;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -20,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.DOMError;
 import org.w3c.dom.DOMErrorHandler;
 import org.w3c.dom.DOMException;
+import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -40,9 +44,16 @@ import org.xml.sax.SAXException;
  */
 public class DomHelper {
   /**
-   * The XHTML namespace URI, defined to be {@code http://www.w3.org/1999/xhtml}.
+   * The <a href="https://infra.spec.whatwg.org/#html-namespace">HTML namespace</a> URI, defined as
+   * {@code http://www.w3.org/1999/xhtml}.
    */
-  public static final URI XHTML_NS_URI = URI.create("http://www.w3.org/1999/xhtml");
+  public static final URI HTML_NS_URI = URI.create("http://www.w3.org/1999/xhtml");
+  /**
+   * The SVG 2 namespace URI, defined as {@code http://www.w3.org/2000/svg},
+   * <a href="https://svgwg.org/svg2-draft/struct.html#Namespace">as in</a> earlier versions of SVG
+   */
+  public static final URI SVG_NS_URI = URI.create("http://www.w3.org/2000/svg");
+
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(DomHelper.class);
 
@@ -50,13 +61,13 @@ public class DomHelper {
    * Initializes and returns the DOM helper service.
    * <p>
    * This initializes the {@code DOMImplementationRegistry}, as described in
-   * {@link DOMImplementationRegistry#newInstance()}, or throws an {@link XmlException} if it fails
-   * to initialize or to obtain an implementation that provides the LS feature.
+   * {@link DOMImplementationRegistry#newInstance()}.
    * </p>
    *
    * @return a DOM helper instance
    * @throws XmlException If the {@link DOMImplementationRegistry} initialization fails or it finds
-   *         no implementation providing the LS feature.
+   *         no implementation providing the LS feature or no implementation providing the XML
+   *         feature.
    */
   public static DomHelper domHelper() throws XmlException {
     final DOMImplementationRegistry registry;
@@ -66,13 +77,19 @@ public class DomHelper {
         | ClassCastException e) {
       throw new XmlException(e);
     }
-    final DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("LS");
-    if (impl == null) {
+    final DOMImplementationLS implLs = (DOMImplementationLS) registry.getDOMImplementation("LS");
+    if (implLs == null) {
       throw new XmlException(String.format(
           "Registry '%s' did not yield any DOM implementation providing the LS feature.",
           registry.toString()));
     }
-    return new DomHelper(impl);
+    final DOMImplementation implXml = registry.getDOMImplementation("XML");
+    if (implXml == null) {
+      throw new XmlException(String.format(
+          "Registry '%s' did not yield any DOM implementation providing the XML feature.",
+          registry.toString()));
+    }
+    return new DomHelper(implLs, implXml);
   }
 
   private static InputSource toInputSource(StreamSource document) {
@@ -186,19 +203,65 @@ public class DomHelper {
 
   private static final DomHelper.ThrowingDomErrorHandler THROWING_DOM_ERROR_HANDLER =
       new ThrowingDomErrorHandler();
-  private final DOMImplementationLS impl;
+  private final DOMImplementationLS implLs;
+  private final DOMImplementation implXml;
   private LSSerializer ser;
 
   private LSParser deser;
 
-  private DomHelper(DOMImplementationLS impl) {
-    this.impl = checkNotNull(impl);
+  private DomHelper(DOMImplementationLS implLs, DOMImplementation implXml) {
+    this.implLs = checkNotNull(implLs);
+    this.implXml = checkNotNull(implXml);
     ser = null;
     deser = null;
   }
 
+  /**
+   * Creates a new HTML DOM Document, containing only the HTML document element.
+   *
+   * @return a new {@code Document} object with a document element having namespace
+   *         {@link #HTML_NS_URI} and name “{@code html}”.
+   */
+  public Document html() {
+    return createDocument(HTML_NS_URI.toString(), "html");
+  }
+
+  /**
+   * Creates a new SVG DOM Document, containing only the SVG document element.
+   *
+   * @return a new {@code Document} object with a document element having namespace
+   *         {@link #SVG_NS_URI} and name “{@code svg}”.
+   */
+  public Document svg() {
+    /*
+     * if https://issues.apache.org/jira/browse/BATIK-1325 ever gets implemented, we could even
+     * return an SVGDocument here (though that doesn’t seem useful, after all).
+     */
+    return createDocument(SVG_NS_URI.toString(), "svg");
+  }
+
+  /**
+   * Creates a DOM Document with the specified document element.
+   *
+   * @param namespaceUri The namespace URI of the document element to create
+   * @param qualifiedName The qualified name of the document element to be created
+   * @return A new {@code Document} object with its document element
+   * @exception DOMException INVALID_CHARACTER_ERR: Raised if the specified qualified name is not an
+   *            XML name according to [<a href='http://www.w3.org/TR/2004/REC-xml-20040204'>XML
+   *            1.0</a>]. <br>
+   *            NAMESPACE_ERR: Raised if the {@code qualifiedName} is malformed, or if the
+   *            {@code qualifiedName} has a prefix that is “{@code xml}” and the
+   *            {@code namespaceUri} is different from {@link XMLConstants#XML_NS_URI}.
+   */
+  public Document createDocument(String namespaceUri, String qualifiedName) {
+    final Document doc = implXml.createDocument(namespaceUri, qualifiedName, null);
+    verify(Iterables.getOnlyElement(toElements(doc.getChildNodes())).getTagName()
+        .equals(qualifiedName));
+    return doc;
+  }
+
   LSInput toLsInput(StreamSource document) {
-    final LSInput input = impl.createLSInput();
+    final LSInput input = implLs.createLSInput();
 
     {
       @SuppressWarnings("resource")
@@ -233,7 +296,7 @@ public class DomHelper {
     if (ser != null) {
       return;
     }
-    ser = impl.createLSSerializer();
+    ser = implLs.createLSSerializer();
     ser.getDomConfig().setParameter("error-handler", THROWING_DOM_ERROR_HANDLER);
     /* Not supported by the default implementation. */
     // ser.getDomConfig().setParameter("ignore-unknown-character-denormalizations", true);
@@ -245,7 +308,7 @@ public class DomHelper {
       return;
     }
     try {
-      deser = impl.createLSParser(DOMImplementationLS.MODE_SYNCHRONOUS, null);
+      deser = implLs.createLSParser(DOMImplementationLS.MODE_SYNCHRONOUS, null);
     } catch (DOMException e) {
       throw new VerifyException("Implementation does not support synchronous mode.", e);
     }
@@ -271,6 +334,14 @@ public class DomHelper {
     return doc;
   }
 
+  @SuppressWarnings("unused")
+  private DOMImplementation createDocumentImplementationUsingDocumentBuilderFactory()
+      throws ParserConfigurationException {
+    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newNSInstance();
+    final DocumentBuilder builder = dbf.newDocumentBuilder();
+    return builder.getDOMImplementation();
+  }
+
   /**
    * I favor the DOM LS parser to the DocumentBuilder: DOM LS is a W3C standard (see
    * <a href="https://stackoverflow.com/a/38153986">SO</a>) and I need an LS serializer anyway.
@@ -278,8 +349,7 @@ public class DomHelper {
   @SuppressWarnings("unused")
   private Document asDocumentUsingBuilder(StreamSource input)
       throws ParserConfigurationException, SAXException, IOException {
-    final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    factory.setNamespaceAware(true);
+    final DocumentBuilderFactory factory = DocumentBuilderFactory.newNSInstance();
     final DocumentBuilder builder = factory.newDocumentBuilder();
 
     final Document doc = builder.parse(toInputSource(input));
@@ -300,7 +370,7 @@ public class DomHelper {
     checkNotNull(node);
     lazyInitSer();
     final StringWriter writer = new StringWriter();
-    final LSOutput output = impl.createLSOutput();
+    final LSOutput output = implLs.createLSOutput();
     output.setCharacterStream(writer);
     try {
       ser.write(node, output);

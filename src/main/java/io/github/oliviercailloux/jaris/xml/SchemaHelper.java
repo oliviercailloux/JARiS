@@ -108,10 +108,10 @@ public class SchemaHelper {
   }
 
   /**
-   * Sets the schema that this validator will use when validating documents.
+   * Sets the schema that the returned conformity checker will use when validating documents.
    *
    * @param schemaSource the source to use for reading the schema.
-   * @return this instance.
+   * @return a conformity checker.
    * @throws XmlException iff the provided schema cannot be interpreted.
    */
   public ConformityChecker getConformityChecker(Source schemaSource) throws XmlException {
