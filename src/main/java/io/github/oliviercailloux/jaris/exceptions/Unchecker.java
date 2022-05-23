@@ -1,7 +1,5 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.common.base.VerifyException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -38,7 +36,8 @@ import java.util.function.Supplier;
  * @param <Y> the type of unchecked exception that this object throws in place of the checked
  *        exception
  */
-public class Unchecker<X extends Exception, Y extends RuntimeException> {
+public class Unchecker<X extends Exception, Y extends RuntimeException>
+    extends UncheckedImpl<X, Y> {
   /**
    * An object that accepts functional interfaces that throw {@link IOException} instances; and that
    * will throw {@link UncheckedIOException} instances instead.
@@ -69,6 +68,21 @@ public class Unchecker<X extends Exception, Y extends RuntimeException> {
   }
 
   /**
+   * Returns an object that will use the given wrapper function to transform checked exceptions to
+   * unchecked ones, if any checked exception happens.
+   *
+   * @param <X> the type of checked exception that the returned instance accepts
+   * @param <Y> the type of unchecked exception that the returned instance throws in place of the
+   *        checked exception
+   * @param wrapper the function used to transform checked expections to unchecked ones
+   * @return an unchecker instance
+   */
+  public static <X extends Exception, Y extends Exception> Unchecked<X, Y>
+      wrappingToGeneral(Function<X, Y> wrapper) {
+    return new UncheckedImpl<>(wrapper);
+  }
+
+  /**
    * Returns an object that will transform checked exception instances to {@link VerifyException}
    * instances, if any checked exception happens.
    *
@@ -79,52 +93,8 @@ public class Unchecker<X extends Exception, Y extends RuntimeException> {
     return new Unchecker<>(VerifyException::new);
   }
 
-  private final Function<X, Y> wrapper;
-
   private Unchecker(Function<X, Y> wrapper) {
-    this.wrapper = checkNotNull(wrapper);
-  }
-
-  /**
-   * Calls the given runnable; if it throws a checked exception, throws an unchecked exception
-   * instead, applying the wrapper; if the runnable throws an unchecked exception, the exception is
-   * thrown unchanged.
-   *
-   * @param runnable the runnable to call
-   * @throws Y iff the runnable throws a checked exception (or an unchecked exception of type Y)
-   */
-  public void call(Throwing.Runnable<X> runnable) throws Y {
-    try {
-      runnable.run();
-    } catch (RuntimeException e) {
-      throw e;
-    } catch (Exception e) {
-      @SuppressWarnings("unchecked")
-      final X ef = (X) e;
-      throw wrapper.apply(ef);
-    }
-  }
-
-  /**
-   * Attempts to get and return a result from the given supplier; if the supplier throws a checked
-   * exception, throws an unchecked exception instead, applying the wrapper; if the supplier throws
-   * an unchecked exception, the exception is thrown unchanged.
-   *
-   * @param <T> the type returned by the supplier
-   * @param supplier the supplier to invoke
-   * @return the result obtained from the supplier
-   * @throws Y iff the supplier throws a checked exception (or an unchecked exception of type Y)
-   */
-  public <T> T getUsing(Throwing.Supplier<T, ? extends X> supplier) throws Y {
-    try {
-      return supplier.get();
-    } catch (RuntimeException e) {
-      throw e;
-    } catch (Exception e) {
-      @SuppressWarnings("unchecked")
-      final X ef = (X) e;
-      throw wrapper.apply(ef);
-    }
+    super(wrapper);
   }
 
   /**
