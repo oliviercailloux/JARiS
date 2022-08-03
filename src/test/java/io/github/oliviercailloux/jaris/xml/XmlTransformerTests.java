@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.xml.transform.stream.StreamSource;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,38 +29,7 @@ class XmlTransformerTests {
   }
 
   @Test
-  void testDocBookStyleOnBriBri() throws Exception {
-    final StreamSource myStyle =
-        new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
-
-    /*
-     * On BriBri, Java 17, this uses the internal TF irrespective of whether xalan is in the CP. It
-     * spits plenty on the console (bypassing the logger mechanism) before crashing.
-     */
-    final XmlTransformer t = XmlTransformer.usingSystemDefaultFactory();
-    assertEquals("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl",
-        t.factory().getClass().getName());
-    final XmlException xalanExc = assertThrows(XmlException.class, () -> t.forSource(myStyle));
-    final String reason = xalanExc.getCause().getMessage();
-    assertTrue(reason.contains("JAXP0801003"), reason);
-
-    /* The external Apache Xalan 2.7.2 implementation works. */
-    final boolean xalanIsInClassPath =
-        Class.forName(getClass().getClassLoader().getUnnamedModule(), XALAN_FACTORY) != null;
-    LOGGER.info("Xalan in class path? {}.", xalanIsInClassPath);
-    if (xalanIsInClassPath) {
-      System.setProperty(XmlTransformer.FACTORY_PROPERTY, XALAN_FACTORY);
-      assertDoesNotThrow(() -> XmlTransformer.usingFoundFactory().forSource(myStyle));
-    }
-    {
-      assertDoesNotThrow(() -> XmlTransformer
-          .usingFactory(new net.sf.saxon.TransformerFactoryImpl()).forSource(myStyle));
-    }
-  }
-
-  @Test
-  @Disabled
-  void testDocBookStyleOnSaucisson() throws Exception {
+  void testDocBookStyle() throws Exception {
     final StreamSource myStyle =
         /*
          * Much faster (obtains transformer from stylesheet in 4 sec instead of 17 sec), but depends
@@ -75,28 +43,31 @@ class XmlTransformerTests {
     final boolean xalanIsInClassPath =
         Class.forName(getClass().getClassLoader().getUnnamedModule(), XALAN_FACTORY) != null;
     LOGGER.info("Xalan in class path? {}.", xalanIsInClassPath);
-    if (!xalanIsInClassPath) {
-      /* This is too complex for pure JDK embedded transformer (Apache Xalan). */
+    {
+      /* This is too complex for pure JDK embedded transformer. */
+      /*
+       * This spits plenty on the console (bypassing the logger mechanism) before crashing.
+       */
       final XmlTransformer t = XmlTransformer.usingSystemDefaultFactory();
       assertEquals("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl",
           t.factory().getClass().getName());
       final XmlException xalanExc = assertThrows(XmlException.class, () -> t.forSource(myStyle));
+      /*
+       * Oddly enough, the error changed when including xalan in the class path even though we still
+       * use the system default transformer. Might be related to
+       * https://xml.apache.org/xalan-j/features.html#source_location.
+       *
+       * Does not occur anymore on Saucisson.
+       */
       final String reason = xalanExc.getCause().getMessage();
-      assertTrue(reason.contains("insertCallouts"), reason);
+      // if (xalanIsInClassPath) {
+      assertTrue(reason.contains("JAXP0801003"), reason);
+      // } else {
+      // assertTrue(reason.contains("org.apache.xalan.lib.NodeInfo.systemId"), reason);
+      // assertTrue(reason.contains("insertCallouts"), reason);
+      // }
     }
-    /*
-     * Oddly enough, the error changes when including xalan in the class path even though we still
-     * use the system default transformer. Might be related to
-     * https://xml.apache.org/xalan-j/features.html#source_location.
-     */
-    if (xalanIsInClassPath) {
-      final XmlTransformer t = XmlTransformer.usingSystemDefaultFactory();
-      assertEquals("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl",
-          t.factory().getClass().getName());
-      final XmlException xalanExc = assertThrows(XmlException.class, () -> t.forSource(myStyle));
-      final String reason = xalanExc.getCause().getMessage();
-      assertTrue(reason.contains("org.apache.xalan.lib.NodeInfo.systemId"), reason);
-    }
+
     /* The external Apache Xalan 2.7.2 implementation works. */
     if (xalanIsInClassPath) {
       System.setProperty(XmlTransformer.FACTORY_PROPERTY, XALAN_FACTORY);
