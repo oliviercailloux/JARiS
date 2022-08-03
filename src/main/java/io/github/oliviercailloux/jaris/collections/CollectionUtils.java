@@ -40,14 +40,13 @@ public class CollectionUtils {
    * Returns an immutable map with the given {@code keys} and whose value for each key was computed
    * by {@code valueFunction}. The map’s iteration order is the order of {@code keys}.
    *
-   * @param <K> the key type of the returned map
+   * @param <K> the key type of the provided and of the returned map
    * @param <V> the value type of the returned map
    * @param <X> the type of exception that the provided function may throw
    * @param keys the keys to use as the map keys
    * @param valueFunction the function producing the values
    * @return an immutable map
-   * @throws X iff the given function throws a checked exception (or throws an unchecked exception
-   *         of type X)
+   * @throws X if the given function throws an exception while computing values
    */
   public static <K, V, X extends Exception> ImmutableMap<K, V> toMap(Set<K> keys,
       Throwing.Function<? super K, V, X> valueFunction) throws X {
@@ -61,6 +60,23 @@ public class CollectionUtils {
     }
   }
 
+  /**
+   * Returns an immutable map containing as many entries as the provided one, with keys transformed,
+   * unless the provided function maps two keys of the original map to two equal new keys, in which
+   * case an {@link IllegalArgumentException} is thrown.
+   *
+   * @param <K> the original key type
+   * @param <L> the new key type
+   * @param <V> the value type
+   * @param <X> the type of exception that the provided function may throw (besides
+   *        {@link RuntimeException} instances)
+   * @param map the original map
+   * @param keyTransformer the function that transforms keys
+   * @return the corresponding map
+   * @throws X if the provided function throws while transforming keys
+   * @throws IllegalArgumentException if the provided function maps two keys to the same new key (as
+   *         determined by {@link #equals(Object)})
+   */
   public static <K, L, V, X extends Exception> ImmutableMap<L, V> transformKeys(Map<K, V> map,
       Throwing.Function<? super K, L, X> keyTransformer) throws X {
     final Function<? super K, L> behavedKeyTransformer = UNCHECKER.wrapFunction(keyTransformer);

@@ -5,6 +5,7 @@ import com.google.common.io.MoreFiles;
 import io.github.oliviercailloux.jaris.exceptions.Throwing;
 import io.github.oliviercailloux.jaris.exceptions.Unchecker;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -46,7 +47,8 @@ public class PathUtils {
    * @param filter the predicate that permits a child in the resulting list only if it returns
    *        {@code true}
    * @param options options to configure the traversal
-   * @return the children passing the predicate test
+   * @return the children passing the predicate test, including the starting path if it passes the
+   *         predicate test
    * @throws IOException if an I/O error is thrown when accessing a file or if the predicate throws
    */
   public static ImmutableSet<Path> getMatchingChildren(Path start,
@@ -54,7 +56,11 @@ public class PathUtils {
     final Predicate<Path> wrapped = UNCHECKER.wrapPredicate(filter);
     try (Stream<Path> found =
         Files.find(start, Integer.MAX_VALUE, (p, a) -> wrapped.test(p), options)) {
-      return found.collect(ImmutableSet.toImmutableSet());
+      try {
+        return found.collect(ImmutableSet.toImmutableSet());
+      } catch (UncheckedIOException e) {
+        throw e.getCause();
+      }
     } catch (InternalException e) {
       throw e.getCause();
     }

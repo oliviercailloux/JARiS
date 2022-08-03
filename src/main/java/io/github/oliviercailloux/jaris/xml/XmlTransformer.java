@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * <p>
- * Instances of this class make a best effort to log warnings and to fail fast (throwing an
- * exception) if an error or a fatalError is raised during the parsing of the schema or of the
- * document to transform.
+ * Instances of this class make a best effort to log warnings (unless configured otherwise) and to
+ * fail fast (throwing an exception) if an error or a fatalError is raised during the parsing of the
+ * schema or of the document to transform.
  * </p>
  */
 public class XmlTransformer {
@@ -28,6 +28,10 @@ public class XmlTransformer {
   /**
    * Provides a transformer instance using the TransformerFactory builtin system-default
    * implementation.
+   * <p>
+   * The system default factory sometimes spits errors to the console instead of through the logging
+   * system due to <a href="https://stackoverflow.com/a/21209904/">a bug</a> in the JDK.
+   * </p>
    *
    * @return a transformer instance.
    */
@@ -37,9 +41,8 @@ public class XmlTransformer {
   }
 
   /**
-   * Provides a transformer instance using the TransformerFactory found using the
-   * <a href="../../../module-summary.html#LookupMechanism">JAXP Lookup Mechanism</a>, thus,
-   * equivalent to the one obtained with {@link TransformerFactory#newInstance()}.
+   * Provides a transformer instance using the TransformerFactory found using the JAXP Lookup
+   * Mechanism, thus, equivalent to the one obtained with {@link TransformerFactory#newInstance()}.
    * <p>
    * The system property that determines which Factory implementation to create is
    * {@link #FACTORY_PROPERTY}.
@@ -100,7 +103,7 @@ public class XmlTransformer {
      * https://stackoverflow.com/a/4699749.
      *
      * The default implementation (from Apache Xalan) seems to have a bug preventing it from using
-     * the provided error listener, see https://stackoverflow.com/a/21209904/.
+     * the provided error listener.
      */
     try {
       factory.setAttribute("http://saxon.sf.net/feature/messageEmitterClass",
@@ -130,7 +133,7 @@ public class XmlTransformer {
    * @return a sourced transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet.
    */
-  public XmlToStringConfiguredTransformer usingEmptySource() throws XmlException {
+  public XmlConfiguredTransformer usingEmptySource() throws XmlException {
     return forSourceInternal(null, ImmutableMap.of());
   }
 
@@ -145,7 +148,7 @@ public class XmlTransformer {
    * @return a sourced transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet.
    */
-  public XmlToStringConfiguredTransformer forSource(Source stylesheet) throws XmlException {
+  public XmlConfiguredTransformer forSource(Source stylesheet) throws XmlException {
     return forSource(stylesheet, ImmutableMap.of());
   }
 
@@ -159,7 +162,7 @@ public class XmlTransformer {
    * @return a sourced transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet.
    */
-  public XmlToStringConfiguredTransformer forSource(Source stylesheet,
+  public XmlConfiguredTransformer forSource(Source stylesheet,
       Map<XmlName, String> parameters) throws XmlException {
     checkNotNull(stylesheet);
     checkNotNull(parameters);

@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
-class XmlConfiguredTransformerImpl implements XmlToStringConfiguredTransformer {
+class XmlConfiguredTransformerImpl implements XmlConfiguredTransformer {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlConfiguredTransformerImpl.class);
 
