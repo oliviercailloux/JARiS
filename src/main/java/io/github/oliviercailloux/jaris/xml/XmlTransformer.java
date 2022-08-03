@@ -119,6 +119,10 @@ public class XmlTransformer {
     checkArgument(factory.getErrorListener() instanceof XmlTransformRecordingErrorListener);
   }
 
+  TransformerFactory factory() {
+    return factory;
+  }
+
   /**
    * Returns a sourced transformer that may be used to transform documents using the “identity”
    * transform.

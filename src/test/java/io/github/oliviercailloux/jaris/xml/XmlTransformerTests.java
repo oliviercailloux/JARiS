@@ -1,5 +1,6 @@
 package io.github.oliviercailloux.jaris.xml;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -7,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.xml.transform.stream.StreamSource;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,9 +30,38 @@ class XmlTransformerTests {
   }
 
   @Test
-  void testTransformSimpleDocBook() throws Exception {
-    final StreamSource docBook = new StreamSource(
-        XmlTransformerTests.class.getResource("docbook simple article.xml").toString());
+  void testDocBookStyleOnBriBri() throws Exception {
+    final StreamSource myStyle =
+        new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
+
+    /*
+     * On BriBri, Java 17, this uses the internal TF irrespective of whether xalan is in the CP. It
+     * spits plenty on the console (bypassing the logger mechanism) before crashing.
+     */
+    final XmlTransformer t = XmlTransformer.usingSystemDefaultFactory();
+    assertEquals("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl",
+        t.factory().getClass().getName());
+    final XmlException xalanExc = assertThrows(XmlException.class, () -> t.forSource(myStyle));
+    final String reason = xalanExc.getCause().getMessage();
+    assertTrue(reason.contains("JAXP0801003"), reason);
+
+    /* The external Apache Xalan 2.7.2 implementation works. */
+    final boolean xalanIsInClassPath =
+        Class.forName(getClass().getClassLoader().getUnnamedModule(), XALAN_FACTORY) != null;
+    LOGGER.info("Xalan in class path? {}.", xalanIsInClassPath);
+    if (xalanIsInClassPath) {
+      System.setProperty(XmlTransformer.FACTORY_PROPERTY, XALAN_FACTORY);
+      assertDoesNotThrow(() -> XmlTransformer.usingFoundFactory().forSource(myStyle));
+    }
+    {
+      assertDoesNotThrow(() -> XmlTransformer
+          .usingFactory(new net.sf.saxon.TransformerFactoryImpl()).forSource(myStyle));
+    }
+  }
+
+  @Test
+  @Disabled
+  void testDocBookStyleOnSaucisson() throws Exception {
     final StreamSource myStyle =
         /*
          * Much faster (obtains transformer from stylesheet in 4 sec instead of 17 sec), but depends
@@ -43,10 +74,13 @@ class XmlTransformerTests {
 
     final boolean xalanIsInClassPath =
         Class.forName(getClass().getClassLoader().getUnnamedModule(), XALAN_FACTORY) != null;
+    LOGGER.info("Xalan in class path? {}.", xalanIsInClassPath);
     if (!xalanIsInClassPath) {
       /* This is too complex for pure JDK embedded transformer (Apache Xalan). */
-      final XmlException xalanExc = assertThrows(XmlException.class,
-          () -> XmlTransformer.usingSystemDefaultFactory().forSource(myStyle).transform(docBook));
+      final XmlTransformer t = XmlTransformer.usingSystemDefaultFactory();
+      assertEquals("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl",
+          t.factory().getClass().getName());
+      final XmlException xalanExc = assertThrows(XmlException.class, () -> t.forSource(myStyle));
       final String reason = xalanExc.getCause().getMessage();
       assertTrue(reason.contains("insertCallouts"), reason);
     }
@@ -56,12 +90,33 @@ class XmlTransformerTests {
      * https://xml.apache.org/xalan-j/features.html#source_location.
      */
     if (xalanIsInClassPath) {
-      final XmlException xalanExc = assertThrows(XmlException.class,
-          () -> XmlTransformer.usingSystemDefaultFactory().forSource(myStyle).transform(docBook));
+      final XmlTransformer t = XmlTransformer.usingSystemDefaultFactory();
+      assertEquals("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl",
+          t.factory().getClass().getName());
+      final XmlException xalanExc = assertThrows(XmlException.class, () -> t.forSource(myStyle));
       final String reason = xalanExc.getCause().getMessage();
       assertTrue(reason.contains("org.apache.xalan.lib.NodeInfo.systemId"), reason);
     }
     /* The external Apache Xalan 2.7.2 implementation works. */
+    if (xalanIsInClassPath) {
+      System.setProperty(XmlTransformer.FACTORY_PROPERTY, XALAN_FACTORY);
+      assertDoesNotThrow(() -> XmlTransformer.usingFoundFactory().forSource(myStyle));
+    }
+    {
+      assertDoesNotThrow(() -> XmlTransformer
+          .usingFactory(new net.sf.saxon.TransformerFactoryImpl()).forSource(myStyle));
+    }
+  }
+
+  @Test
+  void testTransformSimpleDocBook() throws Exception {
+    final StreamSource docBook = new StreamSource(
+        XmlTransformerTests.class.getResource("docbook simple article.xml").toString());
+    final StreamSource myStyle =
+        new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
+
+    final boolean xalanIsInClassPath =
+        Class.forName(getClass().getClassLoader().getUnnamedModule(), XALAN_FACTORY) != null;
     if (xalanIsInClassPath) {
       System.setProperty(XmlTransformer.FACTORY_PROPERTY, XALAN_FACTORY);
       final String transformed =
@@ -88,19 +143,6 @@ class XmlTransformerTests {
 
     final boolean xalanIsInClassPath =
         Class.forName(getClass().getClassLoader().getUnnamedModule(), XALAN_FACTORY) != null;
-    LOGGER.info("Xalan in class path? {}.", xalanIsInClassPath);
-    if (!xalanIsInClassPath) {
-      final XmlException xalanExc = assertThrows(XmlException.class,
-          () -> XmlTransformer.usingSystemDefaultFactory().forSource(myStyle).transform(docBook));
-      final String reason = xalanExc.getCause().getMessage();
-      assertTrue(reason.contains("insertCallouts"), reason);
-    }
-    if (xalanIsInClassPath) {
-      final XmlException xalanExc = assertThrows(XmlException.class,
-          () -> XmlTransformer.usingSystemDefaultFactory().forSource(myStyle).transform(docBook));
-      final String reason = xalanExc.getCause().getMessage();
-      assertTrue(reason.contains("org.apache.xalan.lib.NodeInfo.systemId"), reason);
-    }
     if (xalanIsInClassPath) {
       System.setProperty(XmlTransformer.FACTORY_PROPERTY, XALAN_FACTORY);
       final String transformed =
