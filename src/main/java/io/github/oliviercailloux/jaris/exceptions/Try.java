@@ -1,5 +1,11 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
+import io.github.oliviercailloux.jaris.throwing.TBiFunction;
+import io.github.oliviercailloux.jaris.throwing.TConsumer;
+import io.github.oliviercailloux.jaris.throwing.TFunction;
+import io.github.oliviercailloux.jaris.throwing.TRunnable;
+import io.github.oliviercailloux.jaris.throwing.TSupplier;
+
 /**
  * Represents either a result or a failure and provides operations to deal with cases of successes
  * and of failures in a unified way.
@@ -71,7 +77,7 @@ public interface Try<T, X extends Exception>
    * @throws NullPointerException if the supplier returns {@code null}
    */
   public static <T, X extends Exception> Try<T, X>
-      get(Throwing.Supplier<? extends T, ? extends X> supplier) {
+      get(TSupplier<? extends T, ? extends X> supplier) {
     try {
       return success(supplier.get());
     } catch (RuntimeException e) {
@@ -98,7 +104,7 @@ public interface Try<T, X extends Exception>
    *         throwing
    */
   @Override
-  public abstract Try<T, X> andRun(Throwing.Runnable<? extends X> runnable);
+  public abstract Try<T, X> andRun(TRunnable<? extends X> runnable);
 
   /**
    * Runs the consumer iff this instance is a success, and returns this instance if it succeeds and
@@ -114,7 +120,7 @@ public interface Try<T, X extends Exception>
    *         throwing
    */
   @Override
-  public abstract Try<T, X> andConsume(Throwing.Consumer<? super T, ? extends X> consumer);
+  public abstract Try<T, X> andConsume(TConsumer<? super T, ? extends X> consumer);
 
   /**
    * Returns this failure if this instance is a failure; the provided failure if the provided try is
@@ -133,7 +139,7 @@ public interface Try<T, X extends Exception>
    * @throws NullPointerException if the merger was applied and returned {@code null}
    */
   public abstract <U, V, Y extends Exception> Try<V, X> and(Try<U, ? extends X> t2,
-      Throwing.BiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y;
+      TBiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y;
 
   /**
    * Returns this failure if this instance is a failure; a failure containing the cause thrown by
@@ -151,7 +157,7 @@ public interface Try<T, X extends Exception>
    */
   @Override
   public abstract <U> Try<U, X>
-      andApply(Throwing.Function<? super T, ? extends U, ? extends X> mapper);
+      andApply(TFunction<? super T, ? extends U, ? extends X> mapper);
 
   /**
    * Returns this instance if it is a success; otherwise, returns a success if the supplier returns
@@ -175,6 +181,6 @@ public interface Try<T, X extends Exception>
    *         {@code null}
    */
   public abstract <Y extends Exception, Z extends Exception, W extends Exception> Try<T, Z> or(
-      Throwing.Supplier<? extends T, Y> supplier,
-      Throwing.BiFunction<? super X, ? super Y, ? extends Z, W> exceptionsMerger) throws W;
+      TSupplier<? extends T, Y> supplier,
+      TBiFunction<? super X, ? super Y, ? extends Z, W> exceptionsMerger) throws W;
 }

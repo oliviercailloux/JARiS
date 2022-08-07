@@ -1,5 +1,8 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
+import io.github.oliviercailloux.jaris.throwing.TRunnable;
+import io.github.oliviercailloux.jaris.throwing.TSupplier;
+
 /**
  * A variant of {@link Try} that contains no result in case of success.
  * <p>
@@ -44,7 +47,7 @@ public interface TryVoid<X extends Exception>
    * @param runnable the instance to run
    * @return a success iff the given runnable did not throw.
    */
-  public static <X extends Exception> TryVoid<X> run(Throwing.Runnable<? extends X> runnable) {
+  public static <X extends Exception> TryVoid<X> run(TRunnable<? extends X> runnable) {
     try {
       runnable.run();
     } catch (RuntimeException e) {
@@ -72,10 +75,10 @@ public interface TryVoid<X extends Exception>
    * @return a success iff this instance is a success and the given supplier terminated without
    *         throwing.
    * @throws NullPointerException if the supplier returns {@code null}
-   * @see Try#get(Throwing.Supplier)
+   * @see Try#get(Throwing.TSupplier)
    */
   @Override
-  public <T> Try<T, X> andGet(Throwing.Supplier<? extends T, ? extends X> supplier);
+  public <T> Try<T, X> andGet(TSupplier<? extends T, ? extends X> supplier);
 
   /**
    * If this instance is a success, returns a {@code TryVoid} instance representing the result of
@@ -88,10 +91,10 @@ public interface TryVoid<X extends Exception>
    * @param runnable the runnable to attempt to run if this instance is a success.
    * @return a success iff this instance is a success and the given runnable terminated without
    *         throwing.
-   * @see #run(Throwing.Runnable)
+   * @see #run(Throwing.TRunnable)
    */
   @Override
-  public TryVoid<X> andRun(Throwing.Runnable<? extends X> runnable);
+  public TryVoid<X> andRun(TRunnable<? extends X> runnable);
 
   /**
    * If this instance is a failure, returns a {@code TryVoid} instance representing the result of
@@ -104,8 +107,8 @@ public interface TryVoid<X extends Exception>
    * @param runnable the runnable to attempt to run if this instance is a failure.
    * @return a success iff this instance is a success or the given runnable terminated without
    *         throwing.
-   * @see #run(Throwing.Runnable)
+   * @see #run(Throwing.TRunnable)
    */
   @Override
-  public TryVoid<X> or(Throwing.Runnable<? extends X> runnable);
+  public TryVoid<X> or(TRunnable<? extends X> runnable);
 }

@@ -1,6 +1,14 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
 import com.google.common.collect.ImmutableList;
+import io.github.oliviercailloux.jaris.throwing.TBiConsumer;
+import io.github.oliviercailloux.jaris.throwing.TBiFunction;
+import io.github.oliviercailloux.jaris.throwing.TBinaryOperator;
+import io.github.oliviercailloux.jaris.throwing.TComparator;
+import io.github.oliviercailloux.jaris.throwing.TConsumer;
+import io.github.oliviercailloux.jaris.throwing.TFunction;
+import io.github.oliviercailloux.jaris.throwing.TPredicate;
+import io.github.oliviercailloux.jaris.throwing.TSupplier;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Optional;
@@ -105,7 +113,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @see Stream#generate(Supplier)
    */
   public static <T, X extends Exception> CheckedStream<T, X>
-      generate(Throwing.Supplier<? extends T, ? extends X> generator) {
+      generate(TSupplier<? extends T, ? extends X> generator) {
     return CheckedStreamImpl.generate(generator);
   }
 
@@ -158,7 +166,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @return the new stream
    * @see Stream#dropWhile(Predicate)
    */
-  CheckedStream<T, X> dropWhile(Throwing.Predicate<? super T, ? extends X> predicate);
+  CheckedStream<T, X> dropWhile(TPredicate<? super T, ? extends X> predicate);
 
   /**
    * Returns, if this stream is ordered, a checked stream consisting of the longest prefix of
@@ -193,7 +201,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @return the new stream
    * @see Stream#takeWhile(Predicate)
    */
-  CheckedStream<T, X> takeWhile(Throwing.Predicate<? super T, ? extends X> predicate);
+  CheckedStream<T, X> takeWhile(TPredicate<? super T, ? extends X> predicate);
 
   /**
    * Returns a checked stream consisting of the elements of this stream that match the given
@@ -208,7 +216,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @return the new stream
    * @see Stream#filter(Predicate)
    */
-  CheckedStream<T, X> filter(Throwing.Predicate<? super T, ? extends X> predicate);
+  CheckedStream<T, X> filter(TPredicate<? super T, ? extends X> predicate);
 
   /**
    * Returns a checked stream consisting of the results of replacing each element of this stream
@@ -228,7 +236,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @see Stream#flatMap(Function)
    */
   <R> CheckedStream<R, X>
-      flatMap(Throwing.Function<? super T, ? extends Stream<? extends R>, ? extends X> mapper);
+      flatMap(TFunction<? super T, ? extends Stream<? extends R>, ? extends X> mapper);
 
   /**
    * Returns a checked stream consisting of the elements of this stream, truncated to be no longer
@@ -259,7 +267,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @return the new stream
    * @see Stream#map(Function)
    */
-  <R> CheckedStream<R, X> map(Throwing.Function<? super T, ? extends R, ? extends X> mapper);
+  <R> CheckedStream<R, X> map(TFunction<? super T, ? extends R, ? extends X> mapper);
 
   /**
    * Returns a checked stream consisting of the remaining elements of this stream after discarding
@@ -310,7 +318,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @return the new stream
    * @see Stream#sorted(Comparator)
    */
-  CheckedStream<T, X> sorted(Throwing.Comparator<? super T, ? extends X> comparator);
+  CheckedStream<T, X> sorted(TComparator<? super T, ? extends X> comparator);
 
   /**
    * Performs a <a href="package-summary.html#Reduction">reduction</a> on the elements of this
@@ -347,7 +355,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @throws X if any functional interface operating on this stream throws a checked exception
    * @see Stream#reduce(Object, BinaryOperator) <code>Stream.reduce(T, BinaryOperator)</code>
    */
-  T reduce(T identity, Throwing.BinaryOperator<T, ? extends X> accumulator) throws X;
+  T reduce(T identity, TBinaryOperator<T, ? extends X> accumulator) throws X;
 
   /**
    * Performs a <a href="package-summary.html#Reduction">reduction</a> on the elements of this
@@ -387,12 +395,12 @@ public interface CheckedStream<T, X extends Exception> {
    * @return an {@link Optional} describing the result of the reduction
    * @throws NullPointerException if the result of the reduction is null
    * @throws X if any functional interface operating on this stream throws a checked exception
-   * @see #reduce(Object, Throwing.BinaryOperator)
-   * @see #min(Throwing.Comparator)
-   * @see #max(Throwing.Comparator)
+   * @see #reduce(Object, Throwing.TBinaryOperator)
+   * @see #min(Throwing.TComparator)
+   * @see #max(Throwing.TComparator)
    * @see Stream#reduce(BinaryOperator)
    */
-  Optional<T> reduce(Throwing.BinaryOperator<T, ? extends X> accumulator) throws X;
+  Optional<T> reduce(TBinaryOperator<T, ? extends X> accumulator) throws X;
 
   /**
    * Performs a <a href="package-summary.html#Reduction">reduction</a> on the elements of this
@@ -437,13 +445,13 @@ public interface CheckedStream<T, X extends Exception> {
    *        values, which must be compatible with the accumulator function
    * @return the result of the reduction
    * @throws X if any functional interface operating on this stream throws a checked exception
-   * @see #reduce(Throwing.BinaryOperator)
-   * @see #reduce(Object, Throwing.BinaryOperator)
+   * @see #reduce(Throwing.TBinaryOperator)
+   * @see #reduce(Object, Throwing.TBinaryOperator)
    * @see Stream#reduce(Object, BiFunction, BinaryOperator)
    *      {@code Stream.reduce(U, BiFunction, BinaryOperator)}
    */
-  <U> U reduce(U identity, Throwing.BiFunction<U, ? super T, U, ? extends X> accumulator,
-      Throwing.BinaryOperator<U, ? extends X> combiner) throws X;
+  <U> U reduce(U identity, TBiFunction<U, ? super T, U, ? extends X> accumulator,
+      TBinaryOperator<U, ? extends X> combiner) throws X;
 
   /**
    * Performs a <a href="package-summary.html#MutableReduction">mutable reduction</a> operation on
@@ -461,7 +469,7 @@ public interface CheckedStream<T, X extends Exception> {
    * </pre>
    *
    * <p>
-   * Like {@link #reduce(Object, Throwing.BinaryOperator)}, {@code collect} operations can be
+   * Like {@link #reduce(Object, Throwing.TBinaryOperator)}, {@code collect} operations can be
    * parallelized without requiring additional synchronization.
    *
    * <p>
@@ -485,15 +493,15 @@ public interface CheckedStream<T, X extends Exception> {
    * @throws X if any functional interface operating on this stream throws a checked exception
    * @see Stream#collect(Supplier, BiConsumer, BiConsumer)
    */
-  <R> R collect(Throwing.Supplier<R, ? extends X> supplier,
-      Throwing.BiConsumer<R, ? super T, ? extends X> accumulator,
-      Throwing.BiConsumer<R, R, ? extends X> combiner) throws X;
+  <R> R collect(TSupplier<R, ? extends X> supplier,
+      TBiConsumer<R, ? super T, ? extends X> accumulator, TBiConsumer<R, R, ? extends X> combiner)
+      throws X;
 
   /**
    * Performs a <a href="package-summary.html#MutableReduction">mutable reduction</a> operation on
    * the elements of this stream using a {@code Collector}. A {@code Collector} encapsulates the
    * functions used as arguments to
-   * {@link #collect(Throwing.Supplier, Throwing.BiConsumer, Throwing.BiConsumer)}, allowing for
+   * {@link #collect(Throwing.TSupplier, Throwing.TBiConsumer, Throwing.TBiConsumer)}, allowing for
    * reuse of collection strategies and composition of collect operations such as multiple-level
    * grouping or partitioning.
    *
@@ -517,7 +525,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @param collector the {@code Collector} describing the reduction
    * @return the result of the reduction
    * @throws X if any functional interface operating on this stream throws a checked exception
-   * @see #collect(Throwing.Supplier, Throwing.BiConsumer, Throwing.BiConsumer)
+   * @see #collect(Throwing.TSupplier, Throwing.TBiConsumer, Throwing.TBiConsumer)
    * @see Collectors
    * @see Stream#collect(Collector)
    */
@@ -539,7 +547,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @throws X if any functional interface operating on this stream throws a checked exception
    * @see Stream#allMatch(Predicate)
    */
-  boolean allMatch(Throwing.Predicate<? super T, ? extends X> predicate) throws X;
+  boolean allMatch(TPredicate<? super T, ? extends X> predicate) throws X;
 
   /**
    * Returns whether any elements of this stream match the provided predicate. May not evaluate the
@@ -557,7 +565,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @throws X if any functional interface operating on this stream throws a checked exception
    * @see Stream#anyMatch(Predicate)
    */
-  boolean anyMatch(Throwing.Predicate<? super T, ? extends X> predicate) throws X;
+  boolean anyMatch(TPredicate<? super T, ? extends X> predicate) throws X;
 
   /**
    * Returns whether no elements of this stream match the provided predicate. May not evaluate the
@@ -575,7 +583,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @throws X if any functional interface operating on this stream throws a checked exception
    * @see Stream#noneMatch(Predicate)
    */
-  boolean noneMatch(Throwing.Predicate<? super T, ? extends X> predicate) throws X;
+  boolean noneMatch(TPredicate<? super T, ? extends X> predicate) throws X;
 
   /**
    * Returns a stream consisting of the elements of this stream, additionally performing the
@@ -595,7 +603,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @throws X if any functional interface operating on this stream throws a checked exception
    * @see Stream#peek(Consumer)
    */
-  CheckedStream<T, X> peek(Throwing.Consumer<? super T, ? extends X> action) throws X;
+  CheckedStream<T, X> peek(TConsumer<? super T, ? extends X> action) throws X;
 
   /**
    * Returns the count of elements in this stream. This is a special case of a
@@ -672,7 +680,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @throws X if any functional interface operating on this stream throws a checked exception
    * @see Stream#forEach(Consumer)
    */
-  void forEach(Throwing.Consumer<? super T, ? extends X> action) throws X;
+  void forEach(TConsumer<? super T, ? extends X> action) throws X;
 
   /**
    * Performs an action for each element of this stream, in the encounter order of the stream if the
@@ -691,10 +699,10 @@ public interface CheckedStream<T, X extends Exception> {
    * @param action a <a href="package-summary.html#NonInterference"> non-interfering</a> action to
    *        perform on the elements
    * @throws X if any functional interface operating on this stream throws a checked exception
-   * @see #forEach(Throwing.Consumer)
+   * @see #forEach(Throwing.TConsumer)
    * @see Stream#forEachOrdered(Consumer)
    */
-  void forEachOrdered(Throwing.Consumer<? super T, ? extends X> action) throws X;
+  void forEachOrdered(TConsumer<? super T, ? extends X> action) throws X;
 
   /**
    * Returns the maximum element of this stream according to the provided {@code Comparator}. This
@@ -712,7 +720,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @throws X if any functional interface operating on this stream throws a checked exception
    * @see Stream#max(Comparator)
    */
-  Optional<T> max(Throwing.Comparator<? super T, ? extends X> comparator) throws X;
+  Optional<T> max(TComparator<? super T, ? extends X> comparator) throws X;
 
   /**
    * Returns the minimum element of this stream according to the provided {@code Comparator}. This
@@ -733,7 +741,7 @@ public interface CheckedStream<T, X extends Exception> {
    * @throws X if any functional interface operating on this stream throws a checked exception
    * @see Stream#min(Comparator)
    */
-  Optional<T> min(Throwing.Comparator<? super T, ? extends X> comparator) throws X;
+  Optional<T> min(TComparator<? super T, ? extends X> comparator) throws X;
 
   /**
    * Accumulates the elements of this stream into an immutable list.

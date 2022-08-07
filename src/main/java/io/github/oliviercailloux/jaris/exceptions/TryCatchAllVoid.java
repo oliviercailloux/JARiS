@@ -1,7 +1,7 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
-import io.github.oliviercailloux.jaris.exceptions.Throwing.Runnable;
-import io.github.oliviercailloux.jaris.exceptions.Throwing.Supplier;
+import io.github.oliviercailloux.jaris.throwing.TRunnable;
+import io.github.oliviercailloux.jaris.throwing.TSupplier;
 
 /**
  * A variant of {@link TryCatchAll} that contains no result in case of success.
@@ -41,7 +41,7 @@ public interface TryCatchAllVoid
    * @param runnable the runnable to attempt to run
    * @return a success iff the given runnable did not throw.
    */
-  public static TryCatchAllVoid run(Throwing.Runnable<?> runnable) {
+  public static TryCatchAllVoid run(TRunnable<?> runnable) {
     try {
       runnable.run();
     } catch (Throwable e) {
@@ -65,10 +65,10 @@ public interface TryCatchAllVoid
    * @param supplier the supplier to attempt to get a result from if this instance is a success.
    * @return a success iff this instance is a success and the given supplier terminated without
    *         throwing.
-   * @see Try#get(Supplier)
+   * @see Try#get(TSupplier)
    */
   @Override
-  public <T> TryCatchAll<T> andGet(Throwing.Supplier<? extends T, ? extends Throwable> supplier);
+  public <T> TryCatchAll<T> andGet(TSupplier<? extends T, ? extends Throwable> supplier);
 
   /**
    * If this instance is a success, returns a {@code TryVoid} instance representing the result of
@@ -82,10 +82,10 @@ public interface TryCatchAllVoid
    * @param runnable the runnable to attempt to run if this instance is a success.
    * @return a success iff this instance is a success and the given runnable terminated without
    *         throwing.
-   * @see #run(Runnable)
+   * @see #run(TRunnable)
    */
   @Override
-  public TryCatchAllVoid andRun(Throwing.Runnable<?> runnable);
+  public TryCatchAllVoid andRun(TRunnable<?> runnable);
 
   /**
    * If this instance is a failure, returns a {@code TryVoid} instance representing the result of
@@ -99,8 +99,8 @@ public interface TryCatchAllVoid
    * @param runnable the runnable to attempt to run if this instance is a failure.
    * @return a success iff this instance is a success or the given runnable terminated without
    *         throwing.
-   * @see #run(Runnable)
+   * @see #run(TRunnable)
    */
   @Override
-  public TryCatchAllVoid or(Throwing.Runnable<?> runnable);
+  public TryCatchAllVoid or(TRunnable<?> runnable);
 }

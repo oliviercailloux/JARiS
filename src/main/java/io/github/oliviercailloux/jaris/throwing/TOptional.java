@@ -1,6 +1,5 @@
 package io.github.oliviercailloux.jaris.throwing;
 
-import io.github.oliviercailloux.jaris.exceptions.Throwing;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
@@ -100,7 +99,7 @@ public class TOptional<T> {
    * @param action the action to be performed, if a value is present
    * @throws NullPointerException if value is present and the given action is {@code null}
    */
-  public <X extends Throwable> void ifPresent(Throwing.Consumer<? super T, X> action) throws X {
+  public <X extends Throwable> void ifPresent(TConsumer<? super T, X> action) throws X {
     if (value != null) {
       action.accept(value);
     }
@@ -115,9 +114,8 @@ public class TOptional<T> {
    * @throws NullPointerException if a value is present and the given action is {@code null}, or no
    *         value is present and the given empty-based action is {@code null}.
    */
-  public <X extends Throwable> void ifPresentOrElse(
-      Throwing.Consumer<? super T, ? extends X> action, Throwing.Runnable<? extends X> emptyAction)
-      throws X {
+  public <X extends Throwable> void ifPresentOrElse(TConsumer<? super T, ? extends X> action,
+      TRunnable<? extends X> emptyAction) throws X {
     if (value != null) {
       action.accept(value);
     } else {
@@ -134,8 +132,7 @@ public class TOptional<T> {
    *         present and the value matches the given predicate, otherwise an empty {@code Optional}
    * @throws NullPointerException if the predicate is {@code null}
    */
-  public <X extends Throwable> TOptional<T> filter(Throwing.Predicate<? super T, X> predicate)
-      throws X {
+  public <X extends Throwable> TOptional<T> filter(TPredicate<? super T, X> predicate) throws X {
     Objects.requireNonNull(predicate);
     if (!isPresent()) {
       return this;
@@ -158,8 +155,8 @@ public class TOptional<T> {
    *         of this {@code Optional}, if a value is present, otherwise an empty {@code Optional}
    * @throws NullPointerException if the mapping function is {@code null}
    */
-  public <U, X extends Throwable> TOptional<U>
-      map(Throwing.Function<? super T, ? extends U, X> mapper) throws X {
+  public <U, X extends Throwable> TOptional<U> map(TFunction<? super T, ? extends U, X> mapper)
+      throws X {
     Objects.requireNonNull(mapper);
     if (!isPresent()) {
       return empty();
@@ -179,7 +176,7 @@ public class TOptional<T> {
    *         result
    */
   public <U, X extends Throwable> TOptional<U>
-      flatMap(Throwing.Function<? super T, ? extends TOptional<? extends U>, X> mapper) throws X {
+      flatMap(TFunction<? super T, ? extends TOptional<? extends U>, X> mapper) throws X {
     Objects.requireNonNull(mapper);
     if (!isPresent()) {
       return empty();
@@ -200,7 +197,7 @@ public class TOptional<T> {
    *         {@code null} result
    */
   public <X extends Throwable> TOptional<T>
-      or(Throwing.Supplier<? extends TOptional<? extends T>, X> supplier) throws X {
+      or(TSupplier<? extends TOptional<? extends T>, X> supplier) throws X {
     Objects.requireNonNull(supplier);
     if (isPresent()) {
       return this;
@@ -241,7 +238,7 @@ public class TOptional<T> {
    * @return the value, if present, otherwise the result produced by the supplying function
    * @throws NullPointerException if no value is present and the supplying function is {@code null}
    */
-  public <X extends Throwable> T orElseGet(Throwing.Supplier<? extends T, X> supplier) throws X {
+  public <X extends Throwable> T orElseGet(TSupplier<? extends T, X> supplier) throws X {
     return value != null ? value : supplier.get();
   }
 
@@ -270,7 +267,7 @@ public class TOptional<T> {
    *         {@code null}
    */
   public <X extends Throwable, Y extends Throwable> T
-      orElseThrow(Throwing.Supplier<? extends X, Y> exceptionSupplier) throws X, Y {
+      orElseThrow(TSupplier<? extends X, Y> exceptionSupplier) throws X, Y {
     if (value != null) {
       return value;
     }

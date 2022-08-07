@@ -2,8 +2,8 @@ package io.github.oliviercailloux.jaris.io;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.MoreFiles;
-import io.github.oliviercailloux.jaris.exceptions.Throwing;
 import io.github.oliviercailloux.jaris.exceptions.Unchecker;
+import io.github.oliviercailloux.jaris.throwing.TPredicate;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileVisitOption;
@@ -52,7 +52,7 @@ public class PathUtils {
    * @throws IOException if an I/O error is thrown when accessing a file or if the predicate throws
    */
   public static ImmutableSet<Path> getMatchingChildren(Path start,
-      Throwing.Predicate<Path, IOException> filter, FileVisitOption... options) throws IOException {
+      TPredicate<Path, IOException> filter, FileVisitOption... options) throws IOException {
     final Predicate<Path> wrapped = UNCHECKER.wrapPredicate(filter);
     try (Stream<Path> found =
         Files.find(start, Integer.MAX_VALUE, (p, a) -> wrapped.test(p), options)) {

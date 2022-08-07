@@ -1,5 +1,11 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
+import io.github.oliviercailloux.jaris.throwing.TBiFunction;
+import io.github.oliviercailloux.jaris.throwing.TConsumer;
+import io.github.oliviercailloux.jaris.throwing.TFunction;
+import io.github.oliviercailloux.jaris.throwing.TRunnable;
+import io.github.oliviercailloux.jaris.throwing.TSupplier;
+
 /**
  * Represents either a result or a failure and provides operations to deal with cases of successes
  * and of failures in a unified way.
@@ -66,7 +72,7 @@ public interface TryCatchAll<T>
    * @return a success containing the result if the supplier returns a result; a failure containing
    *         the throwable if the supplier throws
    */
-  public static <T> TryCatchAll<T> get(Throwing.Supplier<? extends T, ?> supplier) {
+  public static <T> TryCatchAll<T> get(TSupplier<? extends T, ?> supplier) {
     try {
       return success(supplier.get());
     } catch (Throwable e) {
@@ -90,7 +96,7 @@ public interface TryCatchAll<T>
    *         throwing
    */
   @Override
-  public abstract TryCatchAll<T> andRun(Throwing.Runnable<?> runnable);
+  public abstract TryCatchAll<T> andRun(TRunnable<?> runnable);
 
   /**
    * Returns a failure containing this cause if this instance is a failure, a failure containing the
@@ -107,7 +113,7 @@ public interface TryCatchAll<T>
    *         throwing
    */
   @Override
-  public abstract TryCatchAll<T> andConsume(Throwing.Consumer<? super T, ?> consumer);
+  public abstract TryCatchAll<T> andConsume(TConsumer<? super T, ?> consumer);
 
   /**
    * Returns this failure if this instance is a failure; the provided failure if it is a failure and
@@ -126,7 +132,7 @@ public interface TryCatchAll<T>
    * @throws NullPointerException if the merger was applied and returned {@code null}
    */
   public abstract <U, V, Y extends Exception> TryCatchAll<V> and(TryCatchAll<U> t2,
-      Throwing.BiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y;
+      TBiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y;
 
   /**
    * Returns this failure if this instance is a failure; a failure containing the cause thrown by
@@ -144,7 +150,7 @@ public interface TryCatchAll<T>
    */
   @Override
   public abstract <U> TryCatchAll<U>
-      andApply(Throwing.Function<? super T, ? extends U, ? extends Throwable> mapper);
+      andApply(TFunction<? super T, ? extends U, ? extends Throwable> mapper);
 
   /**
    * Returns this instance if it is a success, or merges this instance with the one provided by the
@@ -165,9 +171,9 @@ public interface TryCatchAll<T>
    * @param exceptionsMerger the function invoked to merge both exceptions if this try is a failure
    *        and the given supplier threw a checked exception
    * @return a success if this instance is a success or the given supplier returned a result
-   * @throws W iff the merger was applied and threw a checked exception
+   * @throws W if the merger was applied and threw a checked exception
    */
-  public abstract <W extends Exception> TryCatchAll<T>
-      or(Throwing.Supplier<? extends T, ?> supplier, Throwing.BiFunction<? super Throwable,
-          ? super Throwable, ? extends Throwable, W> exceptionsMerger) throws W;
+  public abstract <W extends Exception> TryCatchAll<T> or(TSupplier<? extends T, ?> supplier,
+      TBiFunction<? super Throwable, ? super Throwable, ? extends Throwable, W> exceptionsMerger)
+      throws W;
 }

@@ -2,8 +2,8 @@ package io.github.oliviercailloux.jaris.collections;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import io.github.oliviercailloux.jaris.exceptions.Throwing;
 import io.github.oliviercailloux.jaris.exceptions.Unchecker;
+import io.github.oliviercailloux.jaris.throwing.TFunction;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -49,7 +49,7 @@ public class CollectionUtils {
    * @throws X if the given function throws an exception while computing values
    */
   public static <K, V, X extends Exception> ImmutableMap<K, V> toMap(Set<K> keys,
-      Throwing.Function<? super K, V, X> valueFunction) throws X {
+      TFunction<? super K, V, X> valueFunction) throws X {
     final Function<? super K, V> wrapped = UNCHECKER.wrapFunction(valueFunction);
     try {
       return Maps.toMap(keys, wrapped::apply);
@@ -78,7 +78,7 @@ public class CollectionUtils {
    *         determined by {@link #equals(Object)})
    */
   public static <K, L, V, X extends Exception> ImmutableMap<L, V> transformKeys(Map<K, V> map,
-      Throwing.Function<? super K, L, X> keyTransformer) throws X {
+      TFunction<? super K, L, X> keyTransformer) throws X {
     final Function<? super K, L> behavedKeyTransformer = UNCHECKER.wrapFunction(keyTransformer);
     final Collector<Entry<K, V>, ?, ImmutableMap<L, V>> collector =
         ImmutableMap.toImmutableMap(e -> behavedKeyTransformer.apply(e.getKey()), Entry::getValue);

@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.base.VerifyException;
+import io.github.oliviercailloux.jaris.throwing.TConsumer;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.MalformedParametersException;
@@ -360,8 +361,8 @@ class TryTests {
     }));
 
     @SuppressWarnings("unchecked")
-    final Throwing.Consumer<Exception, URISyntaxException> c =
-        Mockito.mock(Throwing.Consumer.class);
+    final TConsumer<Exception, URISyntaxException> c =
+        Mockito.mock(TConsumer.class);
     try {
       t.ifFailed(c);
       Mockito.verify(c).accept(cause);

@@ -3,6 +3,14 @@ package io.github.oliviercailloux.jaris.exceptions;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
+import io.github.oliviercailloux.jaris.throwing.TBiConsumer;
+import io.github.oliviercailloux.jaris.throwing.TBiFunction;
+import io.github.oliviercailloux.jaris.throwing.TBinaryOperator;
+import io.github.oliviercailloux.jaris.throwing.TComparator;
+import io.github.oliviercailloux.jaris.throwing.TConsumer;
+import io.github.oliviercailloux.jaris.throwing.TFunction;
+import io.github.oliviercailloux.jaris.throwing.TPredicate;
+import io.github.oliviercailloux.jaris.throwing.TSupplier;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -42,7 +50,7 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   }
 
   public static <T, X extends Exception> CheckedStreamImpl<T, X>
-      generate(Throwing.Supplier<? extends T, ? extends X> generator) {
+      generate(TSupplier<? extends T, ? extends X> generator) {
     final Supplier<? extends T> wrapped = UNCHECKER.wrapSupplier(generator);
     return new CheckedStreamImpl<>(Stream.generate(wrapped));
   }
@@ -59,26 +67,26 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   }
 
   @Override
-  public CheckedStreamImpl<T, X> dropWhile(Throwing.Predicate<? super T, ? extends X> predicate) {
+  public CheckedStreamImpl<T, X> dropWhile(TPredicate<? super T, ? extends X> predicate) {
     final Predicate<? super T> wrapped = UNCHECKER.wrapPredicate(predicate);
     return new CheckedStreamImpl<>(delegate.dropWhile(wrapped));
   }
 
   @Override
-  public CheckedStreamImpl<T, X> takeWhile(Throwing.Predicate<? super T, ? extends X> predicate) {
+  public CheckedStreamImpl<T, X> takeWhile(TPredicate<? super T, ? extends X> predicate) {
     final Predicate<? super T> wrapped = UNCHECKER.wrapPredicate(predicate);
     return new CheckedStreamImpl<>(delegate.takeWhile(wrapped));
   }
 
   @Override
-  public CheckedStreamImpl<T, X> filter(Throwing.Predicate<? super T, ? extends X> predicate) {
+  public CheckedStreamImpl<T, X> filter(TPredicate<? super T, ? extends X> predicate) {
     final Predicate<? super T> wrapped = UNCHECKER.wrapPredicate(predicate);
     return new CheckedStreamImpl<>(delegate.filter(wrapped));
   }
 
   @Override
   public <R> CheckedStreamImpl<R, X>
-      flatMap(Throwing.Function<? super T, ? extends Stream<? extends R>, ? extends X> mapper) {
+      flatMap(TFunction<? super T, ? extends Stream<? extends R>, ? extends X> mapper) {
     final Function<? super T, ? extends Stream<? extends R>> wrapped =
         UNCHECKER.wrapFunction(mapper);
     return new CheckedStreamImpl<>(delegate.flatMap(wrapped));
@@ -91,7 +99,7 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
 
   @Override
   public <R> CheckedStreamImpl<R, X>
-      map(Throwing.Function<? super T, ? extends R, ? extends X> mapper) {
+      map(TFunction<? super T, ? extends R, ? extends X> mapper) {
     final Function<? super T, ? extends R> wrapped = UNCHECKER.wrapFunction(mapper);
     return new CheckedStreamImpl<>(delegate.map(wrapped));
   }
@@ -107,13 +115,13 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   }
 
   @Override
-  public CheckedStreamImpl<T, X> sorted(Throwing.Comparator<? super T, ? extends X> comparator) {
+  public CheckedStreamImpl<T, X> sorted(TComparator<? super T, ? extends X> comparator) {
     final Comparator<? super T> wrapped = UNCHECKER.wrapComparator(comparator);
     return new CheckedStreamImpl<>(delegate.sorted(wrapped));
   }
 
   @Override
-  public T reduce(T identity, Throwing.BinaryOperator<T, ? extends X> accumulator) throws X {
+  public T reduce(T identity, TBinaryOperator<T, ? extends X> accumulator) throws X {
     final BinaryOperator<T> wrapped = UNCHECKER.wrapBinaryOperator(accumulator);
     try {
       return delegate.reduce(identity, wrapped);
@@ -126,7 +134,7 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   }
 
   @Override
-  public Optional<T> reduce(Throwing.BinaryOperator<T, ? extends X> accumulator) throws X {
+  public Optional<T> reduce(TBinaryOperator<T, ? extends X> accumulator) throws X {
     final BinaryOperator<T> wrapped = UNCHECKER.wrapBinaryOperator(accumulator);
     try {
       return delegate.reduce(wrapped);
@@ -139,8 +147,8 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   }
 
   @Override
-  public <U> U reduce(U identity, Throwing.BiFunction<U, ? super T, U, ? extends X> accumulator,
-      Throwing.BinaryOperator<U, ? extends X> combiner) throws X {
+  public <U> U reduce(U identity, TBiFunction<U, ? super T, U, ? extends X> accumulator,
+      TBinaryOperator<U, ? extends X> combiner) throws X {
     final BiFunction<U, ? super T, U> wrappedAccumulator = UNCHECKER.wrapBiFunction(accumulator);
     final BinaryOperator<U> wrappedCombiner = UNCHECKER.wrapBinaryOperator(combiner);
     try {
@@ -154,9 +162,9 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   }
 
   @Override
-  public <R> R collect(Throwing.Supplier<R, ? extends X> supplier,
-      Throwing.BiConsumer<R, ? super T, ? extends X> accumulator,
-      Throwing.BiConsumer<R, R, ? extends X> combiner) throws X {
+  public <R> R collect(TSupplier<R, ? extends X> supplier,
+      TBiConsumer<R, ? super T, ? extends X> accumulator,
+      TBiConsumer<R, R, ? extends X> combiner) throws X {
     final Supplier<R> wrappedSupplier = UNCHECKER.wrapSupplier(supplier);
     final BiConsumer<R, ? super T> wrappedAccumulator = UNCHECKER.wrapBiConsumer(accumulator);
     final BiConsumer<R, R> wrappedCombiner = UNCHECKER.wrapBiConsumer(combiner);
@@ -204,7 +212,7 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
    * @see Stream#allMatch(Predicate)
    */
   @Override
-  public boolean allMatch(Throwing.Predicate<? super T, ? extends X> predicate) throws X {
+  public boolean allMatch(TPredicate<? super T, ? extends X> predicate) throws X {
     /*
      * Any checked exception thrown by predicate is supposed to extend X, by its header. Only such
      * exceptions are wrapped into an InternalException instance by the UNCHECKER. Thus, any
@@ -222,7 +230,7 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   }
 
   @Override
-  public boolean anyMatch(Throwing.Predicate<? super T, ? extends X> predicate) throws X {
+  public boolean anyMatch(TPredicate<? super T, ? extends X> predicate) throws X {
     final Predicate<? super T> wrapped = UNCHECKER.wrapPredicate(predicate);
     try {
       return delegate.anyMatch(wrapped);
@@ -235,7 +243,7 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   }
 
   @Override
-  public boolean noneMatch(Throwing.Predicate<? super T, ? extends X> predicate) throws X {
+  public boolean noneMatch(TPredicate<? super T, ? extends X> predicate) throws X {
     final Predicate<? super T> wrapped = UNCHECKER.wrapPredicate(predicate);
     try {
       return delegate.noneMatch(wrapped);
@@ -248,7 +256,7 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   }
 
   @Override
-  public CheckedStreamImpl<T, X> peek(Throwing.Consumer<? super T, ? extends X> action) throws X {
+  public CheckedStreamImpl<T, X> peek(TConsumer<? super T, ? extends X> action) throws X {
     final Consumer<? super T> wrapped = UNCHECKER.wrapConsumer(action);
     try {
       return new CheckedStreamImpl<>(delegate.peek(wrapped));
@@ -297,7 +305,7 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   }
 
   @Override
-  public void forEach(Throwing.Consumer<? super T, ? extends X> action) throws X {
+  public void forEach(TConsumer<? super T, ? extends X> action) throws X {
     final Consumer<? super T> wrapped = UNCHECKER.wrapConsumer(action);
     try {
       delegate.forEach(wrapped);
@@ -310,7 +318,7 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   }
 
   @Override
-  public void forEachOrdered(Throwing.Consumer<? super T, ? extends X> action) throws X {
+  public void forEachOrdered(TConsumer<? super T, ? extends X> action) throws X {
     final Consumer<? super T> wrapped = UNCHECKER.wrapConsumer(action);
     try {
       delegate.forEachOrdered(wrapped);
@@ -323,7 +331,7 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   }
 
   @Override
-  public Optional<T> max(Throwing.Comparator<? super T, ? extends X> comparator) throws X {
+  public Optional<T> max(TComparator<? super T, ? extends X> comparator) throws X {
     final Comparator<? super T> wrapped = UNCHECKER.wrapComparator(comparator);
     try {
       return delegate.max(wrapped);
@@ -336,7 +344,7 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   }
 
   @Override
-  public Optional<T> min(Throwing.Comparator<? super T, ? extends X> comparator) throws X {
+  public Optional<T> min(TComparator<? super T, ? extends X> comparator) throws X {
     final Comparator<? super T> wrapped = UNCHECKER.wrapComparator(comparator);
     try {
       return delegate.min(wrapped);

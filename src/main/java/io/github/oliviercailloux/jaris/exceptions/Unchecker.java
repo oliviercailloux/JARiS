@@ -1,6 +1,15 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
 import com.google.common.base.VerifyException;
+import io.github.oliviercailloux.jaris.throwing.TBiConsumer;
+import io.github.oliviercailloux.jaris.throwing.TBiFunction;
+import io.github.oliviercailloux.jaris.throwing.TBinaryOperator;
+import io.github.oliviercailloux.jaris.throwing.TComparator;
+import io.github.oliviercailloux.jaris.throwing.TConsumer;
+import io.github.oliviercailloux.jaris.throwing.TFunction;
+import io.github.oliviercailloux.jaris.throwing.TPredicate;
+import io.github.oliviercailloux.jaris.throwing.TRunnable;
+import io.github.oliviercailloux.jaris.throwing.TSupplier;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
@@ -105,7 +114,7 @@ public class Unchecker<X extends Exception, Y extends RuntimeException>
    * @param runnable the instance that is delegated to
    * @return a delegating runnable
    */
-  public Runnable wrapRunnable(Throwing.Runnable<? extends X> runnable) {
+  public Runnable wrapRunnable(TRunnable<? extends X> runnable) {
     return () -> {
       try {
         runnable.run();
@@ -128,7 +137,7 @@ public class Unchecker<X extends Exception, Y extends RuntimeException>
    * @param supplier the instance that is delegated to
    * @return a delegating supplier
    */
-  public <T> Supplier<T> wrapSupplier(Throwing.Supplier<? extends T, ? extends X> supplier) {
+  public <T> Supplier<T> wrapSupplier(TSupplier<? extends T, ? extends X> supplier) {
     return () -> {
       try {
         return supplier.get();
@@ -151,7 +160,7 @@ public class Unchecker<X extends Exception, Y extends RuntimeException>
    * @param comparator the instance that is delegated to
    * @return a delegating comparator
    */
-  public <T> Comparator<T> wrapComparator(Throwing.Comparator<? super T, ? extends X> comparator) {
+  public <T> Comparator<T> wrapComparator(TComparator<? super T, ? extends X> comparator) {
     return (t1, t2) -> {
       try {
         return comparator.compare(t1, t2);
@@ -174,7 +183,7 @@ public class Unchecker<X extends Exception, Y extends RuntimeException>
    * @param consumer the instance that is delegated to
    * @return a delegating consumer
    */
-  public <T> Consumer<T> wrapConsumer(Throwing.Consumer<? super T, ? extends X> consumer) {
+  public <T> Consumer<T> wrapConsumer(TConsumer<? super T, ? extends X> consumer) {
     return t -> {
       try {
         consumer.accept(t);
@@ -199,7 +208,7 @@ public class Unchecker<X extends Exception, Y extends RuntimeException>
    * @return a delegating bi consumer
    */
   public <T, U> BiConsumer<T, U>
-      wrapBiConsumer(Throwing.BiConsumer<? super T, ? super U, ? extends X> consumer) {
+      wrapBiConsumer(TBiConsumer<? super T, ? super U, ? extends X> consumer) {
     return (t, u) -> {
       try {
         consumer.accept(t, u);
@@ -224,7 +233,7 @@ public class Unchecker<X extends Exception, Y extends RuntimeException>
    * @return a delegating function
    */
   public <F, T> Function<F, T>
-      wrapFunction(Throwing.Function<? super F, ? extends T, ? extends X> function) {
+      wrapFunction(TFunction<? super F, ? extends T, ? extends X> function) {
     return arg -> {
       try {
         return function.apply(arg);
@@ -250,7 +259,7 @@ public class Unchecker<X extends Exception, Y extends RuntimeException>
    * @return a delegating bi function
    */
   public <F1, F2, T> BiFunction<F1, F2, T> wrapBiFunction(
-      Throwing.BiFunction<? super F1, ? super F2, ? extends T, ? extends X> function) {
+      TBiFunction<? super F1, ? super F2, ? extends T, ? extends X> function) {
     return (t, u) -> {
       try {
         return function.apply(t, u);
@@ -274,7 +283,7 @@ public class Unchecker<X extends Exception, Y extends RuntimeException>
    * @return a delegating binary operator
    */
   public <F> BinaryOperator<F>
-      wrapBinaryOperator(Throwing.BinaryOperator<F, ? extends X> operator) {
+      wrapBinaryOperator(TBinaryOperator<F, ? extends X> operator) {
     return (t, u) -> {
       try {
         return operator.apply(t, u);
@@ -297,7 +306,7 @@ public class Unchecker<X extends Exception, Y extends RuntimeException>
    * @param predicate the instance that is delegated to
    * @return a delegating predicate
    */
-  public <F> Predicate<F> wrapPredicate(Throwing.Predicate<? super F, ? extends X> predicate) {
+  public <F> Predicate<F> wrapPredicate(TPredicate<? super F, ? extends X> predicate) {
     return (arg) -> {
       try {
         return predicate.test(arg);

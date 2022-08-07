@@ -2,6 +2,8 @@ package io.github.oliviercailloux.jaris.exceptions;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.github.oliviercailloux.jaris.throwing.TRunnable;
+import io.github.oliviercailloux.jaris.throwing.TSupplier;
 import java.util.function.Function;
 
 class UncheckedImpl<X extends Exception, Y extends Exception> implements Unchecked<X, Y> {
@@ -13,7 +15,7 @@ class UncheckedImpl<X extends Exception, Y extends Exception> implements Uncheck
   }
 
   @Override
-  public void call(Throwing.Runnable<X> runnable) throws Y {
+  public void call(TRunnable<X> runnable) throws Y {
     try {
       runnable.run();
     } catch (RuntimeException e) {
@@ -26,7 +28,7 @@ class UncheckedImpl<X extends Exception, Y extends Exception> implements Uncheck
   }
 
   @Override
-  public <T> T getUsing(Throwing.Supplier<T, ? extends X> supplier) throws Y {
+  public <T> T getUsing(TSupplier<T, ? extends X> supplier) throws Y {
     try {
       return supplier.get();
     } catch (RuntimeException e) {
