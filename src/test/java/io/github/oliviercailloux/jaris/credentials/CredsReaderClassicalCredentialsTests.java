@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.jimfs.Jimfs;
-import io.github.oliviercailloux.jaris.collections.ImmutableCompleteMap;
-import io.github.oliviercailloux.jaris.credentials.CredentialsReader.ClassicalCredentials;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -51,78 +49,77 @@ class CredsReaderClassicalCredentialsTests {
   @SetSystemProperty(key = API_PASSWORD, value = "prop password")
   @Test
   public void test2SysProps() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader =
-        CredentialsReader.using(ClassicalCredentials.class, getNonExistentFile());
+    final CredentialsReader<Credentials> credsReader =
+        CredentialsReader.using(Credentials.class, getNonExistentFile());
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
+    final Credentials myAuth = credsReader.getCredentials();
 
-    assertEquals("prop username", myAuth.get(ClassicalCredentials.API_USERNAME));
-    assertEquals("prop password", myAuth.get(ClassicalCredentials.API_PASSWORD));
+    assertEquals("prop username", myAuth.API_USERNAME());
+    assertEquals("prop password", myAuth.API_PASSWORD());
   }
 
   @SetSystemProperty(key = API_USERNAME, value = "prop username")
   @SetSystemProperty(key = API_PASSWORD, value = "prop password")
   @Test
   public void test2SysPropsAnd2Env() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader =
-        CredentialsReader.using(ClassicalCredentials.class, getNonExistentFile());
+    final CredentialsReader<Credentials> credsReader =
+        CredentialsReader.using(Credentials.class, getNonExistentFile());
     credsReader.env = Map.of(API_USERNAME, "env username", API_PASSWORD, "env password");
 
-    final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
+    final Credentials myAuth = credsReader.getCredentials();
 
-    assertEquals("prop username", myAuth.get(ClassicalCredentials.API_USERNAME));
-    assertEquals("prop password", myAuth.get(ClassicalCredentials.API_PASSWORD));
+    assertEquals("prop username", myAuth.API_USERNAME());
+    assertEquals("prop password", myAuth.API_PASSWORD());
   }
 
   @SetSystemProperty(key = API_USERNAME, value = "prop username")
   @SetSystemProperty(key = API_PASSWORD, value = "prop password")
   @Test
   public void test2SysPropsAnd1Env() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader =
-        CredentialsReader.using(ClassicalCredentials.class, getNonExistentFile());
+    final CredentialsReader<Credentials> credsReader =
+        CredentialsReader.using(Credentials.class, getNonExistentFile());
     credsReader.env = Map.of(API_USERNAME, "env username");
 
-    final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
+    final Credentials myAuth = credsReader.getCredentials();
 
-    assertEquals("prop username", myAuth.get(ClassicalCredentials.API_USERNAME));
-    assertEquals("prop password", myAuth.get(ClassicalCredentials.API_PASSWORD));
+    assertEquals("prop username", myAuth.API_USERNAME());
+    assertEquals("prop password", myAuth.API_PASSWORD());
   }
 
   @SetSystemProperty(key = API_USERNAME, value = "prop username")
   @SetSystemProperty(key = API_PASSWORD, value = "prop password")
   @Test
   public void test2SysPropsAnd2InFile() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader = CredentialsReader
-        .using(ClassicalCredentials.class, createApiLoginFile("file username", "file password"));
+    final CredentialsReader<Credentials> credsReader = CredentialsReader.using(Credentials.class,
+        createApiLoginFile("file username", "file password"));
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
+    final Credentials myAuth = credsReader.getCredentials();
 
-    assertEquals("prop username", myAuth.get(ClassicalCredentials.API_USERNAME));
-    assertEquals("prop password", myAuth.get(ClassicalCredentials.API_PASSWORD));
+    assertEquals("prop username", myAuth.API_USERNAME());
+    assertEquals("prop password", myAuth.API_PASSWORD());
   }
 
   @SetSystemProperty(key = API_USERNAME, value = "prop username")
   @SetSystemProperty(key = API_PASSWORD, value = "prop password")
   @Test
   public void test2SysPropsAnd3InFile() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader =
-        CredentialsReader.using(ClassicalCredentials.class,
-            createApiLoginFile("file username", "file password", "supplementary"));
+    final CredentialsReader<Credentials> credsReader = CredentialsReader.using(Credentials.class,
+        createApiLoginFile("file username", "file password", "supplementary"));
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
+    final Credentials myAuth = credsReader.getCredentials();
 
-    assertEquals("prop username", myAuth.get(ClassicalCredentials.API_USERNAME));
-    assertEquals("prop password", myAuth.get(ClassicalCredentials.API_PASSWORD));
+    assertEquals("prop username", myAuth.API_USERNAME());
+    assertEquals("prop password", myAuth.API_PASSWORD());
   }
 
   @SetSystemProperty(key = API_USERNAME, value = "prop username")
   @Test
   public void test1SysPropMissing1() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader =
-        CredentialsReader.using(ClassicalCredentials.class, getNonExistentFile());
+    final CredentialsReader<Credentials> credsReader =
+        CredentialsReader.using(Credentials.class, getNonExistentFile());
     credsReader.env = Map.of();
 
     assertThrows(IllegalStateException.class, () -> credsReader.getCredentials());
@@ -131,8 +128,8 @@ class CredsReaderClassicalCredentialsTests {
   @SetSystemProperty(key = API_USERNAME, value = "prop username")
   @Test
   public void test1SysPropMissing1And2Env() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader =
-        CredentialsReader.using(ClassicalCredentials.class, getNonExistentFile());
+    final CredentialsReader<Credentials> credsReader =
+        CredentialsReader.using(Credentials.class, getNonExistentFile());
     credsReader.env = Map.of(API_USERNAME, "env username", API_PASSWORD, "env password");
 
     assertThrows(IllegalStateException.class, () -> credsReader.getCredentials());
@@ -141,8 +138,8 @@ class CredsReaderClassicalCredentialsTests {
   @SetSystemProperty(key = API_USERNAME, value = "prop username")
   @Test
   public void test1SysPropMissing1And2InFile() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader = CredentialsReader
-        .using(ClassicalCredentials.class, createApiLoginFile("file username", "file password"));
+    final CredentialsReader<Credentials> credsReader = CredentialsReader.using(Credentials.class,
+        createApiLoginFile("file username", "file password"));
     credsReader.env = Map.of();
 
     assertThrows(IllegalStateException.class, () -> credsReader.getCredentials());
@@ -150,20 +147,20 @@ class CredsReaderClassicalCredentialsTests {
 
   @Test
   public void test0SysPropsAnd2Env() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader =
-        CredentialsReader.using(ClassicalCredentials.class, getNonExistentFile());
+    final CredentialsReader<Credentials> credsReader =
+        CredentialsReader.using(Credentials.class, getNonExistentFile());
     credsReader.env = Map.of(API_USERNAME, "env username", API_PASSWORD, "env password");
 
-    final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
+    final Credentials myAuth = credsReader.getCredentials();
 
-    assertEquals("env username", myAuth.get(ClassicalCredentials.API_USERNAME));
-    assertEquals("env password", myAuth.get(ClassicalCredentials.API_PASSWORD));
+    assertEquals("env username", myAuth.API_USERNAME());
+    assertEquals("env password", myAuth.API_PASSWORD());
   }
 
   @Test
   public void test0SysPropsAnd1Env() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader =
-        CredentialsReader.using(ClassicalCredentials.class, getNonExistentFile());
+    final CredentialsReader<Credentials> credsReader =
+        CredentialsReader.using(Credentials.class, getNonExistentFile());
     credsReader.env = Map.of(API_USERNAME, "env username");
 
     assertThrows(IllegalStateException.class, () -> credsReader.getCredentials());
@@ -171,8 +168,8 @@ class CredsReaderClassicalCredentialsTests {
 
   @Test
   public void test0SysPropsAnd1EnvAnd2InFile() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader = CredentialsReader
-        .using(ClassicalCredentials.class, createApiLoginFile("file username", "file password"));
+    final CredentialsReader<Credentials> credsReader = CredentialsReader.using(Credentials.class,
+        createApiLoginFile("file username", "file password"));
     credsReader.env = Map.of(API_USERNAME, "env username");
 
     assertThrows(IllegalStateException.class, () -> credsReader.getCredentials());
@@ -180,93 +177,92 @@ class CredsReaderClassicalCredentialsTests {
 
   @Test
   public void test0SysPropsAnd0EnvAnd0InFile() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader =
-        CredentialsReader.using(ClassicalCredentials.class, createApiLoginFile());
+    final CredentialsReader<Credentials> credsReader =
+        CredentialsReader.using(Credentials.class, createApiLoginFile());
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
+    final Credentials myAuth = credsReader.getCredentials();
 
-    assertEquals("", myAuth.get(ClassicalCredentials.API_USERNAME));
-    assertEquals("", myAuth.get(ClassicalCredentials.API_PASSWORD));
+    assertEquals("", myAuth.API_USERNAME());
+    assertEquals("", myAuth.API_PASSWORD());
   }
 
   @Test
   public void test0SysPropsAnd0EnvAnd1InFile() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader =
-        CredentialsReader.using(ClassicalCredentials.class, createApiLoginFile("file username"));
+    final CredentialsReader<Credentials> credsReader =
+        CredentialsReader.using(Credentials.class, createApiLoginFile("file username"));
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
+    final Credentials myAuth = credsReader.getCredentials();
 
-    assertEquals("file username", myAuth.get(ClassicalCredentials.API_USERNAME));
-    assertEquals("", myAuth.get(ClassicalCredentials.API_PASSWORD));
+    assertEquals("file username", myAuth.API_USERNAME());
+    assertEquals("", myAuth.API_PASSWORD());
   }
 
   @Test
   public void test0SysPropsAnd0EnvAnd1InFileThen1EmptyLine() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader = CredentialsReader
-        .using(ClassicalCredentials.class, createApiLoginFile("file username", ""));
+    final CredentialsReader<Credentials> credsReader =
+        CredentialsReader.using(Credentials.class, createApiLoginFile("file username", ""));
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
+    final Credentials myAuth = credsReader.getCredentials();
 
-    assertEquals("file username", myAuth.get(ClassicalCredentials.API_USERNAME));
-    assertEquals("", myAuth.get(ClassicalCredentials.API_PASSWORD));
+    assertEquals("file username", myAuth.API_USERNAME());
+    assertEquals("", myAuth.API_PASSWORD());
   }
 
   @Test
   public void test0SysPropsAnd0EnvAnd1InFileThen2EmptyLines() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader = CredentialsReader
-        .using(ClassicalCredentials.class, createApiLoginFile("file username", "", ""));
+    final CredentialsReader<Credentials> credsReader =
+        CredentialsReader.using(Credentials.class, createApiLoginFile("file username", "", ""));
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
+    final Credentials myAuth = credsReader.getCredentials();
 
-    assertEquals("file username", myAuth.get(ClassicalCredentials.API_USERNAME));
-    assertEquals("", myAuth.get(ClassicalCredentials.API_PASSWORD));
+    assertEquals("file username", myAuth.API_USERNAME());
+    assertEquals("", myAuth.API_PASSWORD());
   }
 
   @Test
   public void test0SysPropsAnd0EnvAnd1InFileThen3EmptyLines() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader = CredentialsReader
-        .using(ClassicalCredentials.class, createApiLoginFile("file username", "", "", ""));
+    final CredentialsReader<Credentials> credsReader =
+        CredentialsReader.using(Credentials.class, createApiLoginFile("file username", "", "", ""));
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
+    final Credentials myAuth = credsReader.getCredentials();
 
-    assertEquals("file username", myAuth.get(ClassicalCredentials.API_USERNAME));
-    assertEquals("", myAuth.get(ClassicalCredentials.API_PASSWORD));
+    assertEquals("file username", myAuth.API_USERNAME());
+    assertEquals("", myAuth.API_PASSWORD());
   }
 
   @Test
   public void test0SysPropsAnd0EnvAnd2InFile() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader = CredentialsReader
-        .using(ClassicalCredentials.class, createApiLoginFile("file username", "file password"));
+    final CredentialsReader<Credentials> credsReader = CredentialsReader.using(Credentials.class,
+        createApiLoginFile("file username", "file password"));
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
+    final Credentials myAuth = credsReader.getCredentials();
 
-    assertEquals("file username", myAuth.get(ClassicalCredentials.API_USERNAME));
-    assertEquals("file password", myAuth.get(ClassicalCredentials.API_PASSWORD));
+    assertEquals("file username", myAuth.API_USERNAME());
+    assertEquals("file password", myAuth.API_PASSWORD());
   }
 
   @Test
   public void test0SysPropsAnd0EnvAnd2InFileThen1EmptyLine() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader = CredentialsReader.using(
-        ClassicalCredentials.class, createApiLoginFile("file username", "file password", ""));
+    final CredentialsReader<Credentials> credsReader = CredentialsReader.using(Credentials.class,
+        createApiLoginFile("file username", "file password", ""));
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<ClassicalCredentials, String> myAuth = credsReader.getCredentials();
+    final Credentials myAuth = credsReader.getCredentials();
 
-    assertEquals("file username", myAuth.get(ClassicalCredentials.API_USERNAME));
-    assertEquals("file password", myAuth.get(ClassicalCredentials.API_PASSWORD));
+    assertEquals("file username", myAuth.API_USERNAME());
+    assertEquals("file password", myAuth.API_PASSWORD());
   }
 
   @Test
   public void test0SysPropsAnd0EnvAnd3InFile() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader =
-        CredentialsReader.using(ClassicalCredentials.class,
-            createApiLoginFile("file username", "file password", "supplementary"));
+    final CredentialsReader<Credentials> credsReader = CredentialsReader.using(Credentials.class,
+        createApiLoginFile("file username", "file password", "supplementary"));
     credsReader.env = Map.of();
 
     assertThrows(IllegalStateException.class, () -> credsReader.getCredentials());
@@ -274,9 +270,8 @@ class CredsReaderClassicalCredentialsTests {
 
   @Test
   public void test0SysPropsAnd0EnvAnd3InFileWithEmptyLines() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader =
-        CredentialsReader.using(ClassicalCredentials.class,
-            createApiLoginFile("file username", "file password", "", "", "supplementary"));
+    final CredentialsReader<Credentials> credsReader = CredentialsReader.using(Credentials.class,
+        createApiLoginFile("file username", "file password", "", "", "supplementary"));
     credsReader.env = Map.of();
 
     assertThrows(IllegalStateException.class, () -> credsReader.getCredentials());
@@ -284,8 +279,8 @@ class CredsReaderClassicalCredentialsTests {
 
   @Test
   public void test0SysPropsAnd0EnvAndNoFile() throws Exception {
-    final CredentialsReader<ClassicalCredentials> credsReader =
-        CredentialsReader.using(ClassicalCredentials.class, getNonExistentFile());
+    final CredentialsReader<Credentials> credsReader =
+        CredentialsReader.using(Credentials.class, getNonExistentFile());
     credsReader.env = Map.of();
 
     assertThrows(NoSuchElementException.class, () -> credsReader.getCredentials());

@@ -15,7 +15,7 @@ This project adheres to the https://github.com/classgraph/classgraph/blob/master
 
 The API is _not_ stable. Write to me if you are interested in using this library and would like its API to be stable, or want more example code.
 
-The following sections list the utilities that this library provides (by package).
+The following sections list some of the utilities that this library provides (by package).
 
 == Credentials
 https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/credentials/CredentialsReader.html[`CredentialsReader`] permits to read user’s credentials (authentication information) from the system properties, then if not found there, from the environment, then if not found there, from a file.
@@ -26,19 +26,19 @@ Consider the following code.
 
 [source, java]
 ----
-CredentialsReader<ClassicalCredentials> reader = CredentialsReader.classicalReader();
-Map<ClassicalCredentials, String> myAuth = reader.getCredentials();
-String username = myAuth.get(ClassicalCredentials.API_USERNAME);
-String password = myAuth.get(ClassicalCredentials.API_PASSWORD);
+CredentialsReader<Credentials> reader = CredentialsReader.classicalReader();
+Credentials myAuth = reader.getCredentials();
+String username = myAuth.API_USERNAME();
+String password = myAuth.API_PASSWORD();
 ----
 
-The first line returns a reader configured to read using the `API_USERNAME` and `API_PASSWORD` system properties or environment variables.
+The first line returns a reader configured to read using the `API_USERNAME` and `API_PASSWORD` system properties or environment variables, or from a file.
 
 Start the software with the https://stackoverflow.com/a/7054981[system properties] `API_USERNAME` set to the value `my username` and `API_PASSWORD` to the value `my password` (for example, using the `-D` command line argument when starting java), and these values will be passed to the variables `username` and `password`.
 
-Assuming these system properties are not set, but the environment variables `API_USERNAME` and `API_PASSWORD` are set:, these variables will then hold the corresponding values.
+Assuming that these system properties are not set, but the environment variables `API_USERNAME` and `API_PASSWORD` are set, these variables will then hold the corresponding values.
 
-Assume that neither these system properties nor these environment variables are set, but a file `API_credentials.txt` exists, containing two lines of text: in this case, the returned `credentials` instance will contain as username the first line of the file, and as password, the second line.
+Assume that neither these system properties nor these environment variables are set, but a file `API_credentials.txt` exists, containing two lines of text: in this case, the returned `myAuth` instance will contain as username the first line of the file, and as password, the second line.
 
 This mechanism is particularly appropriate for developing open source projects, where you do not want the credentials (for example, those used for testing the software) to be committed in the version control system. In such a situation, a classical problem is that such private credentials will also not be directly available from the continuous integration server. To solve this, put the credentials in a file on your own machine, so that they are available while you develop (it is easier and cleaner than configuring environment variables), and store the credentials in environment variables on the continuous integration server (which is usually made easy by the continuous integration web interface). The code above will make your application adapt automatically and find the credentials in both situations. You can also override them manually when starting the application, using system properties, if necessary.
 
@@ -61,9 +61,9 @@ void testRunnableDoesNotThrow() {
 }
 ----
 
-Note that calling `someRunnable` normally requires to deal with the (possible) https://docs.oracle.com/en/java/javase/12/docs/api/java.sql/java/sql/SQLException.html[`SQLException`], as it is a checked exception declared by `someRunnable`. We see that the method `testRunnableDoesNotThrow`, however, does nothing to deal with it, and does not declare it either. This is because the `unchecker` will transform the `SQLException`, if thrown when calling `someRunnable`, into an unchecked exception, here, an `IllegalStateException`. The transformation is done thanks to the wrapper given as a parameter to the `wrappingWith` factory method.
+Note that calling `someRunnable` normally requires to deal with the (possible) https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/SQLException.html[`SQLException`], as it is a checked exception declared by `someRunnable`. We see that the method `testRunnableDoesNotThrow`, however, does nothing to deal with it, and does not declare it either. This is because the `unchecker` will transform the `SQLException`, if thrown when calling `someRunnable`, into an unchecked exception, here, an `IllegalStateException`. The transformation is done thanks to the wrapper given as a parameter to the `wrappingWith` factory method.
 
-Use directly `Unchecker.link:https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/exceptions/Unchecker.html#IO_UNCHECKER[IO_UNCHECKER]` when desiring to transform https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/io/IOException.html[`IOException`] instances to https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/io/UncheckedIOException.html[`UncheckedIOException`] ones.
+Use directly `Unchecker.link:https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/exceptions/Unchecker.html#IO_UNCHECKER[IO_UNCHECKER]` when desiring to transform https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html[`IOException`] instances to https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/UncheckedIOException.html[`UncheckedIOException`] ones.
 
 == Xml
 A few helper classes to deal with XML, using the DOM (Document Object Model), XSLT, or schema based validation. See the https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/xml/package-summary.html[package documentation].

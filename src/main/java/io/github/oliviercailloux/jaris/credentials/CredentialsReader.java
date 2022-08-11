@@ -1,18 +1,23 @@
 package io.github.oliviercailloux.jaris.credentials;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verify;
 import static io.github.oliviercailloux.jaris.exceptions.Unchecker.IO_UNCHECKER;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
-import io.github.oliviercailloux.jaris.collections.ImmutableCompleteMap;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Parameter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -28,8 +33,11 @@ import org.slf4j.LoggerFactory;
  * This class permits to read a user’s credentials (authentication information) from various
  * sources.
  * <p>
- * This object is associated with an ordered set of {@code keys} and to a {@code filePath}. It will
- * attempt to read credentials from several sources in turn.
+ * This object is associated with a class {@code K} and to a {@code filePath}. The class {@code K}
+ * must have a unique public constructor whose parameters are solely of type {@code String} (it may
+ * be the implicit constructor of a record). The parameters of that constructor determine the
+ * {@code keys} associated with this object. This object will attempt to read credentials associated
+ * to these keys from several sources in turn.
  * </p>
  * <ul>
  * <li>This object will read credentials from the system properties if all the keys in {@code keys}
@@ -50,9 +58,7 @@ import org.slf4j.LoggerFactory;
  * {@code keys} or contain empty lines.
  * </p>
  * <p>
- * This object will read from system properties and environment variables named according to
- * {@code keys}, transformed to string using {@link Object#toString()}. It is suggested to use
- * uppercase to follow the usual <a href=
+ * As for {@code keys}, it is suggested to use uppercase to follow the usual <a href=
  * "https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html">convention</a> about
  * environment variables.
  * </p>
@@ -71,55 +77,24 @@ import org.slf4j.LoggerFactory;
  *
  * <pre>
  * {@code
- * public static enum MyOwnCredentialKeys {
- *   MY_FIRST_KEY, MY_SECOND_KEY, MY_THIRD_KEY
+ * public record MyOwnCredentials(String MY_FIRST_KEY, String MY_SECOND_KEY, String MY_THIRD_KEY) {
  * }
  *
- * CredentialsReader<MyOwnCredentialKeys> reader =
+ * CredentialsReader<MyOwnCredentials> reader =
  *   CredentialsReader.using(MyOwnCredentials.class, Path.of("my file.txt"));
- * ImmutableCompleteMap<MyOwnCredentialKeys, String> credentials = reader.getCredentials();
- * String valueReadCorrespondingToMyFirstKey = credentials.get(MyOwnCredentialKeys.MY_FIRST_KEY);
+ * MyOwnCredentials credentials = reader.getCredentials();
+ * String valueReadCorrespondingToMyFirstKey = credentials.MY_FIRST_KEY();
  * // and so on for other keys.
  * }
  * </pre>
  * <p>
- * See also the
- * <a href="https://github.com/oliviercailloux/JARiS/blob/master/README.adoc">readme</a> of this
- * library.
+ * See also the <a href="https://github.com/oliviercailloux/JARiS/blob/main/README.adoc">readme</a>
+ * of this library.
  * </p>
  */
-public class CredentialsReader<K extends Enum<K>> {
+public class CredentialsReader<K> {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(CredentialsReader.class);
-
-  /**
-   * The enum type used in a key reader.
-   *
-   * @see CredentialsReader#keyReader()
-   */
-  public static enum KeyCredential {
-    /**
-     * The unique enum instance for use with single key authentication.
-     */
-    API_KEY
-  }
-
-  /**
-   * The enum type used in a classical reader, for use with username and password style
-   * authentication.
-   *
-   * @see CredentialsReader#classicalReader()
-   */
-  public static enum ClassicalCredentials {
-    /**
-     * The username key, for use with username and password style authentication.
-     */
-    API_USERNAME,
-    /**
-     * The password key, for use with username and password style authentication.
-     */
-    API_PASSWORD
-  }
 
   /**
    * The default value of the file path.
@@ -128,6 +103,10 @@ public class CredentialsReader<K extends Enum<K>> {
 
   private final Class<K> keysType;
   private final Path filePath;
+
+  private final Constructor<K> constructor;
+
+  private final ImmutableSet<Parameter> parameters;
 
   Map<String, String> env = System.getenv();
 
@@ -141,7 +120,7 @@ public class CredentialsReader<K extends Enum<K>> {
    * @see #keyReader()
    * @see #classicalReader()
    */
-  public static <K extends Enum<K>> CredentialsReader<K> using(Class<K> keysType, Path filePath) {
+  public static <K> CredentialsReader<K> using(Class<K> keysType, Path filePath) {
     return new CredentialsReader<>(keysType, filePath);
   }
 
@@ -163,13 +142,30 @@ public class CredentialsReader<K extends Enum<K>> {
    * @return a default instance.
    * @see #using(Class, Path)
    */
-  public static CredentialsReader<ClassicalCredentials> classicalReader() {
-    return new CredentialsReader<>(ClassicalCredentials.class, DEFAULT_FILE_PATH);
+  public static CredentialsReader<Credentials> classicalReader() {
+    return new CredentialsReader<>(Credentials.class, DEFAULT_FILE_PATH);
   }
 
   private CredentialsReader(Class<K> keysType, Path filePath) {
     this.keysType = checkNotNull(keysType);
     this.filePath = checkNotNull(filePath);
+
+    final ImmutableSet<Constructor<?>> suitableConstructors = ImmutableSet
+        .copyOf(keysType.getDeclaredConstructors()).stream().filter(c -> c.canAccess(null))
+        .filter(c -> ImmutableSet.copyOf(c.getParameters()).stream()
+            .allMatch(p -> p.getType().equals(String.class)))
+        .collect(ImmutableSet.toImmutableSet());
+    checkArgument(suitableConstructors.size() == 1);
+    final Constructor<?> nonTypedconstructor = Iterables.getOnlyElement(suitableConstructors);
+    parameters = ImmutableSet.copyOf(nonTypedconstructor.getParameters());
+    verify(parameters.stream().allMatch(p -> p.getType().equals(String.class)));
+    try {
+      constructor = keysType.getDeclaredConstructor(
+          parameters.stream().map(Parameter::getType).toList().toArray(new Class[] {}));
+    } catch (NoSuchMethodException e) {
+      throw new IllegalStateException(e);
+    }
+    verify(constructor.equals(nonTypedconstructor));
   }
 
   /**
@@ -205,70 +201,74 @@ public class CredentialsReader<K extends Enum<K>> {
    *         unmappable byte sequence is read from the file.
    * @see CredentialsReader
    */
-  public ImmutableCompleteMap<K, String> getCredentials()
+  public K getCredentials() throws IllegalStateException, UncheckedIOException {
+    try {
+      return constructor.newInstance(getCredentialsByParam().values().toArray());
+    } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  private ImmutableMap<Parameter, String> getCredentialsByParam()
       throws IllegalStateException, UncheckedIOException {
-    final ImmutableSet<K> keys = ImmutableSet.copyOf(keysType.getEnumConstants());
+    final ImmutableMap.Builder<Parameter, String> builder = ImmutableMap.builder();
     {
-      final ImmutableMap.Builder<K, String> builder = ImmutableMap.builder();
-      for (K key : keys) {
-        final Optional<String> info = Optional.ofNullable(System.getProperty(key.toString()));
-        LOGGER.info("Got {} from {}.", info, key);
-        info.ifPresent(s -> builder.put(key, s));
+      for (Parameter p : parameters) {
+        final Optional<String> info = Optional.ofNullable(System.getProperty(p.getName()));
+        info.ifPresent(s -> builder.put(p, s));
       }
-      final ImmutableMap<K, String> credentials = builder.build();
+      final ImmutableMap<Parameter, String> credentials = builder.build();
 
       final int size = credentials.size();
-      if (size > 0 && size < keys.size()) {
+      if (size > 0 && size < parameters.size()) {
         throw new IllegalStateException(
             "Partial credential information found in system properties: " + credentials.keySet()
-                + ", missing: " + Sets.difference(keys, credentials.keySet()));
+                + ", missing: " + Sets.difference(parameters, credentials.keySet()));
       }
 
-      if (credentials.keySet().equals(keys)) {
-        LOGGER.info("Found credentials in system properties {}.", keys);
-        return ImmutableCompleteMap.fromEnumType(keysType, credentials);
+      if (credentials.keySet().equals(parameters)) {
+        LOGGER.info("Found credentials in system properties {}.", parameters);
+        return credentials;
       }
     }
 
     {
-      final ImmutableMap.Builder<K, String> builder = ImmutableMap.builder();
-      for (K key : keys) {
-        final Optional<String> info = Optional.ofNullable(env.get(key.toString()));
-        info.ifPresent(s -> builder.put(key, s));
+      for (Parameter p : parameters) {
+        final Optional<String> info = Optional.ofNullable(env.get(p.getName()));
+        info.ifPresent(s -> builder.put(p, s));
       }
-      final ImmutableMap<K, String> credentials = builder.build();
+      final ImmutableMap<Parameter, String> credentials = builder.build();
 
       final int size = credentials.size();
-      if (size > 0 && size < keys.size()) {
+      if (size > 0 && size < parameters.size()) {
         throw new IllegalStateException(
             "Partial credential information found in environment variables: " + credentials.keySet()
-                + ", missing: " + Sets.difference(keys, credentials.keySet()));
+                + ", missing: " + Sets.difference(parameters, credentials.keySet()));
       }
 
-      if (credentials.keySet().equals(keys)) {
-        LOGGER.info("Found credentials in environment variables {}.", keys);
-        return ImmutableCompleteMap.fromEnumType(keysType, credentials);
+      if (credentials.keySet().equals(parameters)) {
+        LOGGER.info("Found credentials in environment variables {}.", parameters);
+        return credentials;
       }
     }
 
     {
       if (!Files.exists(filePath)) {
         throw new NoSuchElementException("No credential information found (searching in keys "
-            + keys + " and in file " + filePath + ").");
+            + parameters + " and in file " + filePath + ").");
       }
 
       final List<String> lines = IO_UNCHECKER.getUsing(() -> Files.readAllLines(filePath));
-      final List<String> supplementaryLines = lines.size() < keys.size() ? ImmutableList.of()
-          : lines.subList(keys.size(), lines.size());
+      final List<String> supplementaryLines = lines.size() < parameters.size() ? ImmutableList.of()
+          : lines.subList(parameters.size(), lines.size());
       checkState(supplementaryLines.stream().allMatch(s -> s.equals("")), "File " + filePath
-          + " is too long: it has non-empty content after line number " + keys.size() + ".");
-      final ImmutableMap.Builder<K, String> builder = ImmutableMap.builder();
-      Streams.forEachPair(keys.stream(), Stream.concat(lines.stream(), Stream.generate(() -> "")),
-          builder::put);
-      final ImmutableMap<K, String> credentials = builder.build();
+          + " is too long: it has non-empty content after line number " + parameters.size() + ".");
+      Streams.forEachPair(parameters.stream(),
+          Stream.concat(lines.stream(), Stream.generate(() -> "")), builder::put);
+      final ImmutableMap<Parameter, String> credentials = builder.build();
 
       LOGGER.info("Found credentials in file {}.", filePath);
-      return ImmutableCompleteMap.fromEnumType(keysType, credentials);
+      return credentials;
     }
   }
 

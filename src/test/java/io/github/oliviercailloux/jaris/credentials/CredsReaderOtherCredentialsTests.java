@@ -6,8 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.jimfs.Jimfs;
-import io.github.oliviercailloux.jaris.collections.ImmutableCompleteMap;
-import io.github.oliviercailloux.jaris.credentials.CredentialsReader.KeyCredential;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -49,13 +47,14 @@ class CredsReaderOtherCredentialsTests {
   @SetSystemProperty(key = API_KEY, value = "prop key")
   @Test
   public void test1SysProp() throws Exception {
-    final CredentialsReader<KeyCredential> credsReader =
-        CredentialsReader.using(KeyCredential.class, getNonExistentFile());
+    final CredentialsReader<io.github.oliviercailloux.jaris.credentials.KeyCredential> credsReader =
+        CredentialsReader.keyReader();
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<KeyCredential, String> myAuth = credsReader.getCredentials();
+    final io.github.oliviercailloux.jaris.credentials.KeyCredential myAuth =
+        credsReader.getCredentials();
 
-    assertEquals("prop key", myAuth.get(KeyCredential.API_KEY));
+    assertEquals("prop key", myAuth.API_KEY());
   }
 
   @SetSystemProperty(key = API_KEY, value = "prop key")
@@ -65,9 +64,9 @@ class CredsReaderOtherCredentialsTests {
         CredentialsReader.using(KeyCredential.class, getNonExistentFile());
     credsReader.env = Map.of(API_KEY, "env key");
 
-    final ImmutableCompleteMap<KeyCredential, String> myAuth = credsReader.getCredentials();
+    final KeyCredential myAuth = credsReader.getCredentials();
 
-    assertEquals("prop key", myAuth.get(KeyCredential.API_KEY));
+    assertEquals("prop key", myAuth.API_KEY());
   }
 
   @SetSystemProperty(key = API_KEY, value = "prop key")
@@ -77,9 +76,9 @@ class CredsReaderOtherCredentialsTests {
         CredentialsReader.using(KeyCredential.class, createApiLoginFile("file key"));
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<KeyCredential, String> myAuth = credsReader.getCredentials();
+    final KeyCredential myAuth = credsReader.getCredentials();
 
-    assertEquals("prop key", myAuth.get(KeyCredential.API_KEY));
+    assertEquals("prop key", myAuth.API_KEY());
   }
 
   @SetSystemProperty(key = API_KEY, value = "prop key")
@@ -89,9 +88,9 @@ class CredsReaderOtherCredentialsTests {
         CredentialsReader.using(KeyCredential.class, createApiLoginFile("file key", "spurious"));
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<KeyCredential, String> myAuth = credsReader.getCredentials();
+    final KeyCredential myAuth = credsReader.getCredentials();
 
-    assertEquals("prop key", myAuth.get(KeyCredential.API_KEY));
+    assertEquals("prop key", myAuth.API_KEY());
   }
 
   @Test
@@ -100,9 +99,9 @@ class CredsReaderOtherCredentialsTests {
         CredentialsReader.using(KeyCredential.class, getNonExistentFile());
     credsReader.env = Map.of(API_KEY, "env key");
 
-    final ImmutableCompleteMap<KeyCredential, String> myAuth = credsReader.getCredentials();
+    final KeyCredential myAuth = credsReader.getCredentials();
 
-    assertEquals("env key", myAuth.get(KeyCredential.API_KEY));
+    assertEquals("env key", myAuth.API_KEY());
   }
 
   @Test
@@ -111,9 +110,9 @@ class CredsReaderOtherCredentialsTests {
         CredentialsReader.using(KeyCredential.class, createApiLoginFile());
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<KeyCredential, String> myAuth = credsReader.getCredentials();
+    final KeyCredential myAuth = credsReader.getCredentials();
 
-    assertEquals("", myAuth.get(KeyCredential.API_KEY));
+    assertEquals("", myAuth.API_KEY());
   }
 
   @Test
@@ -122,9 +121,9 @@ class CredsReaderOtherCredentialsTests {
         CredentialsReader.using(KeyCredential.class, createApiLoginFile("file key"));
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<KeyCredential, String> myAuth = credsReader.getCredentials();
+    final KeyCredential myAuth = credsReader.getCredentials();
 
-    assertEquals("file key", myAuth.get(KeyCredential.API_KEY));
+    assertEquals("file key", myAuth.API_KEY());
   }
 
   @Test
@@ -133,9 +132,9 @@ class CredsReaderOtherCredentialsTests {
         CredentialsReader.using(KeyCredential.class, createApiLoginFile("file key", ""));
     credsReader.env = Map.of();
 
-    final ImmutableCompleteMap<KeyCredential, String> myAuth = credsReader.getCredentials();
+    final KeyCredential myAuth = credsReader.getCredentials();
 
-    assertEquals("file key", myAuth.get(KeyCredential.API_KEY));
+    assertEquals("file key", myAuth.API_KEY());
   }
 
   @Test
@@ -165,13 +164,10 @@ class CredsReaderOtherCredentialsTests {
     assertThrows(NoSuchElementException.class, () -> credsReader.getCredentials());
   }
 
-  private static enum EmptyEnum {
-  }
-
   @Test
   public void testNoKeyNoFile() throws Exception {
-    CredentialsReader<EmptyEnum> credsReader =
-        CredentialsReader.using(EmptyEnum.class, getNonExistentFile());
+    CredentialsReader<EmptyRecord> credsReader =
+        CredentialsReader.using(EmptyRecord.class, getNonExistentFile());
     credsReader.env = Map.of();
 
     assertDoesNotThrow(() -> credsReader.getCredentials());
@@ -179,8 +175,8 @@ class CredsReaderOtherCredentialsTests {
 
   @Test
   public void testNoKeyAnd0InFile() throws Exception {
-    CredentialsReader<EmptyEnum> credsReader =
-        CredentialsReader.using(EmptyEnum.class, createApiLoginFile());
+    CredentialsReader<EmptyRecord> credsReader =
+        CredentialsReader.using(EmptyRecord.class, createApiLoginFile());
     credsReader.env = Map.of();
 
     assertDoesNotThrow(() -> credsReader.getCredentials());
@@ -188,8 +184,8 @@ class CredsReaderOtherCredentialsTests {
 
   @Test
   public void testNoKeyAnd1InFile() throws Exception {
-    CredentialsReader<EmptyEnum> credsReader =
-        CredentialsReader.using(EmptyEnum.class, createApiLoginFile("spurious"));
+    CredentialsReader<EmptyRecord> credsReader =
+        CredentialsReader.using(EmptyRecord.class, createApiLoginFile("spurious"));
     credsReader.env = Map.of();
 
     assertDoesNotThrow(() -> credsReader.getCredentials());
