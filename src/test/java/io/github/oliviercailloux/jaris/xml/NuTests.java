@@ -3,8 +3,10 @@ package io.github.oliviercailloux.jaris.xml;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,7 +14,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import nu.validator.client.EmbeddedValidator;
 import nu.validator.messages.GnuMessageEmitter;
 import nu.validator.messages.MessageEmitterAdapter;
+import nu.validator.messages.TextMessageEmitter;
 import nu.validator.servlet.imagereview.ImageCollector;
+import nu.validator.source.SourceCode;
 import nu.validator.validation.SimpleDocumentValidator;
 import nu.validator.xml.SystemErrErrorHandler;
 import org.junit.jupiter.api.Test;
@@ -50,7 +54,7 @@ public class NuTests {
   }
 
   @Test
-  void testJingRejects() throws Exception {
+  void testUnwrappedRejects() throws Exception {
     final Path path = Path.of(getClass().getResource("invalid.html").toURI());
     final boolean asciiQuotes = false;
     final boolean detectLanguages = false;
@@ -100,6 +104,37 @@ public class NuTests {
     }
 
     adapter.end(MSG_SUCCESS, MSG_FAIL, "");
+    final String output = new String(out.toByteArray(), StandardCharsets.UTF_8);
+    LOGGER.info("Rejected invalid: {}.", output);
+    assertFalse(output.isEmpty());
+  }
+
+  /**
+   * https://gist.github.com/vincent-zurczak/23e0f626eaafab96cb32
+   */
+  @Test
+  void testVZ() throws Exception {
+    final Path path = Path.of(getClass().getResource("invalid.html").toURI());
+
+    InputStream in = new ByteArrayInputStream(htmlContent.getBytes("UTF-8"));
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+    SourceCode sourceCode = new SourceCode();
+    ImageCollector imageCollector = new ImageCollector(sourceCode);
+    boolean showSource = false;
+    MessageEmitter emitter = new TextMessageEmitter(out, false);
+    MessageEmitterAdapter errorHandler =
+        new MessageEmitterAdapter(sourceCode, showSource, imageCollector, 0, false, emitter);
+    errorHandler.setErrorsOnly(true);
+
+    SimpleDocumentValidator validator = new SimpleDocumentValidator();
+    validator.setUpMainSchema("http://s.validator.nu/html5-rdfalite.rnc",
+        new SystemErrErrorHandler());
+    validator.setUpValidatorAndParsers(errorHandler, true, false);
+    validator.checkHtmlInputSource(new InputSource(in));
+
+    return 0 == errorHandler.getErrors();
+
     final String output = new String(out.toByteArray(), StandardCharsets.UTF_8);
     LOGGER.info("Rejected invalid: {}.", output);
     assertFalse(output.isEmpty());
