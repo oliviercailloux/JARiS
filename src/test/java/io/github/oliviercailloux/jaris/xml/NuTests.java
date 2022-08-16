@@ -482,15 +482,20 @@ public class NuTests {
   /**
    * https://stackoverflow.com/a/44038951
    *
-   * java -cp vnu.jar com.thaiopensource.relaxng.util.Driver \
-  -c https://raw.github.com/validator/validator/master/schema/html5/xhtml5.rnc \
-  FILE.xhtml
+   * java -cp vnu.jar com.thaiopensource.relaxng.util.Driver \ -c
+   * https://raw.github.com/validator/validator/master/schema/html5/xhtml5.rnc \ FILE.xhtml
    */
-  testViaCmd() {
+  @Test
+  void testViaCmdRejects() {
     boolean timing = false;
     String encoding = null;
-//    Localizer localizer = new Localizer(Driver.class);
+    // Localizer localizer = new Localizer(Driver.class);
     Localizer localizer = new Localizer(NuTests.class);
+
+    String[] args = new String[] {"-c",
+        "https://raw.github.com/validator/validator/master/schema/html5/xhtml5.rnc",
+        // EmbeddedValidator.SCHEMA_URL,
+        "src/test/resources/io/github/oliviercailloux/jaris/xml/simple.html"};
 
     ErrorHandlerImpl eh = new ErrorHandlerImpl(System.out);
     OptionParser op = new OptionParser("itcdfe:p:r:", args);
@@ -503,82 +508,77 @@ public class NuTests {
     try {
       while (op.moveToNextOption()) {
         switch (op.getOptionChar()) {
-        case 'i':
-          properties.put(RngProperty.CHECK_ID_IDREF, null);
-          break;
-        case 'c':
-          compact = true;
-          break;
-        case 'd':
-          {
+          case 'i':
+            properties.put(RngProperty.CHECK_ID_IDREF, null);
+            break;
+          case 'c':
+            compact = true;
+            break;
+          case 'd': {
             if (sr == null) {
               sr = new AutoSchemaReader();
             }
             Option option = sr.getOption(SchemaReader.BASE_URI + "diagnose");
             if (option == null) {
               eh.print(localizer.message("no_schematron", op.getOptionCharString()));
-              return 2;
+              throw new IllegalStateException();
             }
             properties.put(option.getPropertyId(), Flag.PRESENT);
           }
-          break;
-        case 't':
-          timing = true;
-          break;
-        case 'e':
-          encoding = op.getOptionArg();
-          break;
-        case 'f':
-          RngProperty.FEASIBLE.add(properties);
-          break;
-        case 'p':
-          {
+            break;
+          case 't':
+            timing = true;
+            break;
+          case 'e':
+            encoding = op.getOptionArg();
+            break;
+          case 'f':
+            RngProperty.FEASIBLE.add(properties);
+            break;
+          case 'p': {
             if (sr == null) {
               sr = new AutoSchemaReader();
             }
             Option option = sr.getOption(SchemaReader.BASE_URI + "phase");
             if (option == null) {
               eh.print(localizer.message("no_schematron", op.getOptionCharString()));
-              return 2;
+              throw new IllegalStateException();
             }
             try {
               properties.put(option.getPropertyId(), option.valueOf(op.getOptionArg()));
-            }
-            catch (OptionArgumentException e) {
+            } catch (OptionArgumentException e) {
               eh.print(localizer.message("invalid_phase", op.getOptionArg()));
-              return 2;
+              throw new IllegalStateException();
             }
           }
-          break;
-        case 'r':
-          try {
-            ValidateProperty.RESOLVER.put(properties,
-                                          Resolver.newInstance(op.getOptionArg(),
-                                                               Driver.class.getClassLoader()));
-          }
-          catch (ResolverInstantiationException e) {
-            eh.print(localizer.message("invalid_resolver_class", e.getMessage()));
-            return 2;
-          }
-          break;
+            break;
+          case 'r':
+            try {
+              ValidateProperty.RESOLVER.put(properties, Resolver.newInstance(op.getOptionArg(),
+                  // Driver.class.getClassLoader()));
+                  NuTests.class.getClassLoader()));
+            } catch (ResolverInstantiationException e) {
+              eh.print(localizer.message("invalid_resolver_class", e.getMessage()));
+              throw new IllegalStateException();
+            }
+            break;
         }
       }
-    }
-    catch (OptionParser.InvalidOptionException e) {
+    } catch (OptionParser.InvalidOptionException e) {
       eh.print(localizer.message("invalid_option", op.getOptionCharString()));
-      return 2;
-    }
-    catch (OptionParser.MissingArgumentException e) {
-      eh.print(localizer.message("option_missing_argument",op.getOptionCharString()));
-      return 2;
+      throw new IllegalStateException();
+    } catch (OptionParser.MissingArgumentException e) {
+      eh.print(localizer.message("option_missing_argument", op.getOptionCharString()));
+      throw new IllegalStateException();
     }
     if (compact) {
       sr = CompactSchemaReader.getInstance();
     }
     args = op.getRemainingArgs();
     if (args.length < 1) {
-      eh.print(localizer.message(usageKey, Version.getVersion(Driver.class)));
-      return 2;
+      // eh.print(localizer.message("usage", Version.getVersion(Driver.class)));
+      eh.print(localizer.message("usage", Version.getVersion(NuTests.class)));
+      throw new IllegalStateException();
     }
     long startTime = System.currentTimeMillis();
     long loadedPatternTime = -1;
@@ -591,20 +591,18 @@ public class NuTests {
       }
       if (driver.loadSchema(in)) {
         loadedPatternTime = System.currentTimeMillis();
-    for (int i = 1; i < args.length; i++) {
-      if (!driver.validate(ValidationDriver.uriOrFileInputSource(args[i]))) {
-        hadError = true;
-      }
-    }
+        for (int i = 1; i < args.length; i++) {
+          if (!driver.validate(ValidationDriver.uriOrFileInputSource(args[i]))) {
+            hadError = true;
+          }
+        }
       } else {
         hadError = true;
       }
-    }
-    catch (SAXException e) {
+    } catch (SAXException e) {
       hadError = true;
       eh.printException(e);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       hadError = true;
       eh.printException(e);
     }
@@ -613,12 +611,9 @@ public class NuTests {
       if (loadedPatternTime < 0) {
         loadedPatternTime = endTime;
       }
-      eh.print(localizer.message("elapsed_time",
-               new Object[] {
-                         new Long(loadedPatternTime - startTime),
-                         new Long(endTime - loadedPatternTime),
-                         new Long(endTime - startTime)
-                       }));
+      eh.print(
+          localizer.message("elapsed_time", new Object[] {new Long(loadedPatternTime - startTime),
+              new Long(endTime - loadedPatternTime), new Long(endTime - startTime)}));
     }
   }
 
