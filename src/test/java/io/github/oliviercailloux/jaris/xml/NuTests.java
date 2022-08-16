@@ -105,8 +105,9 @@ public class NuTests {
     boolean showSource = true;
     boolean batchMode = true;
     final GnuMessageEmitter emitter = new GnuMessageEmitter(out, asciiQuotes);
-    final MessageEmitterAdapter adapter = new MessageEmitterAdapter(null, sdvalidator.getSourceCode(),
-        showSource, new ImageCollector(sdvalidator.getSourceCode()), 0, batchMode, emitter);
+    final MessageEmitterAdapter adapter =
+        new MessageEmitterAdapter(null, sdvalidator.getSourceCode(), showSource,
+            new ImageCollector(sdvalidator.getSourceCode()), 0, batchMode, emitter);
     adapter.setErrorsOnly(false);
     adapter.setHtml(true);
     adapter.start(null);
@@ -150,6 +151,22 @@ public class NuTests {
     final boolean detectLanguages = false;
     final boolean loadExternalEnts = false;
     final boolean noStream = false;
+    final LocalCacheEntityResolver entityResolver;
+
+    com.thaiopensource.validate.Schema mainSchema;
+
+    boolean hasHtml5Schema = false;
+
+    com.thaiopensource.validate.Validator validator;
+
+    final nu.validator.source.SourceCode sourceCode = new SourceCode();
+
+    final org.xml.sax.XMLReader htmlReader;
+
+    final nu.validator.gnu.xml.aelfred2.SAXDriver xmlParser;
+
+    final org.xml.sax.XMLReader xmlReader;
+
     boolean enableLanguageDetection = !detectLanguages;
     PrudentHttpEntityResolver.setParams(
         Integer.parseInt(System.getProperty("nu.validator.servlet.connection-timeout", "5000")),
@@ -159,8 +176,8 @@ public class NuTests {
     if (enableLanguageDetection) {
       System.setProperty("nu.validator.checker.enableLangDetection", "1");
     }
-    this.entityResolver = new LocalCacheEntityResolver(new NullEntityResolver());
-    this.entityResolver.setAllowRnc(true);
+    entityResolver = new LocalCacheEntityResolver(new NullEntityResolver());
+    entityResolver.setAllowRnc(true);
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     boolean showSource = true;
     boolean batchMode = true;
@@ -192,22 +209,19 @@ public class NuTests {
       schema = sr.createSchema(schemaInput, jingPropertyMap);
     }
     if (schemaUrl.contains("html5")) {
-      assertionSchema = CheckerSchema.ASSERTION_SCH;
-      langdetectSchema = CheckerSchema.LANGUAGE_DETECTING_CHECKER;
       schema = new DataAttributeDroppingSchemaWrapper(schema);
       schema = new XmlLangAttributeDroppingSchemaWrapper(schema);
       schema = new RoleAttributeFilteringSchemaWrapper(schema);
       schema = new TemplateElementDroppingSchemaWrapper(schema);
       schema = new NamespaceChangingSchemaWrapper(schema);
-      this.hasHtml5Schema = true;
+      hasHtml5Schema = true;
       if ("http://s.validator.nu/html5-all.rnc".equals(schemaUrl)) {
         System.setProperty("nu.validator.schema.rdfa-full", "1");
       } else {
         System.setProperty("nu.validator.schema.rdfa-full", "0");
       }
     }
-    this.mainSchemaUrl = schemaUrl;
-    this.mainSchema = schema;
+    mainSchema = schema;
 
     final org.xml.sax.ErrorHandler errorHandlerA = adapter;
     PropertyMap jingPropertyMap;
@@ -219,12 +233,13 @@ public class NuTests {
       jingPropertyMap = pmb.toPropertyMap();
     }
 
-    validator = this.mainSchema.createValidator(jingPropertyMap);
+    validator = mainSchema.createValidator(jingPropertyMap);
 
-    if (this.hasHtml5Schema) {
-      Validator assertionValidator = assertionSchema.createValidator(jingPropertyMap);
+    if (hasHtml5Schema) {
+      Validator assertionValidator = CheckerSchema.ASSERTION_SCH.createValidator(jingPropertyMap);
       validator = new CombineValidator(validator, assertionValidator);
-      Validator langdetectValidator = langdetectSchema.createValidator(jingPropertyMap);
+      Validator langdetectValidator =
+          CheckerSchema.LANGUAGE_DETECTING_CHECKER.createValidator(jingPropertyMap);
       validator = new CombineValidator(validator, langdetectValidator);
       validator = new CombineValidator(validator,
           new CheckerValidator(new TableChecker(), jingPropertyMap));
@@ -263,24 +278,21 @@ public class NuTests {
     if (!noStream) {
       htmlParser.setStreamabilityViolationPolicy(XmlViolationPolicy.FATAL);
     }
-    htmlReader = getWiretap(htmlParser);
+    htmlReader = getWiretap(htmlParser, sourceCode.getLocationRecorder());
     xmlParser = new SAXDriver();
     xmlParser.setContentHandler(validator.getContentHandler());
-    if (lexicalHandler != null) {
-      xmlParser.setProperty("http://xml.org/sax/properties/lexical-handler", lexicalHandler);
-    }
-    xmlReader = new IdFilter(xmlParser);
-    xmlReader.setFeature("http://xml.org/sax/features/string-interning", true);
-    xmlReader.setContentHandler(validator.getContentHandler());
-    xmlReader.setFeature("http://xml.org/sax/features/unicode-normalization-checking", true);
+    final IdFilter xmlReader1 = new IdFilter(xmlParser);
+    xmlReader1.setFeature("http://xml.org/sax/features/string-interning", true);
+    xmlReader1.setContentHandler(validator.getContentHandler());
+    xmlReader1.setFeature("http://xml.org/sax/features/unicode-normalization-checking", true);
     if (loadExternalEnts) {
-      xmlReader.setEntityResolver(entityResolver);
+      xmlReader1.setEntityResolver(entityResolver);
     } else {
-      xmlReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
-      xmlReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-      xmlReader.setEntityResolver(new NullEntityResolver());
+      xmlReader1.setFeature("http://xml.org/sax/features/external-general-entities", false);
+      xmlReader1.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+      xmlReader1.setEntityResolver(new NullEntityResolver());
     }
-    xmlReader = getWiretap(xmlParser);
+    xmlReader = getWiretap(xmlParser, sourceCode.getLocationRecorder());
     xmlParser.setErrorHandler(errorHandlerA);
     xmlParser.lockErrorHandler();
 
@@ -310,57 +322,21 @@ public class NuTests {
     assertFalse(output.isEmpty());
   }
 
-  private WiretapXMLReaderWrapper getWiretap(XMLReader reader) {
+  private static WiretapXMLReaderWrapper getWiretap(XMLReader reader,
+      ContentHandler locationRecorder) {
     WiretapXMLReaderWrapper wiretap = new WiretapXMLReaderWrapper(reader);
-    ContentHandler recorder = sourceCode.getLocationRecorder();
-    wiretap.setWiretapContentHander(recorder);
-    wiretap.setWiretapLexicalHandler((LexicalHandler) recorder);
+    wiretap.setWiretapContentHander(locationRecorder);
+    wiretap.setWiretapLexicalHandler((LexicalHandler) locationRecorder);
     return wiretap;
   }
 
-  private boolean isXhtml(File file) {
+  private static boolean isXhtml(File file) {
     String name = file.getName();
     return name.endsWith(".xhtml") || name.endsWith(".xht");
   }
 
-  private boolean isHtml(File file) {
+  private static boolean isHtml(File file) {
     String name = file.getName();
     return name.endsWith(".html") || name.endsWith(".htm");
   }
-
-  private LocalCacheEntityResolver entityResolver;
-
-  private com.thaiopensource.validate.Schema mainSchema;
-
-  private String mainSchemaUrl;
-
-  private boolean hasHtml5Schema;
-
-  private com.thaiopensource.validate.Schema assertionSchema;
-
-  private com.thaiopensource.validate.Schema langdetectSchema;
-
-  private com.thaiopensource.validate.Validator validator;
-
-  private nu.validator.source.SourceCode sourceCode = new SourceCode();
-
-  private nu.validator.xml.TypedInputSource documentInput;
-
-  private PrudentHttpEntityResolver httpRes;
-
-  private org.xml.sax.XMLReader htmlReader;
-
-  private nu.validator.gnu.xml.aelfred2.SAXDriver xmlParser;
-
-  private org.xml.sax.XMLReader xmlReader;
-
-  private org.xml.sax.ext.LexicalHandler lexicalHandler;
-
-  private boolean allowCss = false;
-
-  private static final byte[] CSS_CHECKING_PROLOG = //
-      "<!DOCTYPE html><html lang=''><title>s</title><style>\n" //
-          .getBytes();
-
-  private static final byte[] CSS_CHECKING_EPILOG = "\n</style>".getBytes();
 }
