@@ -8,7 +8,6 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicBoolean;
 import nu.validator.client.EmbeddedValidator;
 import nu.validator.messages.GnuMessageEmitter;
 import nu.validator.messages.MessageEmitterAdapter;
@@ -76,10 +75,6 @@ public class NuTests {
     }
     validator.setUpValidatorAndParsers(errorHandler, noStream, loadEntities);
 
-    final AtomicBoolean used = new AtomicBoolean(false);
-    if (!used.compareAndSet(false, true)) {
-      throw new IllegalStateException("OneOffValidator instances are not reusable");
-    }
     try {
       if (Files.notExists(path) || !Files.isReadable(path)) {
         errorHandler
