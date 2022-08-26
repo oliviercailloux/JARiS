@@ -13,8 +13,8 @@
  * </p>
  * <p>
  * As the focus is on simplicity (over flexibility), its use is appropriate if you need to do only
- * simple things with your documents, do not need much flexibility, and control the origin of the
- * documents (so do not need flexible error management).
+ * simple things with your documents and control the origin of the documents (so do not need
+ * flexible error management).
  * </p>
  * <p>
  * The public API of the classes in this package favors
