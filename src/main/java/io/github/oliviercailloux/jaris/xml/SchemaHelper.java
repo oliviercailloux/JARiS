@@ -114,22 +114,7 @@ public class SchemaHelper {
    * @return a conformity checker.
    * @throws XmlException iff the provided schema cannot be interpreted.
    */
-  public ConformityChecker getConformityChecker(Schema schema) throws XmlException {
+  public ConformityChecker conformityChecker(Schema schema) throws XmlException {
     return ConformityChecker.withSchema(schema);
-  }
-
-  /**
-   * Returns a conformity checker that will validate documents against the provided schema.
-   * <p>
-   * It is equivalent to first call {@link #asSchema(Source)} then call
-   * {@link #getConformityChecker(Schema)} with the resulting schema instance.
-   * </p>
-   *
-   * @param schemaSource the source to use for reading the schema.
-   * @return a conformity checker.
-   * @throws XmlException iff the provided schema cannot be interpreted.
-   */
-  public ConformityChecker getConformityChecker(Source schemaSource) throws XmlException {
-    return ConformityChecker.withSchema(asSchema(schemaSource));
   }
 }
