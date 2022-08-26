@@ -77,7 +77,7 @@ public class NuTests {
 
   @Test
   void testEmbeddedValidatorAccepts() throws Exception {
-    final Path html = Path.of(getClass().getResource("simple and valid.html").toURI());
+    final Path html = Path.of(getClass().getResource("simple.xhtml").toURI());
     final EmbeddedValidator validator = new EmbeddedValidator();
     validator.setOutputFormat(EmbeddedValidator.OutputFormat.GNU);
     final String output = validator.validate(html);
@@ -325,7 +325,7 @@ public class NuTests {
 
   @Test
   void testUnwrappedXhtmlRejects() throws Exception {
-    final Path path = Path.of(getClass().getResource("simple.html").toURI());
+    final Path path = Path.of(getClass().getResource("simple invalid.html").toURI());
     final boolean asciiQuotes = false;
     final boolean detectLanguages = false;
     final boolean loadExternalEnts = false;
@@ -466,7 +466,7 @@ public class NuTests {
 
   @Test
   void testUnwrappedXhtmlRejectsSimpler() throws Exception {
-    final Path path = Path.of(getClass().getResource("simple.html").toURI());
+    final Path path = Path.of(getClass().getResource("simple invalid.html").toURI());
     final boolean detectLanguages = false;
     final boolean loadExternalEnts = false;
     final LocalCacheEntityResolver entityResolver;
@@ -607,7 +607,7 @@ public class NuTests {
     final boolean loaded = driver.loadSchema(in);
     assertTrue(loaded);
     final boolean validated = driver.validate(ValidationDriver.uriOrFileInputSource(
-        "src/test/resources/io/github/oliviercailloux/jaris/xml/simple.html"));
+        "src/test/resources/io/github/oliviercailloux/jaris/xml/simple%20invalid.html"));
     assertFalse(validated);
   }
 

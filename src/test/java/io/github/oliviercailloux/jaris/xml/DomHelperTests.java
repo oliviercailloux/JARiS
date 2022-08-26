@@ -27,7 +27,7 @@ class DomHelperTests {
     document = builder.newDocument();
 
     html = document.createElementNS(DomHelper.HTML_NS_URI.toString(), "html");
-    html.setAttribute("lang", "en");
+    html.setAttribute("xml:lang", "en");
     document.appendChild(html);
     head = document.createElementNS(DomHelper.HTML_NS_URI.toString(), "head");
     html.appendChild(head);
@@ -35,6 +35,9 @@ class DomHelperTests {
     meta.setAttribute("http-equiv", "Content-type");
     meta.setAttribute("content", "text/html; charset=utf-8");
     head.appendChild(meta);
+    final Element title = document.createElementNS(DomHelper.HTML_NS_URI.toString(), "title");
+    head.appendChild(title);
+    title.appendChild(document.createTextNode("Title"));
     final Element body = document.createElementNS(DomHelper.HTML_NS_URI.toString(), "body");
     html.appendChild(body);
   }
@@ -43,7 +46,7 @@ class DomHelperTests {
   void testToStringDoc() throws Exception {
     initDoc();
     final String expected =
-        Files.readString(Path.of(getClass().getResource("simple.html").toURI()));
+        Files.readString(Path.of(getClass().getResource("simple.xhtml").toURI()));
     assertEquals(expected, DomHelper.domHelper().toString(document));
   }
 
