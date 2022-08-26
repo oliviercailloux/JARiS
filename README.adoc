@@ -81,9 +81,13 @@ The following example validates a DocBook instance against its schema (note that
 
 [source, java]
 ----
-StreamSource docBookSchema = new StreamSource("https://cdn.docbook.org/schema/5.0.1/xsd/docbook.xsd");
 StreamSource docBook = new StreamSource("https://raw.githubusercontent.com/oliviercailloux/JARiS/master/src/test/resources/io/github/oliviercailloux/jaris/xml/docbook%20simple%20article.xml");
-ConformityChecker conformityChecker = SchemaHelper.schemaHelper().getConformityChecker(docBookSchema);
+StreamSource docBookSchemaSource = new StreamSource("https://cdn.docbook.org/schema/5.0.1/xsd/docbook.xsd");
+
+SchemaHelper schemaHelper = SchemaHelper.schemaHelper();
+Schema docBookSchema = schemaHelper.asSchema(docBookSchemaSource);
+ConformityChecker conformityChecker = schemaHelper.conformityChecker(docBookSchema);
+
 conformityChecker.verifyValid(docBook);
 ----
 
@@ -92,11 +96,11 @@ The last line will throw an exception iff the document is invalid (it’s not, i
 === XmlTransformer
 https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/xml/XmlTransformer.html[`XmlTransformer`] helps transforming XML Documents (including, transforming them to string form).
 
-The following example transforms a DocBook document into a FO document using the DocBook to FO stylesheet. For this to work you need to have an xml library such as Xalan or Saxon in your class path, this is too complex for the default one provided with the JDK (see this https://github.com/oliviercailloux/JARiS/blob/main/pom.xml[example POM] where they both appear as test dependencies).
+The following example transforms a DocBook document into a FO document using the DocBook to FO stylesheet. For this to work you need to have an xml library such as Xalan or Saxon in your class path: this is too complex for the default one provided with the JDK (see this https://github.com/oliviercailloux/JARiS/blob/main/pom.xml[example POM] where they both appear as test dependencies).
 
 [source, java]
 ----
 StreamSource docBook = new StreamSource("https://raw.githubusercontent.com/oliviercailloux/JARiS/master/src/test/resources/io/github/oliviercailloux/jaris/xml/docbook%20simple%20article.xml");
 StreamSource docBookStyle = new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
-String transformed = XmlTransformer.usingFoundFactory().forSource(myStyle).transform(docBook);
+String transformed = XmlTransformer.usingFoundFactory().forSource(docBookStyle).transform(docBook);
 ----
