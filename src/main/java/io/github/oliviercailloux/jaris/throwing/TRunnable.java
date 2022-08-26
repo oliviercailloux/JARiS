@@ -7,6 +7,7 @@ package io.github.oliviercailloux.jaris.throwing;
  * @param <X> a sort of throwable that this runnable may throw
  */
 @FunctionalInterface
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public interface TRunnable<X extends Throwable> {
   /**
    * Takes an action.

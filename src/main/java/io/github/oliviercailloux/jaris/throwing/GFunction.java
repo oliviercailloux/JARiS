@@ -9,5 +9,6 @@ import java.util.function.Function;
  * @param <R> the type of the result of the function
  */
 @FunctionalInterface
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 interface GFunction<T, R> extends Function<T, R>, TFunction<T, R, RuntimeException> {
 }

@@ -11,6 +11,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @param <X> a sort of throwable that the function may throw
  */
 @FunctionalInterface
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public interface TFunction<T, R, X extends Throwable> {
   /**
    * Applies this function to the given argument.

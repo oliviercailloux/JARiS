@@ -8,6 +8,7 @@ package io.github.oliviercailloux.jaris.throwing;
  * @param <X> a sort of throwable that the {@code Throwing.UnaryOperator} may throw
  */
 @FunctionalInterface
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public interface TUnaryOperator<T, X extends Throwable> extends TFunction<T, T, X> {
 
 }

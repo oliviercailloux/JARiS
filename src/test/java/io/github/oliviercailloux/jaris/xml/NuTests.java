@@ -156,8 +156,6 @@ public class NuTests {
     final boolean noStream = false;
     final LocalCacheEntityResolver entityResolver;
 
-    com.thaiopensource.validate.Schema mainSchema;
-
     boolean hasHtml5Schema = false;
 
     com.thaiopensource.validate.Validator validator;
@@ -224,7 +222,8 @@ public class NuTests {
         System.setProperty("nu.validator.schema.rdfa-full", "0");
       }
     }
-    mainSchema = schema;
+
+    final com.thaiopensource.validate.Schema mainSchema = schema;
 
     final org.xml.sax.ErrorHandler errorHandlerA = adapter;
     PropertyMap jingPropertyMap;

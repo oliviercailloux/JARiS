@@ -11,6 +11,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @param <X> a sort of throwable that the {@code Throwing.BiConsumer} may throw
  */
 @FunctionalInterface
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public interface TBiConsumer<T, U, X extends Throwable> {
   /**
    * Performs this operation on the given arguments.
