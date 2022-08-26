@@ -136,8 +136,8 @@ public class CredentialsReader<K> {
   }
 
   /**
-   * Returns an instance reading from the key values {@link ClassicalCredentials#API_USERNAME} and
-   * {@link ClassicalCredentials#API_PASSWORD}, and the default file {@link #DEFAULT_FILE_PATH}.
+   * Returns an instance reading from the key values {@link Credentials#API_USERNAME} and
+   * {@link Credentials#API_PASSWORD}, and the default file {@link #DEFAULT_FILE_PATH}.
    *
    * @return a default instance.
    * @see #using(Class, Path)

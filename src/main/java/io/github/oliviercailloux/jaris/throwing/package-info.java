@@ -16,14 +16,16 @@
  * <ul>
  * <li>Binding {@code X} to {@code RuntimeException} (or a child thereof) may be useful for falling
  * back to a behavior that does not treat exceptions specially. For example, when a
- * {@link CheckedStream} is used with a throwing interface that declare a {@code RuntimeException},
- * the {@code CheckedStream} behaves like a {@code Stream}.</li>
+ * {@link io.github.oliviercailloux.jaris.exceptions.CheckedStream} is used with a throwing
+ * interface that declare a {@code RuntimeException}, the {@code CheckedStream} behaves like a
+ * {@code Stream}.</li>
  * <li>The signatures also allow for {@code X} to extend merely {@link Throwable}, which can be
  * useful in very specific circumstances (for a library that checks that some code does not throw,
- * for example; or for {@link TryCatchAll#orThrow()} to convert a try safe into a supplier). It is
- * strongly recommended however to consider restricting {@code X} to extend {@code Exception} at the
- * usage site. For example, {@link Try} implements such a restriction. That is because throwables
- * that are not exceptions should generally not be caught.</li>
+ * for example; or for {@link io.github.oliviercailloux.jaris.exceptions.TryCatchAll#orThrow()} to
+ * convert a try safe into a supplier). It is strongly recommended however to consider restricting
+ * {@code X} to extend {@code Exception} at the usage site. For example,
+ * {@link io.github.oliviercailloux.jaris.exceptions.Try} implements such a restriction. That is
+ * because throwables that are not exceptions should generally not be caught.</li>
  * </ul>
  * <p>
  * Inspired from the <a href=
