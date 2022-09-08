@@ -24,6 +24,10 @@ import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
+  /**
+   * This can’t be a generic class as it <a href="https://stackoverflow.com/q/501277/">extends
+   * Throwable</a>.
+   */
   @SuppressWarnings("serial")
   private static class InternalException extends RuntimeException {
     public InternalException(Exception e) {
@@ -98,8 +102,7 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   }
 
   @Override
-  public <R> CheckedStreamImpl<R, X>
-      map(TFunction<? super T, ? extends R, ? extends X> mapper) {
+  public <R> CheckedStreamImpl<R, X> map(TFunction<? super T, ? extends R, ? extends X> mapper) {
     final Function<? super T, ? extends R> wrapped = UNCHECKER.wrapFunction(mapper);
     return new CheckedStreamImpl<>(delegate.map(wrapped));
   }
@@ -163,8 +166,8 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
 
   @Override
   public <R> R collect(TSupplier<R, ? extends X> supplier,
-      TBiConsumer<R, ? super T, ? extends X> accumulator,
-      TBiConsumer<R, R, ? extends X> combiner) throws X {
+      TBiConsumer<R, ? super T, ? extends X> accumulator, TBiConsumer<R, R, ? extends X> combiner)
+      throws X {
     final Supplier<R> wrappedSupplier = UNCHECKER.wrapSupplier(supplier);
     final BiConsumer<R, ? super T> wrappedAccumulator = UNCHECKER.wrapBiConsumer(accumulator);
     final BiConsumer<R, R> wrappedCombiner = UNCHECKER.wrapBiConsumer(combiner);

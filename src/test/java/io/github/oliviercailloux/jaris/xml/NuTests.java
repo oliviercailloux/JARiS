@@ -147,6 +147,10 @@ public class NuTests {
     assertFalse(output.isEmpty());
   }
 
+  /**
+   * Seems to correspond to what is called through SDV, apparently called from the jar (I didn’t
+   * check). See https://gist.github.com/vincent-zurczak/23e0f626eaafab96cb32 .
+   */
   @Test
   void testUnwrappedViaSimpleDocumentValidatorRejects() throws Exception {
     final Path path = Path.of(getClass().getResource("invalid.html").toURI());
