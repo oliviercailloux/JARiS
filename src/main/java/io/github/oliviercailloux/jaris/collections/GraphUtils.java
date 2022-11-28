@@ -29,7 +29,9 @@ import java.util.stream.Collectors;
 public class GraphUtils {
 
   /**
-   * Returns a mutable graph containing as nodes:
+   * Returns a mutable graph corresponding to the given nodes and reachability relations.
+   * <p>
+   * More precisely, this returns a mutable graph containing as nodes:
    * <ul>
    * <li>the given roots <em>R</em>, union</li>
    * <li>the transitive closure of the given successors function on <em>R</em>, union</li>
@@ -132,6 +134,7 @@ public class GraphUtils {
    * <ul>
    * <li>the graph with nodes <em>{a, b, c, d}</em> and edges <em>{(a, c), (b, d)}</em>, and</li>
    * <li>the mapping <em>{(a, a), (b, b), (c, e), (d, e)}</em>,</li>
+   * </ul>
    * <p>
    * this method returns the graph having nodes <em>{a, b, e}</em> and edges <em>{(a, e), (b,
    * e)}</em>.
