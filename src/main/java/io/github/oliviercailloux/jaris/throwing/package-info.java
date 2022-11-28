@@ -34,8 +34,8 @@
  * </p>
  * <p>
  * The naming (TFunction, etc.) is chosen so as to not shadow the JDK types: name shadowing of such
- * common types, especially of types in java.lang such as {@link java.lang.Runnable}, could render
- * user code more obscure.
+ * common types, especially of types in {@code java.lang} such as {@link java.lang.Runnable}, could
+ * render user code more obscure.
  * </p>
  */
 package io.github.oliviercailloux.jaris.throwing;
