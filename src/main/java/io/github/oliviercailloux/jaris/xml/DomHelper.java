@@ -190,8 +190,9 @@ public class DomHelper {
    * @return a string containing information pertaining to the node
    */
   public static String toDebugString(Node node) {
-    return String.format("Node type %s, Local %s, NS %s, Value %s, Name %s.", node.getNodeType(),
-        node.getLocalName(), node.getNamespaceURI(), node.getNodeValue(), node.getNodeName());
+    return String.format("Node type %s, local %s, namespace %s, value %s, name %s",
+        node.getNodeType(), node.getLocalName(), node.getNamespaceURI(), node.getNodeValue(),
+        node.getNodeName());
   }
 
   private static class ThrowingDomErrorHandler implements DOMErrorHandler {
