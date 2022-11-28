@@ -13,7 +13,7 @@ This library focuses on code and API quality, not on performance. Open an issue 
 
 This project adheres to the https://github.com/classgraph/classgraph/blob/master/Zero-Bugs-Commitment.md[Zero Bugs Commitment].
 
-The API is _not_ stable. Write to me if you are interested in using this library and would like its API to be stable, or want more example code.
+The API is _not_ stable. Write to me if you are interested in using this library and would like its API to be stable, or want more example code. The library also uses parts of the Guava API that are https://github.com/google/guava/wiki/UseGuavaInYourBuild#what-if-i-want-to-use-beta-apis-from-a-library-that-people-use-as-a-dependency[marked @Beta] (meaning it is not stable). I will keep the dependencies of this library up-to-date in order to work around any disagreement that this can cause. This means that you need to be committed to update your dependency on this library if Guava’s Beta API changes in order to ensure that you do not run into version conflicts.
 
 The following sections list some of the utilities that this library provides (by package).
 
@@ -64,6 +64,9 @@ void testRunnableDoesNotThrow() {
 Note that calling `someRunnable` normally requires to deal with the (possible) https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/SQLException.html[`SQLException`], as it is a checked exception declared by `someRunnable`. We see that the method `testRunnableDoesNotThrow`, however, does nothing to deal with it, and does not declare it either. This is because the `unchecker` will transform the `SQLException`, if thrown when calling `someRunnable`, into an unchecked exception, here, an `IllegalStateException`. The transformation is done thanks to the wrapper given as a parameter to the `wrappingWith` factory method.
 
 Use directly `Unchecker.link:https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/exceptions/Unchecker.html#IO_UNCHECKER[IO_UNCHECKER]` when desiring to transform https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html[`IOException`] instances to https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/UncheckedIOException.html[`UncheckedIOException`] ones.
+
+== GraphUtils
+A few static methods to create graphs from other structures such as a set of root nodes and a successor function, and to obtain a set of the nodes of a graph that iterates following a topological sort (thanks to https://github.com/jrtom/jung/pull/174[jbduncan]).
 
 == Xml
 A few helper classes to deal with XML, using the DOM (Document Object Model), XSLT, or schema based validation. See the https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/xml/package-summary.html[package documentation].
