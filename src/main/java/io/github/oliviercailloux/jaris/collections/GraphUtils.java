@@ -6,16 +6,15 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.Verify;
 import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
-import com.google.common.collect.UnmodifiableIterator;
 import com.google.common.graph.EndpointPair;
 import com.google.common.graph.Graph;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
 import com.google.common.graph.PredecessorsFunction;
 import com.google.common.graph.SuccessorsFunction;
-import java.util.AbstractSet;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +28,28 @@ import java.util.stream.Collectors;
 
 public class GraphUtils {
 
+  /**
+   * Returns a mutable graph containing as nodes:
+   * <ul>
+   * <li>the given roots <em>R</em>, union</li>
+   * <li>the transitive closure of the given successors function on <em>R</em>, union</li>
+   * <li>the transitive closure of the given predecessors function on <em>R</em>;</li>
+   * </ul>
+   * and as edges all pairs of nodes <em>(a, b)</em> such that <em>b</em> is a successor of
+   * <em>a</em> (according to the given successors function’s
+   * {@link SuccessorsFunction#successors(Object) successors} method) or <em>a</em> is a direct
+   * predecessor of <em>b</em> (according to the given predecessors function’s
+   * {@link PredecessorsFunction#predecessors(Object) predecessors} method).
+   * <p>
+   * The returned graph allows self loops.
+   *
+   * @param <E> the type of nodes contained in the returned graph.
+   * @param <F> the type of nodes used as roots and in the successors and predecessors functions.
+   * @param roots an initial set of nodes
+   * @param successorsFunction the successors function
+   * @param predecessorsFunction the predecessors function
+   * @return a mutable graph
+   */
   public static <E, F extends E> MutableGraph<E> asGraph(Set<F> roots,
       SuccessorsFunction<F> successorsFunction, PredecessorsFunction<F> predecessorsFunction) {
     checkNotNull(roots);
@@ -68,10 +89,27 @@ public class GraphUtils {
     return mutableGraph;
   }
 
-  public static <E> MutableGraph<E> asGraph(List<E> elements) {
-    final MutableGraph<E> builder = GraphBuilder.directed().build();
-    final ListIterator<E> iterator = elements.listIterator();
-    final PeekingIterator<E> peekingIterator = Iterators.peekingIterator(iterator);
+  /**
+   * Returns a copy of the given list representing the “has-as-next-element” relation. For example,
+   * given the list <em>(a, b, c)</em>, this method returns the graph of nodes <em>{a, b, c}</em>
+   * and edges <em>{(a, b), (b, c)}</em>. Given the list <em>(a, b, a, b)</em>, this method returns
+   * the graph of nodes <em>{a, b}</em> and edges <em>{(a, b), (b, a)}</em>.
+   * <p>
+   * The returned graph allows self loops. It contains loops iff the given list contains the same
+   * element at consecutive positions.
+   * <p>
+   * The number of nodes in the returned graph is the number of distinct elements in the given list.
+   * If the given list contains no duplicate elements, the number of edges is the size of the given
+   * list minus one, and mathematically speaking, the returned graph is a tree and is a list.
+   *
+   * @param <E> the type of nodes in the graph.
+   * @param elements the list to be transformed to a graph
+   * @return a mutable graph
+   */
+  public static <E> MutableGraph<E> asGraph(List<? extends E> elements) {
+    final MutableGraph<E> builder = GraphBuilder.directed().allowsSelfLoops(true).build();
+    final ListIterator<? extends E> iterator = elements.listIterator();
+    final PeekingIterator<? extends E> peekingIterator = Iterators.peekingIterator(iterator);
     while (peekingIterator.hasNext()) {
       final E e1 = peekingIterator.next();
       if (peekingIterator.hasNext()) {
@@ -83,24 +121,56 @@ public class GraphUtils {
   }
 
   /**
+   * Returns a transformation of a graph that uses a given mapping.
+   * <p>
+   * Each edge <em>(a, b)</em> of the given graph becomes an edge <em>(a’, b’)</em> where
+   * <em>a’</em> is the value associated to <em>a</em> by the given mapping; and <em>b’</em> is the
+   * valued associated to <em>b</em>.
+   * <p>
+   * For example, given:
+   * </p>
+   * <ul>
+   * <li>the graph with nodes <em>{a, b, c, d}</em> and edges <em>{(a, c), (b, d)}</em>, and</li>
+   * <li>the mapping <em>{(a, a), (b, b), (c, e), (d, e)}</em>,</li>
+   * <p>
+   * this method returns the graph having nodes <em>{a, b, e}</em> and edges <em>{(a, e), (b,
+   * e)}</em>.
+   * <p>
    * The resulting graph has the same topology than the original one iff their number of nodes is
    * equal iff the given mapping is injective.
    * <p>
    * If the given mapping is not injective, the resulting graph could acquire loops.
+   * <p>
+   * The resulting graph allows loops iff the given one does.
+   * </p>
+   *
+   * @param <E> the type of nodes in the source graph
+   * @param <F> the type of nodes in the returned graph
+   * @param graph the source
+   * @param mapping the mapping
+   * @return a mutable graph
+   * @throws IllegalArgumentException if the given graph does not allow loops and the mapping is not
+   *         injective or if some node of the given graph is absent from the given mapping or
+   *         associated to a {@code null} value.
    */
-  public static <E, F> MutableGraph<F> transformed(Graph<E> graph, Map<E, F> mapping) {
+  public static <E, F> MutableGraph<F> transformed(Graph<E> graph,
+      Map<? super E, ? extends F> mapping) {
     final GraphBuilder<Object> startBuilder =
         graph.isDirected() ? GraphBuilder.directed() : GraphBuilder.undirected();
     startBuilder.allowsSelfLoops(graph.allowsSelfLoops());
     final MutableGraph<F> builder = startBuilder.build();
     final Set<E> nodes = graph.nodes();
     for (E node : nodes) {
-      builder.addNode(checkNotNull(mapping.get(node)));
+      final F target = mapping.get(node);
+      checkArgument(target != null);
+      builder.addNode(target);
     }
     final Set<EndpointPair<E>> edges = graph.edges();
     for (EndpointPair<E> edge : edges) {
-      final F source = checkNotNull(mapping.get(edge.source()));
-      final F target = checkNotNull(mapping.get(edge.target()));
+      final F source = mapping.get(edge.source());
+      checkArgument(source != null);
+      final F target = mapping.get(edge.target());
+      checkArgument(target != null);
       builder.putEdge(source, target);
     }
     return builder;
@@ -109,31 +179,8 @@ public class GraphUtils {
   /**
    * From jbduncan at https://github.com/jrtom/jung/pull/174
    */
-  public static <N> Iterable<N> topologicallySortedNodes(Graph<N> graph) {
-    return new TopologicallySortedNodes<>(graph);
-  }
-
-  private static class TopologicallySortedNodes<N> extends AbstractSet<N> {
-    private final Graph<N> graph;
-
-    private TopologicallySortedNodes(Graph<N> graph) {
-      this.graph = checkNotNull(graph, "graph");
-    }
-
-    @Override
-    public UnmodifiableIterator<N> iterator() {
-      return new TopologicalOrderIterator<>(graph);
-    }
-
-    @Override
-    public int size() {
-      return graph.nodes().size();
-    }
-
-    @Override
-    public boolean remove(Object o) {
-      throw new UnsupportedOperationException();
-    }
+  public static <N> ImmutableSet<N> topologicallySortedNodes(Graph<N> graph) {
+    return ImmutableSet.copyOf(new TopologicalOrderIterator<>(graph));
   }
 
   private static class TopologicalOrderIterator<N> extends AbstractIterator<N> {
@@ -168,4 +215,9 @@ public class GraphUtils {
       return endOfData();
     }
   }
+
+  /**
+   * Should not be instanciated.
+   */
+  private GraphUtils() {}
 }
