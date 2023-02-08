@@ -82,26 +82,6 @@ class XmlConfiguredTransformerImpl implements XmlConfiguredTransformer {
   }
 
   /**
-   * Transforms the provided document and returns the result as a string.
-   *
-   * @param document the document to transform
-   * @return the resulting transformation
-   * @throws XmlException iff an error occurs when parsing the stylesheet or when transforming the
-   *         document.
-   */
-  @Override
-  public String transform(Source document) throws XmlException {
-    checkArgument(!document.isEmpty());
-
-    final StringWriter resultWriter = new StringWriter();
-    final StreamResult result = new StreamResult(resultWriter);
-
-    transform(document, result);
-
-    return resultWriter.toString();
-  }
-
-  /**
    * Not ready.
    *
    * @param document the document
