@@ -12,9 +12,11 @@ import com.google.common.collect.PeekingIterator;
 import com.google.common.graph.EndpointPair;
 import com.google.common.graph.Graph;
 import com.google.common.graph.GraphBuilder;
+import com.google.common.graph.Graphs;
 import com.google.common.graph.MutableGraph;
 import com.google.common.graph.PredecessorsFunction;
 import com.google.common.graph.SuccessorsFunction;
+import io.github.oliviercailloux.jaris.throwing.TFunction;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -173,6 +175,63 @@ public class GraphUtils {
       final F source = mapping.get(edge.source());
       checkArgument(source != null);
       final F target = mapping.get(edge.target());
+      checkArgument(target != null);
+      builder.putEdge(source, target);
+    }
+    return builder;
+  }
+
+  /**
+   * Returns a transformation of a graph that uses a given mapping.
+   * <p>
+   * Each edge <em>(a, b)</em> of the given graph becomes an edge <em>(a’, b’)</em> where
+   * <em>a’</em> is the value associated to <em>a</em> by the given mapping; and <em>b’</em> is the
+   * valued associated to <em>b</em>.
+   * <p>
+   * For example, given:
+   * </p>
+   * <ul>
+   * <li>the graph with nodes <em>{a, b, c, d}</em> and edges <em>{(a, c), (b, d)}</em>, and</li>
+   * <li>the mapping <em>{(a, a), (b, b), (c, e), (d, e)}</em>,</li>
+   * </ul>
+   * <p>
+   * this method returns the graph having nodes <em>{a, b, e}</em> and edges <em>{(a, e), (b,
+   * e)}</em>.
+   * <p>
+   * The resulting graph has the same topology than the original one iff their number of nodes is
+   * equal iff the given mapping is injective.
+   * <p>
+   * If the given mapping is not injective, the resulting graph could acquire loops.
+   * <p>
+   * The resulting graph allows loops iff the given one does.
+   * </p>
+   *
+   * @param <E> the type of nodes in the source graph
+   * @param <F> the type of nodes in the returned graph
+   * @param graph the source
+   * @param mapping the mapping
+   * @return a mutable graph
+   * @throws IllegalArgumentException if the given graph does not allow loops and the mapping is not
+   *         injective or if some node of the given graph is absent from the given mapping or
+   *         associated to a {@code null} value.
+   */
+  public static <E, F, X extends Exception> MutableGraph<F> transform(Graph<E> graph,
+      TFunction<? super E, ? extends F, X> mapping) throws X {
+    final GraphBuilder<Object> startBuilder =
+        graph.isDirected() ? GraphBuilder.directed() : GraphBuilder.undirected();
+    startBuilder.allowsSelfLoops(graph.allowsSelfLoops());
+    final MutableGraph<F> builder = startBuilder.build();
+    final Set<E> nodes = graph.nodes();
+    for (E node : nodes) {
+      final F target = mapping.apply(node);
+      checkArgument(target != null);
+      builder.addNode(target);
+    }
+    final Set<EndpointPair<E>> edges = graph.edges();
+    for (EndpointPair<E> edge : edges) {
+      final F source = mapping.apply(edge.source());
+      checkArgument(source != null);
+      final F target = mapping.apply(edge.target());
       checkArgument(target != null);
       builder.putEdge(source, target);
     }
