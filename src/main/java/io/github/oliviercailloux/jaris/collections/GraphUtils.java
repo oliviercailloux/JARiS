@@ -135,7 +135,8 @@ public class GraphUtils {
   public static <E> MutableGraph<E> transitiveClosure(Graph<E> graph) {
     final Graph<E> reflCl = Graphs.transitiveClosure(graph);
     final MutableGraph<E> mutable = Graphs.copyOf(reflCl);
-    graph.nodes().stream().forEach(n -> mutable.removeEdge(n, n));
+    graph.nodes().stream().filter(n -> !graph.successors(n).contains(n))
+        .forEach(n -> mutable.removeEdge(n, n));
     return mutable;
   }
 
