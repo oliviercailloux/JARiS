@@ -66,6 +66,12 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
 
+/**
+ * https://search.maven.org/artifact/nu.validator/validator/20.7.2/jar depends on
+ * nu.validator:jing:20200702VNU
+ * https://search.maven.org/artifact/nu.validator/jing/20200702VNU/jar. There’s also
+ * https://search.maven.org/artifact/org.relaxng/jing/20220510/jar.
+ */
 public class NuTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(NuTests.class);
