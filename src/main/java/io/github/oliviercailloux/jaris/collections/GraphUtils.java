@@ -125,6 +125,21 @@ public class GraphUtils {
   }
 
   /**
+   * Computes the transitive closure of the given graph, understood as
+   * <a href="https://github.com/google/guava/issues/2778">not implying reflexivity</a>.
+   *
+   * @param <E> the nodes
+   * @param graph the graph
+   * @return the transitive closure
+   */
+  public static <E> MutableGraph<E> transitiveClosure(Graph<E> graph) {
+    final Graph<E> reflCl = Graphs.transitiveClosure(graph);
+    final MutableGraph<E> mutable = Graphs.copyOf(reflCl);
+    graph.nodes().stream().forEach(n -> mutable.removeEdge(n, n));
+    return mutable;
+  }
+
+  /**
    * Returns a transformation of a graph that uses a given mapping.
    * <p>
    * Each edge <em>(a, b)</em> of the given graph becomes an edge <em>(a’, b’)</em> where
