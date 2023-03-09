@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -25,7 +26,9 @@ class XmlTransformerTests {
         new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
     final String expected =
         Files.readString(Path.of(XmlTransformerTests.class.getResource("transformed.txt").toURI()));
-    assertEquals(expected, XmlTransformer.pedanticTransformer().forSource(style).transform(input));
+    assertEquals(expected,
+        XmlTransformer.pedanticTransformer(TransformerFactory.newDefaultInstance()).forSource(style)
+            .transform(input));
   }
 
   @Test
@@ -163,7 +166,8 @@ class XmlTransformerTests {
         XmlTransformer.usingSystemDefaultFactory().forSource(style).transform(input));
 
     assertThrows(XmlException.class,
-        () -> XmlTransformer.pedanticTransformer().forSource(style).transform(input));
+        () -> XmlTransformer.pedanticTransformer(TransformerFactory.newDefaultInstance())
+            .forSource(style).transform(input));
   }
 
   @Test

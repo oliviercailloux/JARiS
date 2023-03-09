@@ -27,7 +27,8 @@ public class XmlTransformer {
 
   /**
    * Provides a transformer instance using the TransformerFactory builtin system-default
-   * implementation.
+   * implementation, thus, equivalent to the one obtained with
+   * {@link TransformerFactory#newDefaultInstance}.
    * <p>
    * The system default factory sometimes spits errors to the console instead of through the logging
    * system due to <a href="https://stackoverflow.com/a/21209904/">a bug</a> in the JDK.
@@ -64,21 +65,6 @@ public class XmlTransformer {
   public static XmlTransformer usingFactory(TransformerFactory factory) {
     return generalTransformer(factory,
         XmlTransformRecordingErrorListener.WARNING_NOT_GRAVE_ERROR_LISTENER);
-  }
-
-  /**
-   * Provides a transformer instance using the TransformerFactory builtin system-default
-   * implementation.
-   * <p>
-   * The returned transformer throws exceptions upon encountering warnings (as well as errors).
-   * </p>
-   *
-   * @return a transformer instance.
-   */
-  public static XmlTransformer pedanticTransformer() {
-    final TransformerFactory factory = TransformerFactory.newDefaultInstance();
-    return generalTransformer(factory,
-        XmlTransformRecordingErrorListener.EVERYTHING_GRAVE_ERROR_LISTENER);
   }
 
   /**
@@ -162,8 +148,8 @@ public class XmlTransformer {
    * @return a sourced transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet.
    */
-  public XmlConfiguredTransformer forSource(Source stylesheet,
-      Map<XmlName, String> parameters) throws XmlException {
+  public XmlConfiguredTransformer forSource(Source stylesheet, Map<XmlName, String> parameters)
+      throws XmlException {
     checkNotNull(stylesheet);
     checkNotNull(parameters);
     checkArgument(!stylesheet.isEmpty());
