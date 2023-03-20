@@ -27,8 +27,8 @@ class XmlTransformerTests {
     final String expected =
         Files.readString(Path.of(XmlTransformerTests.class.getResource("transformed.txt").toURI()));
     assertEquals(expected,
-        XmlTransformer.pedanticTransformer(TransformerFactory.newDefaultInstance()).usingStylesheet(style)
-            .transform(input));
+        XmlTransformer.pedanticTransformer(TransformerFactory.newDefaultInstance())
+            .usingStylesheet(style).transform(input));
   }
 
   @Test
@@ -54,7 +54,8 @@ class XmlTransformerTests {
       final XmlTransformer t = XmlTransformer.usingSystemDefaultFactory();
       assertEquals("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl",
           t.factory().getClass().getName());
-      final XmlException xalanExc = assertThrows(XmlException.class, () -> t.usingStylesheet(myStyle));
+      final XmlException xalanExc =
+          assertThrows(XmlException.class, () -> t.usingStylesheet(myStyle));
       /*
        * Oddly enough, the error changed when including xalan in the class path even though we still
        * use the system default transformer. Might be related to
@@ -100,11 +101,11 @@ class XmlTransformerTests {
     }
     {
       final String transformed =
-          XmlTransformer.usingFactory(new net.sf.saxon.TransformerFactoryImpl()).usingStylesheet(myStyle)
-              .transform(docBook);
+          XmlTransformer.usingFactory(new net.sf.saxon.TransformerFactoryImpl())
+              .usingStylesheet(myStyle).transform(docBook);
       LOGGER.debug("Transformed docbook howto: {}.", transformed);
-      assertTrue(transformed
-          .contains("<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\" font-family="));
+      assertTrue(transformed.matches(
+          "(?s).*<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\".* font-family=.*"));
     }
   }
 
@@ -126,11 +127,11 @@ class XmlTransformerTests {
     }
     {
       final String transformed =
-          XmlTransformer.usingFactory(new net.sf.saxon.TransformerFactoryImpl()).usingStylesheet(myStyle)
-              .transform(docBook);
+          XmlTransformer.usingFactory(new net.sf.saxon.TransformerFactoryImpl())
+              .usingStylesheet(myStyle).transform(docBook);
       LOGGER.debug("Transformed docbook howto: {}.", transformed);
-      assertTrue(transformed
-          .contains("<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\" font-family="));
+      assertTrue(transformed.matches(
+          "(?s).*<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\".* font-family=.*"));
     }
   }
 
