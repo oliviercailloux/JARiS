@@ -31,13 +31,6 @@ class XmlConfiguredTransformerImpl implements XmlConfiguredTransformer {
     checkArgument(transformer.getErrorListener() instanceof XmlTransformRecordingErrorListener);
   }
 
-  /**
-   * Transforms the provided document.
-   *
-   * @param document the document to transform
-   * @param result where the result will be held
-   * @throws XmlException iff an error occurs when transforming the document.
-   */
   @Override
   public void transform(Source document, Result result) throws XmlException {
     checkNotNull(document);

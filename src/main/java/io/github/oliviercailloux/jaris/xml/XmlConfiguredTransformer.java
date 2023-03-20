@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.io.StringWriter;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
 
 /**
@@ -17,7 +18,8 @@ public interface XmlConfiguredTransformer {
    *
    * @param document the document to transform
    * @param result where the result will be held
-   * @throws XmlException iff an error occurs when transforming the document.
+   * @throws XmlException iff an error occurs when transforming the document. Wraps a
+   *         {@link TransformerException}.
    */
   public void transform(Source document, Result result) throws XmlException;
 
@@ -26,7 +28,8 @@ public interface XmlConfiguredTransformer {
    *
    * @param document the document to transform
    * @return the transformed content as a string
-   * @throws XmlException iff an error occurs when transforming the document.
+   * @throws XmlException iff an error occurs when transforming the document. Wraps a
+   *         {@link TransformerException}.
    */
   public default String transform(Source document) throws XmlException {
     checkArgument(!document.isEmpty());

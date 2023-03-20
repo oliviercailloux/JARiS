@@ -3,8 +3,11 @@ package io.github.oliviercailloux.jaris.xml;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableMap;
+import io.github.oliviercailloux.jaris.collections.CollectionUtils;
 import java.util.Map;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -24,6 +27,58 @@ public class XmlTransformer {
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformer.class);
 
   public static final String FACTORY_PROPERTY = "javax.xml.transform.TransformerFactory";
+
+  /**
+   * See https://www.w3.org/TR/2021/REC-xslt20-20210330/#serialization
+   */
+  public static class OutputProperties {
+    /**
+     * specifies whether the Transformer may add additional whitespace when outputting the result
+     * tree
+     */
+    public static final XmlName INDENT = XmlName.localName(OutputKeys.INDENT);
+    public static final XmlName OMIT_XML_DECLARATION =
+        XmlName.localName(OutputKeys.OMIT_XML_DECLARATION);
+
+    public static OutputProperties none() {
+      return new OutputProperties(ImmutableMap.of());
+    }
+
+    public static OutputProperties indent() {
+      return new OutputProperties(ImmutableMap.of(INDENT, Boolean.TRUE));
+    }
+
+    public static OutputProperties noIndent() {
+      return new OutputProperties(ImmutableMap.of(INDENT, Boolean.FALSE));
+    }
+
+    public static OutputProperties omitXmlDeclaration() {
+      return new OutputProperties(ImmutableMap.of(OMIT_XML_DECLARATION, Boolean.TRUE));
+    }
+
+    public static OutputProperties fromMap(Map<XmlName, Boolean> properties) {
+      return new OutputProperties(properties);
+    }
+
+    private final ImmutableMap<XmlName, Boolean> properties;
+
+    public OutputProperties(Map<XmlName, Boolean> properties) {
+      this.properties = ImmutableMap.copyOf(properties);
+    }
+
+    public ImmutableMap<XmlName, Boolean> asMap() {
+      return properties;
+    }
+
+    ImmutableMap<String, String> asStringMap() {
+      return CollectionUtils.transformKeysAndValues(properties, XmlName::asFullName,
+          ((x, s, b) -> asLegacyBooleanString(b)));
+    }
+
+    static String asLegacyBooleanString(Boolean b) {
+      return b ? "yes" : "no";
+    }
+  }
 
   /**
    * Provides a transformer instance using the TransformerFactory builtin system-default
@@ -114,28 +169,48 @@ public class XmlTransformer {
 
   /**
    * Returns a sourced transformer that may be used to transform documents using the “identity”
-   * transform.
+   * transform and a default output property {@link OutputProperties#INDENT}.
    *
-   * @return a sourced transformer
-   * @throws XmlException iff an error occurs when parsing the stylesheet.
+   * @return a configured transformer
    */
-  public XmlConfiguredTransformer usingEmptySource() throws XmlException {
-    return forSourceInternal(null, ImmutableMap.of());
+  public XmlConfiguredTransformer usingEmptyStylesheet() {
+    return usingStylesheetInternal(null, ImmutableMap.of(), OutputProperties.indent());
   }
 
   /**
    * Returns a sourced transformer that may be used to transform documents using the provided
-   * stylesheet.
+   * stylesheet and a default output property {@link OutputProperties#INDENT}.
    * <p>
-   * Equivalent to {@link #forSource(Source, Map)} with an empty map of parameters.
+   * Equivalent to {@link #usingStylesheet(Source, Map)} with an empty map of parameters.
    * </p>
    *
    * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
    * @return a sourced transformer
-   * @throws XmlException iff an error occurs when parsing the stylesheet.
+   * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
+   *         {@link TransformerConfigurationException}.
    */
-  public XmlConfiguredTransformer forSource(Source stylesheet) throws XmlException {
-    return forSource(stylesheet, ImmutableMap.of());
+  public XmlConfiguredTransformer usingStylesheet(Source stylesheet) throws XmlException {
+    return usingStylesheet(stylesheet, ImmutableMap.of(), OutputProperties.indent());
+  }
+
+  /**
+   * Returns a sourced transformer that may be used to transform documents using the provided
+   * stylesheet parameterized with the given parameters and using a default output property
+   * {@link OutputProperties#INDENT}.
+   *
+   * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
+   * @param parameters any string parameters to be used with the given stylesheet, may be empty,
+   *        null keys or values not allowed.
+   * @return a sourced transformer
+   * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
+   *         {@link TransformerConfigurationException}.
+   */
+  public XmlConfiguredTransformer usingStylesheet(Source stylesheet,
+      Map<XmlName, String> parameters) throws XmlException {
+    checkNotNull(stylesheet);
+    checkNotNull(parameters);
+    checkArgument(!stylesheet.isEmpty());
+    return usingStylesheetInternal(stylesheet, parameters, OutputProperties.indent());
   }
 
   /**
@@ -145,41 +220,51 @@ public class XmlTransformer {
    * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,
    *        null keys or values not allowed.
+   * @param outputProperties any properties to be used with the transformer.
    * @return a sourced transformer
-   * @throws XmlException iff an error occurs when parsing the stylesheet.
+   * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
+   *         {@link TransformerConfigurationException}.
    */
-  public XmlConfiguredTransformer forSource(Source stylesheet, Map<XmlName, String> parameters)
-      throws XmlException {
+  public XmlConfiguredTransformer usingStylesheet(Source stylesheet,
+      Map<XmlName, String> parameters, OutputProperties outputProperties) throws XmlException {
     checkNotNull(stylesheet);
     checkNotNull(parameters);
     checkArgument(!stylesheet.isEmpty());
-    return forSourceInternal(stylesheet, parameters);
+    return usingStylesheetInternal(stylesheet, parameters, outputProperties);
   }
 
   /**
    * @param stylesheet may be null or empty
    * @param parameters
    * @return
+   * @throws XmlException if there are errors when parsing the Source; wrapping a
+   *         {@link TransformerConfigurationException}.
    */
-  private XmlConfiguredTransformerImpl forSourceInternal(Source stylesheet,
-      Map<XmlName, String> parameters) {
+  private XmlConfiguredTransformerImpl usingStylesheetInternal(Source stylesheet,
+      Map<XmlName, String> parameters, OutputProperties outputProperties) throws XmlException {
     checkNotNull(parameters);
 
     final Transformer transformer;
-    try {
-      LOGGER.debug("Obtaining transformer from stylesheet {}.", stylesheet);
-      if (stylesheet == null || stylesheet.isEmpty()) {
+    LOGGER.debug("Obtaining transformer from stylesheet {}.", stylesheet);
+    if (stylesheet == null || stylesheet.isEmpty()) {
+      try {
         transformer = factory.newTransformer();
-      } else {
-        transformer = factory.newTransformer(stylesheet);
-        LOGGER.debug("Obtained transformer from stylesheet {}.", stylesheet);
+      } catch (TransformerConfigurationException e) {
+        throw new VerifyException(e);
       }
-    } catch (TransformerConfigurationException e) {
-      throw new XmlException("Could not parse the provided stylesheet.", e);
+    } else {
+      try {
+        transformer = factory.newTransformer(stylesheet);
+      } catch (TransformerConfigurationException e) {
+        throw new XmlException("Could not parse the provided stylesheet.", e);
+      }
     }
+    LOGGER.debug("Obtained transformer from stylesheet {}.", stylesheet);
     transformer.setErrorListener(factory.getErrorListener());
     parameters.entrySet().stream()
         .forEach(e -> transformer.setParameter(e.getKey().asFullName(), e.getValue()));
+    outputProperties.asStringMap().entrySet().stream()
+        .forEach(e -> transformer.setOutputProperty(e.getKey(), e.getValue()));
 
     return XmlConfiguredTransformerImpl.using(transformer);
   }

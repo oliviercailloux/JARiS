@@ -57,8 +57,7 @@ class XmlTransformRecordingErrorListener implements ErrorListener {
       if (exception.severity == Severity.THROWN) {
         if (allNonThrownExceptions.stream().map(QualifiedTransformerException::getException)
             .anyMatch(e -> e.equals(exception.exception))) {
-          LOGGER.debug("Skipping already seen exception {}.",
-              exception.exception.getLocalizedMessage());
+          LOGGER.debug("Already seen exception {}.", exception.exception.getLocalizedMessage());
           return;
         }
       } else {
@@ -118,6 +117,7 @@ class XmlTransformRecordingErrorListener implements ErrorListener {
 
     public void reset() {
       firstGraveException = Optional.empty();
+      allNonThrownExceptions.clear();
     }
   }
 
@@ -220,6 +220,9 @@ class XmlTransformRecordingErrorListener implements ErrorListener {
     }
   }
 
+  /**
+   * @throws XmlException with a {@link TransformerException} as cause
+   */
   public void throwFirstGraveAsXmlException() throws XmlException {
     if (recorder.hasGraveException()) {
       throw new XmlException("Could not transform the provided document.",
