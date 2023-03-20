@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.xml.transform.TransformerFactory;
@@ -14,9 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class XmlTransformerTests {
-  private static final String XALAN_FACTORY = "org.apache.xalan.processor.TransformerFactoryImpl";
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerTests.class);
+
+  private static final String XALAN_FACTORY = "org.apache.xalan.processor.TransformerFactoryImpl";
 
   @Test
   void testTransformSimple() throws Exception {
@@ -48,6 +50,9 @@ class XmlTransformerTests {
       /*
        * This spits plenty on the console (bypassing the logger mechanism) before crashing.
        */
+      final OutputCapturer capturer = OutputCapturer.capturer();
+      capturer.capture();
+
       final XmlTransformer t = XmlTransformer.usingSystemDefaultFactory();
       assertEquals("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl",
           t.factory().getClass().getName());
@@ -60,6 +65,9 @@ class XmlTransformerTests {
       // assertTrue(reason.contains("org.apache.xalan.lib.NodeInfo.systemId"), reason);
       // assertTrue(reason.contains("insertCallouts"), reason);
       // }
+      capturer.restore();
+      assertTrue(capturer.out().isEmpty());
+      assertTrue(capturer.err().lines().count() > 100);
     }
 
     /* The external Apache Xalan 2.7.2 implementation works. */
