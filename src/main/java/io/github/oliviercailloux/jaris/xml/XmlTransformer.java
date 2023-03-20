@@ -235,8 +235,6 @@ public class XmlTransformer {
 
   /**
    * @param stylesheet may be null or empty
-   * @param parameters
-   * @return
    * @throws XmlException if there are errors when parsing the Source; wrapping a
    *         {@link TransformerConfigurationException}.
    */
