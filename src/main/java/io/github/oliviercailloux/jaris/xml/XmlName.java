@@ -3,7 +3,9 @@ package io.github.oliviercailloux.jaris.xml;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.MoreObjects;
 import java.net.URI;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -53,5 +55,25 @@ public class XmlName {
    */
   public String asFullName() {
     return namespace.map(n -> "{" + n.toString() + "}").orElse("") + localName;
+  }
+
+  @Override
+  public boolean equals(Object o2) {
+    if (!(o2 instanceof XmlName)) {
+      return false;
+    }
+    final XmlName t2 = (XmlName) o2;
+    return namespace.equals(t2.namespace) && localName.equals(t2.localName);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(namespace, localName);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("Namespace", namespace).add("Local name", localName)
+        .toString();
   }
 }
