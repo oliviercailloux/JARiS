@@ -152,7 +152,7 @@ public class XmlTransformer {
     } catch (@SuppressWarnings("unused") IllegalArgumentException e) {
       LOGGER.debug("saxon messageEmitterClass attribute not supported, not set");
     }
-    LOGGER.info("Using factory {}.", factory);
+    LOGGER.debug("Creating transformer using factory {}.", factory);
     return new XmlTransformer(factory);
   }
 

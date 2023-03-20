@@ -41,7 +41,7 @@ class XmlConfiguredTransformerImpl implements XmlConfiguredTransformer {
         (XmlTransformRecordingErrorListener) transformer.getErrorListener();
     recordingErrorListener.reset();
 
-    LOGGER.info("Using transformer {}.", transformer);
+    LOGGER.debug("Transforming document using transformer {}.", transformer);
     try {
       transformer.transform(document, result);
     } catch (TransformerException e) {
