@@ -30,11 +30,29 @@ public class CollectionUtils {
     }
   }
 
+  @SuppressWarnings("serial")
+  private static class InternalExceptionY extends RuntimeException {
+    public InternalExceptionY(Exception e) {
+      super(e);
+    }
+
+    /**
+     * Guaranteed to be an X, if only X’s are given to the constructor.
+     */
+    @Override
+    public synchronized Exception getCause() {
+      return (Exception) super.getCause();
+    }
+  }
+
   /**
    * Wraps any checked exceptions into an InternalException with the checked exception as its cause.
    */
   private static final Unchecker<Exception, InternalException> UNCHECKER =
       Unchecker.wrappingWith(InternalException::new);
+
+  private static final Unchecker<Exception, InternalExceptionY> UNCHECKER_Y =
+      Unchecker.wrappingWith(InternalExceptionY::new);
 
   /**
    * Returns an immutable map with the given {@code keys} and whose value for each key was computed
@@ -62,8 +80,9 @@ public class CollectionUtils {
 
   /**
    * Returns an immutable map containing as many entries as the provided one, with keys transformed,
-   * unless the provided function maps two keys of the original map to two equal new keys, in which
-   * case an {@link IllegalArgumentException} is thrown.
+   * provided the given function maps different keys to different new keys (i.e., is injective). If
+   * the provided function maps two keys of the original map to two equal new keys, an
+   * {@link IllegalArgumentException} is thrown.
    *
    * @param <K> the original key type
    * @param <L> the new key type
@@ -71,7 +90,7 @@ public class CollectionUtils {
    * @param <X> the type of exception that the provided function may throw (besides
    *        {@link RuntimeException} instances)
    * @param map the original map
-   * @param keyTransformer the function that transforms keys
+   * @param keyTransformer an injective function that transforms keys
    * @return the corresponding map
    * @throws X if the provided function throws while transforming keys
    * @throws IllegalArgumentException if the provided function maps two keys to the same new key (as
@@ -88,6 +107,62 @@ public class CollectionUtils {
     } catch (InternalException e) {
       @SuppressWarnings("unchecked")
       final X cause = (X) e.getCause();
+      throw cause;
+    }
+    return collected;
+  }
+
+  public static interface ValueTransformer<K, L, V, W, X extends Exception> {
+    public W transform(K oldKey, L newKey, V oldValue) throws X;
+  }
+
+  private static record Triple<K, L, V> (K oldKey, L newKey, V oldValue) {
+  }
+
+  /**
+   * Returns an immutable map containing as many entries as the provided one, with keys and values
+   * transformed, provided the given key function maps different keys to different new keys (i.e.,
+   * is injective). If the provided key function maps two keys of the original map to two equal new
+   * keys, an {@link IllegalArgumentException} is thrown.
+   *
+   * @param <K> the original key type
+   * @param <L> the new key type
+   * @param <V> the value type
+   * @param <X> the type of exception that the provided key function may throw (besides
+   *        {@link RuntimeException} instances)
+   * @param <Y> the type of exception that the provided value transformer may throw (besides
+   *        {@link RuntimeException} instances)
+   * @param map the original map
+   * @param keyTransformer an injective function that transforms keys
+   * @param valueTransformer a function that transforms values
+   * @return a map of the same size than the provided map
+   * @throws X if the provided key function throws while transforming keys
+   * @throws Y if the provided value function throws while transforming values
+   * @throws IllegalArgumentException if the provided function maps two keys to the same new key (as
+   *         determined by {@link #equals(Object)})
+   */
+  public static <K, L, V, W, X extends Exception, Y extends Exception> ImmutableMap<L, W>
+      transformKeysAndValues(Map<K, V> map, TFunction<? super K, L, X> keyTransformer,
+          ValueTransformer<? super K, ? super L, ? super V, W, Y> valueTransformer) throws X, Y {
+    final Function<Map.Entry<K, V>, L> behavedKeyTransformer =
+        UNCHECKER.wrapFunction(e -> keyTransformer.apply(e.getKey()));
+    final Function<Triple<K, L, V>, W> behavedValueTransformer =
+        UNCHECKER_Y.wrapFunction(t -> valueTransformer.transform(t.oldKey, t.newKey, t.oldValue));
+    @SuppressWarnings("unused")
+    final Function<Entry<K, V>, Triple<K, L, V>> oldEntryToTriple =
+        e -> new Triple<K, L, V>(e.getKey(), behavedKeyTransformer.apply(e), e.getValue());
+    final Collector<Triple<K, L, V>, ?, ImmutableMap<L, W>> collector =
+        ImmutableMap.toImmutableMap(Triple::newKey, behavedValueTransformer);
+    final ImmutableMap<L, W> collected;
+    try {
+      collected = map.entrySet().stream().map(oldEntryToTriple).collect(collector);
+    } catch (InternalException e) {
+      @SuppressWarnings("unchecked")
+      final X cause = (X) e.getCause();
+      throw cause;
+    } catch (InternalExceptionY e) {
+      @SuppressWarnings("unchecked")
+      final Y cause = (Y) e.getCause();
       throw cause;
     }
     return collected;
