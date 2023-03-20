@@ -255,7 +255,7 @@ public class GraphUtils {
   }
 
   /**
-   * From jbduncan at https://github.com/jrtom/jung/pull/174
+   * From <a href="https://github.com/jrtom/jung/pull/174">jbduncan</a>.
    */
   public static <N> ImmutableSet<N> topologicallySortedNodes(Graph<N> graph) {
     return ImmutableSet.copyOf(new TopologicalOrderIterator<>(graph));
