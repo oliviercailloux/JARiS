@@ -43,9 +43,6 @@ class XmlTransformerTests {
         // .toUri().toString());
         new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
 
-    final boolean xalanIsInClassPath =
-        Class.forName(getClass().getClassLoader().getUnnamedModule(), XALAN_FACTORY) != null;
-    LOGGER.info("Xalan in class path? {}.", xalanIsInClassPath);
     {
       /* This is too complex for pure JDK embedded transformer. */
       /*
@@ -56,13 +53,6 @@ class XmlTransformerTests {
           t.factory().getClass().getName());
       final XmlException xalanExc =
           assertThrows(XmlException.class, () -> t.usingStylesheet(myStyle));
-      /*
-       * Oddly enough, the error changed when including xalan in the class path even though we still
-       * use the system default transformer. Might be related to
-       * https://xml.apache.org/xalan-j/features.html#source_location.
-       *
-       * Does not occur anymore on Saucisson.
-       */
       final String reason = xalanExc.getCause().getMessage();
       // if (xalanIsInClassPath) {
       assertTrue(reason.contains("JAXP0801003"), reason);
@@ -73,7 +63,7 @@ class XmlTransformerTests {
     }
 
     /* The external Apache Xalan 2.7.2 implementation works. */
-    if (xalanIsInClassPath) {
+    {
       System.setProperty(XmlTransformer.FACTORY_PROPERTY, XALAN_FACTORY);
       assertDoesNotThrow(() -> XmlTransformer.usingFoundFactory().usingStylesheet(myStyle));
     }
@@ -90,9 +80,7 @@ class XmlTransformerTests {
     final StreamSource myStyle =
         new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
 
-    final boolean xalanIsInClassPath =
-        Class.forName(getClass().getClassLoader().getUnnamedModule(), XALAN_FACTORY) != null;
-    if (xalanIsInClassPath) {
+    {
       System.setProperty(XmlTransformer.FACTORY_PROPERTY, XALAN_FACTORY);
       final String transformed =
           XmlTransformer.usingFoundFactory().usingStylesheet(myStyle).transform(docBook);
@@ -116,9 +104,7 @@ class XmlTransformerTests {
     final StreamSource myStyle =
         new StreamSource(XmlTransformerTests.class.getResource("mystyle.xsl").toString());
 
-    final boolean xalanIsInClassPath =
-        Class.forName(getClass().getClassLoader().getUnnamedModule(), XALAN_FACTORY) != null;
-    if (xalanIsInClassPath) {
+    {
       System.setProperty(XmlTransformer.FACTORY_PROPERTY, XALAN_FACTORY);
       final String transformed =
           XmlTransformer.usingFoundFactory().usingStylesheet(myStyle).transform(docBook);
