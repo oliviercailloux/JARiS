@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.net.URI;
 import java.util.Optional;
-
 import javax.xml.namespace.QName;
 
 /**
@@ -44,10 +43,11 @@ public record XmlName (Optional<URI> namespace, String localName) {
     checkNotNull(localName);
   }
 
+  @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
   public QName toQName() {
     return new QName(namespace.map(Object::toString).orElse(null), localName);
   }
-  
+
   /**
    * Returns this xml name as a string, using the
    * <a href="https://docstore.mik.ua/orelly/xml/xmlnut/ch04_02.htm">{URI}localName</a> form.
