@@ -16,7 +16,7 @@ import java.util.Optional;
  * The namespace name, if present, is an absolute URI.
  * </p>
  */
-public class XmlName {
+public record XmlName (Optional<URI> namespace, String localName) {
   /**
    * Returns an expanded name representing the given namespace and local name.
    *
@@ -38,13 +38,10 @@ public class XmlName {
     return new XmlName(Optional.empty(), localName);
   }
 
-  private final Optional<URI> namespace;
-  private final String localName;
-
-  private XmlName(Optional<URI> namespace, String localName) {
-    this.namespace = checkNotNull(namespace);
+  public XmlName {
+    checkNotNull(namespace);
     namespace.ifPresent(n -> checkArgument(n.isAbsolute()));
-    this.localName = checkNotNull(localName);
+    checkNotNull(localName);
   }
 
   /**
@@ -55,25 +52,5 @@ public class XmlName {
    */
   public String asFullName() {
     return namespace.map(n -> "{" + n.toString() + "}").orElse("") + localName;
-  }
-
-  @Override
-  public boolean equals(Object o2) {
-    if (!(o2 instanceof XmlName)) {
-      return false;
-    }
-    final XmlName t2 = (XmlName) o2;
-    return namespace.equals(t2.namespace) && localName.equals(t2.localName);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(namespace, localName);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("Namespace", namespace).add("Local name", localName)
-        .toString();
   }
 }
