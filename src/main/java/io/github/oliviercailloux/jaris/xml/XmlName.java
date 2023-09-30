@@ -49,7 +49,7 @@ public class XmlName {
 
   /**
    * Returns this xml name as a string, using the
-   * <a href="https://docstore.mik.ua/orelly/xml/xmlnut/ch04_02.htm">{URI}localName form</a>.
+   * <a href="https://docstore.mik.ua/orelly/xml/xmlnut/ch04_02.htm">{URI}localName</a> form.
    *
    * @return a string representing this xml name.
    */
