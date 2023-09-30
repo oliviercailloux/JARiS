@@ -3,10 +3,10 @@ package io.github.oliviercailloux.jaris.xml;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.base.MoreObjects;
 import java.net.URI;
-import java.util.Objects;
 import java.util.Optional;
+
+import javax.xml.namespace.QName;
 
 /**
  * Either just a local name (in which case its namespace name has no value), or an
@@ -44,6 +44,10 @@ public record XmlName (Optional<URI> namespace, String localName) {
     checkNotNull(localName);
   }
 
+  public QName toQName() {
+    return new QName(namespace.map(Object::toString).orElse(null), localName);
+  }
+  
   /**
    * Returns this xml name as a string, using the
    * <a href="https://docstore.mik.ua/orelly/xml/xmlnut/ch04_02.htm">{URI}localName</a> form.
