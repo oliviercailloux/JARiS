@@ -43,19 +43,22 @@ import org.xml.sax.SAXException;
  * with static methods for manipulating lists of nodes.
  */
 public class DomHelper {
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = LoggerFactory.getLogger(DomHelper.class);
+
   /**
    * The <a href="https://infra.spec.whatwg.org/#html-namespace">HTML namespace</a> URI, defined as
    * {@code http://www.w3.org/1999/xhtml}.
-   */
+   */ 
   public static final URI HTML_NS_URI = URI.create("http://www.w3.org/1999/xhtml");
   /**
    * The SVG 2 namespace URI, defined as {@code http://www.w3.org/2000/svg},
    * <a href="https://svgwg.org/svg2-draft/struct.html#Namespace">as in</a> earlier versions of SVG
-   */
+   */ 
   public static final URI SVG_NS_URI = URI.create("http://www.w3.org/2000/svg");
 
-  @SuppressWarnings("unused")
-  private static final Logger LOGGER = LoggerFactory.getLogger(DomHelper.class);
+  /** 96d / 2.54d, see https://developer.mozilla.org/en-US/docs/Web/CSS/length */
+  public static final double PIXELS_PER_CM = 96d / 2.54d;
 
   /**
    * Initializes and returns the DOM helper service.
