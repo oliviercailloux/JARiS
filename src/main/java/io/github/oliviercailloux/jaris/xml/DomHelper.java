@@ -51,11 +51,6 @@ public class DomHelper {
    * {@code http://www.w3.org/1999/xhtml}.
    */ 
   public static final URI HTML_NS_URI = URI.create("http://www.w3.org/1999/xhtml");
-  /**
-   * The SVG 2 namespace URI, defined as {@code http://www.w3.org/2000/svg},
-   * <a href="https://svgwg.org/svg2-draft/struct.html#Namespace">as in</a> earlier versions of SVG
-   */ 
-  public static final URI SVG_NS_URI = URI.create("http://www.w3.org/2000/svg");
 
   /**
    * Initializes and returns the DOM helper service.
