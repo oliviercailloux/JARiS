@@ -57,9 +57,6 @@ public class DomHelper {
    */ 
   public static final URI SVG_NS_URI = URI.create("http://www.w3.org/2000/svg");
 
-  /** 96d / 2.54d, see https://developer.mozilla.org/en-US/docs/Web/CSS/length */
-  public static final double PIXELS_PER_CM = 96d / 2.54d;
-
   /**
    * Initializes and returns the DOM helper service.
    * <p>
