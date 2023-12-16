@@ -223,20 +223,6 @@ public class DomHelper {
   }
 
   /**
-   * Creates a new SVG DOM Document, containing only the SVG document element.
-   *
-   * @return a new {@code Document} object with a document element having namespace
-   *         {@link #SVG_NS_URI} and name “{@code svg}”.
-   */
-  public Document svg() {
-    /*
-     * if https://issues.apache.org/jira/browse/BATIK-1325 ever gets implemented, we could even
-     * return an SVGDocument here (though that doesn’t seem useful, after all).
-     */
-    return createDocument(SVG_NS_URI.toString(), "svg");
-  }
-
-  /**
    * Creates a DOM Document with the specified document element.
    *
    * @param namespaceUri The namespace URI of the document element to create
