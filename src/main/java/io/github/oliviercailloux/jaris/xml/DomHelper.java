@@ -51,7 +51,7 @@ public class DomHelper {
    * {@code http://www.w3.org/1999/xhtml}.
    */ 
   public static final URI HTML_NS_URI = URI.create("http://www.w3.org/1999/xhtml");
-
+  
   /**
    * The <a href="https://infra.spec.whatwg.org/#xmlns-namespace">XMLNS namespace</a> URI, defined as
    * {@code http://www.w3.org/2000/xmlns/}.
@@ -367,6 +367,7 @@ public class DomHelper {
     lazyInitSer();
     final StringWriter writer = new StringWriter();
     final LSOutput output = implLs.createLSOutput();
+    output.setEncoding("UTF-8");
     output.setCharacterStream(writer);
     boolean res;
     try {
