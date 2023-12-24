@@ -366,24 +366,14 @@ public class DomHelper {
     final StringWriter writer = new StringWriter();
     final LSOutput output = implLs.createLSOutput();
     output.setCharacterStream(writer);
+    boolean res;
     try {
-      ser.write(node, output);
+      res = ser.write(node, output);
     } catch (LSException e) {
       /* I don’t think it is possible to not be able to serialize a node to a string. */
       throw new VerifyException("Unable to serialize the provided node.", e);
     }
-    /*
-     * See <a href="https://bugs.openjdk.java.net/browse/JDK-7150637">7150637</a> and <a
-     * href="https://bugs.openjdk.java.net/browse/JDK-8054115">8054115 - LSSerializer remove a '\n'
-     * following the xml declaration</a>. I filed bug
-     * https://bugs.openjdk.java.net/browse/JDK-8249867 in July 2020.
-     *
-     * I got an email on the 10th of March, 2021 about JDK-8249867/Incident Report 9153520, stating
-     * that the incident has been fixed at https://jdk.java.net/17/. The bug still happens on my
-     * computer running openjdk 17-ea 2021-09-14; OpenJDK Runtime Environment (build
-     * 17-ea+19-Debian-1); OpenJDK 64-Bit Server VM (build 17-ea+19-Debian-1, mixed mode, sharing).
-     * I have not checked with a more recent JDK.
-     */
+    verify(res, "Write failed");
     return writer.toString();
   }
 }
