@@ -21,9 +21,9 @@ import org.xml.sax.InputSource;
 
 import com.google.common.collect.ImmutableList;
 
-class DomHelperTests {
+class DomHelperHtmlTests {
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = LoggerFactory.getLogger(DomHelperTests.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DomHelperHtmlTests.class);
   private Document document;
   private Element html;
   private Element head;
@@ -65,31 +65,5 @@ class DomHelperTests {
   void testToElements() throws Exception {
     initDoc();
     assertEquals(ImmutableList.of(html), DomHelper.toElements(document.getChildNodes()));
-  }
-
-  @Test
-  void testNamespace() throws Exception {
-    final String source =
-        Files.readString(Path.of(getClass().getResource("short namespace.xml").toURI()));
-    final Document articleDoc =
-        DomHelper.domHelper().asDocument(new StreamSource(new StringReader(source)));
-    final Element root = articleDoc.getDocumentElement();
-    assertEquals("Article", root.getTagName());
-    assertEquals("https://example.com/article", root.getNamespaceURI());
-    ImmutableList<Node> children = DomHelper.toList(root.getChildNodes());
-    Node textNode = children.get(0);
-    assertEquals("\n    ", textNode.getNodeValue());
-    LOGGER.info(DomHelper.toDebugString(textNode));
-    Element title = (Element) children.get(1);
-    assertEquals("k:Title", title.getTagName());
-    String kNs = "https://example.com/article/k";
-    assertEquals(kNs, title.getNamespaceURI());
-
-    Element newElement = articleDoc.createElementNS(kNs, "k:Empty");
-    root.insertBefore(newElement, title.getNextSibling());
-    final String expected =
-        Files.readString(Path.of(getClass().getResource("short namespace expanded.xml").toURI()));
-    String expanded = DomHelper.domHelper().toString(articleDoc);
-    assertEquals(expected, expanded);
   }
 }
