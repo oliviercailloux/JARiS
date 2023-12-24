@@ -53,6 +53,18 @@ public class DomHelper {
   public static final URI HTML_NS_URI = URI.create("http://www.w3.org/1999/xhtml");
 
   /**
+   * The <a href="https://infra.spec.whatwg.org/#xmlns-namespace">XMLNS namespace</a> URI, defined as
+   * {@code http://www.w3.org/2000/xmlns/}.
+   */ 
+  public static final URI XMLNS_NS_URI = URI.create("http://www.w3.org/2000/xmlns/");
+  
+  /**
+   * The <a href="https://infra.spec.whatwg.org/#xml-namespace">XML namespace</a> URI, defined as
+   * {@code http://www.w3.org/XML/1998/namespace}.
+   */ 
+  public static final URI XML_NS_URI = URI.create("http://www.w3.org/XML/1998/namespace");
+
+  /**
    * Initializes and returns the DOM helper service.
    * <p>
    * This initializes the {@code DOMImplementationRegistry}, as described in
