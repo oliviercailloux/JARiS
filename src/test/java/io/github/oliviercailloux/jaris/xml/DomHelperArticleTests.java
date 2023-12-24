@@ -9,6 +9,8 @@ import java.nio.file.Path;
 import javax.xml.transform.stream.StreamSource;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -16,6 +18,8 @@ import org.w3c.dom.Node;
 import com.google.common.collect.ImmutableList;
 
 public class DomHelperArticleTests {
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = LoggerFactory.getLogger(DomHelperArticleTests.class);
   
   @Test
   void testNamespace() throws Exception {
