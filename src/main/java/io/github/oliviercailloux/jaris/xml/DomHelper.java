@@ -295,6 +295,8 @@ public class DomHelper {
     /* Not supported by the default implementation. */
     // ser.getDomConfig().setParameter("ignore-unknown-character-denormalizations", true);
     ser.getDomConfig().setParameter("format-pretty-print", true);
+    /* See https://bugs.openjdk.org/browse/JDK-8259502 */
+    ser.getDomConfig().setParameter("http://www.oracle.com/xml/jaxp/properties/isStandalone", true);
   }
 
   private void lazyInitDeser() {
