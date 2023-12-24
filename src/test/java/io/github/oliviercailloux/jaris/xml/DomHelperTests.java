@@ -28,14 +28,10 @@ class DomHelperTests {
   private Element html;
   private Element head;
 
-  private void initDoc() throws ParserConfigurationException {
-    final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    final DocumentBuilder builder = factory.newDocumentBuilder();
-    document = builder.newDocument();
-
-    html = document.createElementNS(DomHelper.HTML_NS_URI.toString(), "html");
+  private void initDoc() {
+    document = DomHelper.domHelper().html();
+    html = document.getDocumentElement();
     html.setAttribute("xml:lang", "en");
-    document.appendChild(html);
     head = document.createElementNS(DomHelper.HTML_NS_URI.toString(), "head");
     html.appendChild(head);
     final Element meta = document.createElementNS(DomHelper.HTML_NS_URI.toString(), "meta");
