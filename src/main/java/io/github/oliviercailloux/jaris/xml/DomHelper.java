@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.AbstractList;
 import java.util.RandomAccess;
 import javax.xml.XMLConstants;
@@ -367,7 +368,7 @@ public class DomHelper {
     lazyInitSer();
     final StringWriter writer = new StringWriter();
     final LSOutput output = implLs.createLSOutput();
-    output.setEncoding("UTF-8");
+    output.setEncoding(StandardCharsets.UTF_8.name());
     output.setCharacterStream(writer);
     boolean res;
     try {
