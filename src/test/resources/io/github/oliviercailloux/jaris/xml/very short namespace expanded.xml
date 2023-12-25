@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Article xmlns="https://example.com/article" xmlns:k="https://example.com/article/k">
+    <k:Empty/>
+    <k:Empty/>
+</Article>

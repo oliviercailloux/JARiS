@@ -9,6 +9,7 @@ import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import javax.xml.XMLConstants;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.stream.StreamSource;
@@ -215,4 +216,43 @@ class XmlTransformerTests {
             Path.of(getClass().getResource("short namespace expanded.xml").toURI()));
             assertEquals(expected, DomHelper.domHelper().toString(docCopy));
         }
+  
+  @Test
+  void testCreateNamespace() throws Exception {
+    final String ARTICLE_NS = "https://example.com/article";
+    final String ARTICLE_NS_K = "https://example.com/article/k";
+      DomHelper h = DomHelper.domHelper();
+
+    Document doc = h.createDocument(ARTICLE_NS, "Article");
+    doc.getDocumentElement().setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:k", ARTICLE_NS_K);
+    Element title = doc.createElementNS(ARTICLE_NS_K, "k:Empty");
+    doc.getDocumentElement().appendChild(title);
+    final String start =
+        Files.readString(Path.of(getClass().getResource("very short namespace.xml").toURI()));
+    String serialized = h.toString(doc);
+    assertEquals(start, serialized);
+
+    DOMResult result = new DOMResult();
+    XmlTransformer.usingFoundFactory().usingEmptyStylesheet().transform(new StreamSource(new StringReader(serialized)), result);
+    Document docCopy = (Document) result.getNode();
+    assertEquals(start, DomHelper.domHelper().toString(docCopy));
+
+        final Element root = docCopy.getDocumentElement();
+        assertEquals("Article", root.getTagName());
+        assertEquals("https://example.com/article", root.getNamespaceURI());
+        ImmutableList<Node> children = DomHelper.toList(root.getChildNodes());
+        Node textNode = children.get(0);
+        assertEquals("\n    ", textNode.getNodeValue());
+        LOGGER.info(DomHelper.toDebugString(textNode));
+        Element titleCopy = (Element) children.get(1);
+        String kNs = "https://example.com/article/k";
+        assertEquals(kNs, titleCopy.getNamespaceURI());
+        assertEquals("k:Empty", titleCopy.getTagName());
+        Element newElement = docCopy.createElementNS(kNs, "k:Empty");
+        root.insertBefore(newElement, titleCopy.getNextSibling());
+        
+        final String expected = Files.readString(
+            Path.of(getClass().getResource("very short namespace expanded.xml").toURI()));
+            assertEquals(expected, DomHelper.domHelper().toString(docCopy));
+  }
 }
