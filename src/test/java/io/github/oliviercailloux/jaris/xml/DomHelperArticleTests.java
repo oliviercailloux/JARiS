@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableList;
 public class DomHelperArticleTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(DomHelperArticleTests.class);
-  
+
   static final String ARTICLE_NS = "https://example.com/article";
   static final String ARTICLE_NS_K = "https://example.com/article/k";
 
@@ -30,14 +30,15 @@ public class DomHelperArticleTests {
   void testCreateNamespace() throws Exception {
     DomHelper h = DomHelper.domHelper();
     Document doc = h.createDocument(ARTICLE_NS, "Article");
-    doc.getDocumentElement().setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:k", ARTICLE_NS_K);
+    doc.getDocumentElement().setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:k",
+        ARTICLE_NS_K);
     Element title = doc.createElementNS(ARTICLE_NS_K, "k:Empty");
     doc.getDocumentElement().appendChild(title);
     final String expected =
         Files.readString(Path.of(getClass().getResource("very short namespace.xml").toURI()));
     assertEquals(expected, h.toString(doc));
   }
-  
+
   @Test
   void testCreateNamespaceWithoutXmlnsNs() throws Exception {
     DomHelper h = DomHelper.domHelper();
