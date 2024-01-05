@@ -2,24 +2,14 @@ package io.github.oliviercailloux.jaris.xml;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.StringReader;
+import com.google.common.collect.ImmutableList;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.stream.StreamSource;
-
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
-
-import com.google.common.collect.ImmutableList;
 
 class DomHelperHtmlTests {
   @SuppressWarnings("unused")
