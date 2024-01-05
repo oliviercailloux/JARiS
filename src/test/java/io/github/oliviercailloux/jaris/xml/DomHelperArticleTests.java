@@ -65,10 +65,9 @@ public class DomHelperArticleTests {
     LOGGER.info(DomHelper.toDebugString(textNode));
     Element title = (Element) children.get(1);
     assertEquals("k:Title", title.getTagName());
-    String kNs = ARTICLE_NS_K;
-    assertEquals(kNs, title.getNamespaceURI());
+    assertEquals(ARTICLE_NS_K, title.getNamespaceURI());
 
-    Element newElement = articleDoc.createElementNS(kNs, "k:Empty");
+    Element newElement = articleDoc.createElementNS(ARTICLE_NS_K, "k:Empty");
     root.insertBefore(newElement, title.getNextSibling());
     final String expected =
         Files.readString(Path.of(getClass().getResource("short namespace expanded.xml").toURI()));
