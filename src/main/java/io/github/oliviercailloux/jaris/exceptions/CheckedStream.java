@@ -729,8 +729,6 @@ public interface CheckedStream<T, X extends Exception> {
    * <p>
    * This is a <a href="package-summary.html#StreamOps">terminal operation</a>.
    * <p>
-   * TODO think about returning a CheckedOptional, or TryOptional, that allows for an extended Map
-   * operation.
    *
    * @param comparator a <a href="package-summary.html#NonInterference">non-interfering</a>,
    *        <a href="package-summary.html#Statelessness">stateless</a> {@code Comparator} to compare
