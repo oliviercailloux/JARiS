@@ -11,7 +11,7 @@ import java.util.stream.Stream;
  * Much of the code and documentation here has been adapted from the OpenJDK specification and
  * implementation of {@link Optional}.
  * </p>
- * TODO adapt doc and check signatures.
+ * To be done: adapt doc and check signatures.
  *
  * @param <T> the type of value
  * @see Optional
