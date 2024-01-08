@@ -10,7 +10,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @param <X> a sort of throwable that this consumer may throw
  */
 @FunctionalInterface
-@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public interface TConsumer<T, X extends Throwable> {
   /**
    * Performs this operation on the given argument.

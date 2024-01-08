@@ -8,7 +8,6 @@ package io.github.oliviercailloux.jaris.throwing;
  * @param <X> a sort of throwable that this supplier may throw
  */
 @FunctionalInterface
-@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public interface TSupplier<T, X extends Throwable> {
   /**
    * Gets a result.

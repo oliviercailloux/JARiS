@@ -10,7 +10,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @param <X> a sort of throwable that the predicate may throw
  */
 @FunctionalInterface
-@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public interface TPredicate<T, X extends Throwable> {
   /**
    * Returns a throwing predicate that is the negation of the supplied predicate.

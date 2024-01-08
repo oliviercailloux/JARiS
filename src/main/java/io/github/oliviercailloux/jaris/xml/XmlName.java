@@ -43,7 +43,6 @@ public record XmlName (Optional<URI> namespace, String localName) {
     checkNotNull(localName);
   }
 
-  @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
   public QName toQName() {
     return new QName(namespace.map(Object::toString).orElse(null), localName);
   }

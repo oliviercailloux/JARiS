@@ -10,7 +10,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @param <X> a sort of throwable that this comparator may throw
  */
 @FunctionalInterface
-@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public interface TComparator<T, X extends Throwable> {
   /**
    * Accepts a function that extracts a sort key from a type {@code T}, and returns a

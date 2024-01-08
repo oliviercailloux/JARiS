@@ -10,7 +10,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @param <X> a sort of throwable that the {@code Throwing.BinaryOperator} may throw
  */
 @FunctionalInterface
-@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public interface TBinaryOperator<T, X extends Throwable> extends TBiFunction<T, T, T, X> {
   /**
    * Returns a {@link TBinaryOperator} which returns the lesser of two elements according to the

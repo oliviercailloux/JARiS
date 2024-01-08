@@ -11,7 +11,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @param <X> a sort of throwable that the {@code Throwing.BiPredicate} may throw
  */
 @FunctionalInterface
-@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public interface TBiPredicate<T, U, X extends Throwable> {
   /**
    * Evaluates this predicate on the given arguments.
