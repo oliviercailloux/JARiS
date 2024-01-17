@@ -6,8 +6,8 @@ import org.slf4j.LoggerFactory;
 
 public class GraderVarious {
 	public void gradeCode() {
-		TryCatchAll<Integer> tryTarget = TryCatchAll.instance();
-		TConsumer< ?> consumer = i -> {};
-		TryCatchAll<Integer> got = tryTarget.andConsume(consumer);
+		TryCatchAll tryTarget = TryCatchAll.instance();
+		TConsumer<?> consumer = i -> {};
+		TryCatchAll got = tryTarget.andConsume(consumer);
 	}
 }
