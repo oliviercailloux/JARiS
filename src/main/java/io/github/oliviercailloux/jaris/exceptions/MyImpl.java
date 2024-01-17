@@ -2,7 +2,7 @@ package io.github.oliviercailloux.jaris.exceptions;
 
 import java.util.Random;
 
-public interface MyImpl extends MyInterface<Random, Random> {
+public interface MyImpl extends MyInterface<Random> {
   public static MyImpl instance() {
     return new MyImpl() {
       @Override
