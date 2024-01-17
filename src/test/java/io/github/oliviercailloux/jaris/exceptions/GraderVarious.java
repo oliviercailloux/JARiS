@@ -10,7 +10,7 @@ public class GraderVarious {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GraderVarious.class);
 
 	public void gradeCode() {
-		final TryCatchAll<Integer> tryTarget = TryCatchAll.success();
+		final TryCatchAll<Integer> tryTarget = TryCatchAll.instance();
 		TConsumer<? super Integer, ?> consumer = Integer::byteValue;
 		final TryCatchAll<Integer> got = tryTarget.andConsume(consumer);
 		LOGGER.info("Got: {}.", got);

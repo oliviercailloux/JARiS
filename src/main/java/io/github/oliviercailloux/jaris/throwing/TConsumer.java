@@ -9,14 +9,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @param <T> the type of the input to the operation
  * @param <X> a sort of throwable that this consumer may throw
  */
-@FunctionalInterface
 public interface TConsumer<T, X extends Throwable> {
-  /**
-   * Performs this operation on the given argument.
-   *
-   * @param t the input argument
-   * @throws X in generally unspecified circumstances
-   */
   public void accept(T t) throws X;
 
   /**
