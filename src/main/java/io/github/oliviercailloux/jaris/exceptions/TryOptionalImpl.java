@@ -493,68 +493,6 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
   }
 
-  public static class TryVoidSuccess extends TryVariableCatchVoidSuccess<Exception, Exception>
-      implements TryVoid<Exception> {
-    public static <X extends Exception> TryVoid<X> given() {
-      return new TryVoidSuccess().cast();
-    }
-
-    private TryVoidSuccess() {
-      /* Reducing visibility. */
-    }
-
-    private <Y extends Exception> TryVoid<Y> cast() {
-      /*
-       * Safe: there is no cause in this (immutable) instance, thus its declared type does not
-       * matter.
-       */
-      @SuppressWarnings("unchecked")
-      final TryVoid<Y> casted = (TryVoid<Y>) this;
-      return casted;
-    }
-
-    @Override
-    public <T> Try<T, Exception> andGet(TSupplier<? extends T, ? extends Exception> supplier) {
-      return null;
-    }
-
-    @Override
-    public TryVoid<Exception> andRun(TRunnable<? extends Exception> runnable) {
-      return TryVoid.run(runnable);
-    }
-
-    @Override
-    public TryVoid<Exception> or(TRunnable<? extends Exception> runnable) {
-      return this;
-    }
-  }
-
-  public static class TryVoidFailure<X extends Exception>
-      extends TryVariableCatchVoidFailure<X, Exception> implements TryVoid<X> {
-    public static <X extends Exception> TryVoid<X> given(X cause) {
-      return new TryVoidFailure<>(cause);
-    }
-
-    private TryVoidFailure(X cause) {
-      super(cause);
-    }
-
-    @Override
-    public <T> Try<T, X> andGet(TSupplier<? extends T, ? extends X> supplier) {
-      return null;
-    }
-
-    @Override
-    public TryVoid<X> andRun(TRunnable<? extends X> runnable) {
-      return this;
-    }
-
-    @Override
-    public TryVoid<X> or(TRunnable<? extends X> runnable) {
-      return TryVoid.run(runnable);
-    }
-  }
-
   public static class TryCatchAllSuccess<T> extends
       TryOptionalImpl.TryVariableCatchSuccess<T, Throwable, Throwable> implements TryCatchAll<T> {
     public static <T> TryCatchAll<T> given(T result) {
