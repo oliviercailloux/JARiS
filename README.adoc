@@ -2,3 +2,5 @@ sudo update-alternatives --set java /usr/lib/jvm/java-19-openjdk-amd64/bin/java
 sudo update-alternatives --set javac /usr/lib/jvm/java-19-openjdk-amd64/bin/javac
 javac -d "out/" somebug/*.java
 javac -classpath "out/" "someuser/UserClass.java"
+someuser/UserClass.java:10: error: incompatible types: MyInterface<Random> cannot be converted to MyImpl
+
