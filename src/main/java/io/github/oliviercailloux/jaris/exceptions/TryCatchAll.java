@@ -47,8 +47,8 @@ public interface TryCatchAll<T>
    * @param result the result to contain
    * @return a success
    */
-  public static <T> TryCatchAll<T> success(T result) {
-    return TryOptionalImpl.TryCatchAllSuccess.given(result);
+  public static <T> TryCatchAll<T> success() {
+    return null;
   }
 
   @Override
