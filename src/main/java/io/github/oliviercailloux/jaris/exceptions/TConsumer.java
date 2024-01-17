@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.jaris.throwing;
+package io.github.oliviercailloux.jaris.exceptions;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

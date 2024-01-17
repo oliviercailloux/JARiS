@@ -1,7 +1,6 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
 import io.github.oliviercailloux.jaris.exceptions.TryCatchAll;
-import io.github.oliviercailloux.jaris.throwing.TConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

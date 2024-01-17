@@ -1,6 +1,5 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
-import io.github.oliviercailloux.jaris.throwing.TConsumer;
 import java.util.Optional;
 import java.util.function.Function;
 
