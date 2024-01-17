@@ -13,5 +13,5 @@ public interface MyImpl extends MyInterface<Random> {
   }
 
   @Override
-  public MyImpl andConsume(TConsumer<?> consumer);
+  public MyImpl andConsume(TConsumer<? extends Random> consumer);
 }
