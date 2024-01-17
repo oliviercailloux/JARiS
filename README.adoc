@@ -17,6 +17,12 @@ The API is _not_ stable. Write to me if you are interested in using this library
 
 The following sections list some of the utilities that this library provides (by package).
 
+== Compiler bug
+With Debian bookworms compiler, Maven fails to compile (although invoking javac manually does compile). Perhaps as indicated https://stackoverflow.com/questions/8417633/mvn-install-fails-due-to-incompatible-types[here].
+I could solve the problem with: `sudo apt install openjdk-19-jdk/unstable`; `mvn clean compile`. Use `sudo update-alternatives --set java /usr/lib/jvm/java-19-openjdk-amd64/bin/java`; `sudo update-alternatives --set javac /usr/lib/jvm/java-19-openjdk-amd64/bin/javac` to set the versions manually (or adapt to reset to version 17, but this triggers the bug again).
+
+Should be verified! I think that I still have the bug.
+
 == Credentials
 https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/credentials/CredentialsReader.html[`CredentialsReader`] permits to read user’s credentials (authentication information) from the system properties, then if not found there, from the environment, then if not found there, from a file.
 
