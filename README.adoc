@@ -6,3 +6,5 @@ javac -d out2/ -cp main/java/out/ test/java/someuser/UserClass.java
 Problem does NOT happen.
 
 https://stackoverflow.com/questions/8417633/mvn-install-fails-due-to-incompatible-types says that it is due to annotation processing.
+
+-d /home/olivier/Local/Nextcloud LAMSADE/Professions/Enseignement/Java & HTML/JARiS/target/test-classes -classpath /home/olivier/Local/Nextcloud LAMSADE/Professions/Enseignement/Java & HTML/JARiS/target/test-classes:/home/olivier/Local/Nextcloud LAMSADE/Professions/Enseignement/Java & HTML/JARiS/target/classes: -sourcepath /home/olivier/Local/Nextcloud LAMSADE/Professions/Enseignement/Java & HTML/JARiS/src/test/java:/home/olivier/Local/Nextcloud LAMSADE/Professions/Enseignement/Java & HTML/JARiS/target/generated-test-sources/test-annotations: /home/olivier/Local/Nextcloud LAMSADE/Professions/Enseignement/Java & HTML/JARiS/src/test/java/someuser/UserClass.java -s /home/olivier/Local/Nextcloud LAMSADE/Professions/Enseignement/Java & HTML/JARiS/target/generated-test-sources/test-annotations -g --release 19 -encoding UTF-8 -XDuseUnsharedTable=true
