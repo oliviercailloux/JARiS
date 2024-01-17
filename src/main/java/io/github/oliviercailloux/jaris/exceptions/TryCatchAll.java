@@ -113,7 +113,7 @@ public interface TryCatchAll<T>
    *         throwing
    */
   @Override
-  public abstract TryCatchAll<T> andConsume(TConsumer<? super T, ?> consumer);
+  public abstract TryCatchAll<T> andConsume(TConsumer<? super T, ? extends Throwable> consumer);
 
   /**
    * Returns this failure if this instance is a failure; the provided failure if it is a failure and
