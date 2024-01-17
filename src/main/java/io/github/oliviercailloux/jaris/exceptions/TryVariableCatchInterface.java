@@ -6,6 +6,6 @@ import java.util.function.Function;
 public interface TryVariableCatchInterface<T, X extends Z, Z extends Throwable> {
 
   public TryVariableCatchInterface<T, ?, Z>
-      andConsume(TConsumer<Integer, ? extends X> consumer);
+      andConsume(TConsumer< ? extends X> consumer);
 
 }
