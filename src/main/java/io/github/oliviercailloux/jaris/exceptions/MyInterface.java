@@ -6,5 +6,5 @@ import java.util.function.Function;
 
 public interface MyInterface<X extends Z, Z extends Random> {
 
-  public MyInterface<?, Random> andConsume(TConsumer<? extends X> consumer);
+  public MyInterface<?, Random> andConsume(TConsumer<? extends Z> consumer);
 }
