@@ -39,7 +39,7 @@ import io.github.oliviercailloux.jaris.throwing.TSupplier;
  * @param <T> the type of result possibly kept in the instance.
  */
 public interface TryCatchAll<T>
-    extends TryOptionalImpl.TryVariableCatchInterface<T, Throwable, Throwable> {
+    extends TryVariableCatchInterface<T, Throwable, Throwable> {
   /**
    * Returns a success containing the given result.
    *

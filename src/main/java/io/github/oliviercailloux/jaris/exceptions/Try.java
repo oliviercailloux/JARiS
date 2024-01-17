@@ -38,7 +38,7 @@ import io.github.oliviercailloux.jaris.throwing.TSupplier;
  * @param <X> the type of cause possibly kept in the instance.
  */
 public interface Try<T, X extends Exception>
-    extends TryOptionalImpl.TryVariableCatchInterface<T, X, Exception> {
+    extends TryVariableCatchInterface<T, X, Exception> {
 
   /**
    * Runs the runnable iff this instance is a success, and returns this instance if it succeeds and
