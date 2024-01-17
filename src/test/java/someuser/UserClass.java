@@ -1,7 +1,5 @@
 package someuser;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import somebug.MyImpl;
 import somebug.TConsumer;
 
