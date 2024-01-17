@@ -1,6 +1,18 @@
-sudo update-alternatives --set java /usr/lib/jvm/java-19-openjdk-amd64/bin/java
-sudo update-alternatives --set javac /usr/lib/jvm/java-19-openjdk-amd64/bin/javac
-javac -d "out/" somebug/*.java
-javac -classpath "out/" "someuser/UserClass.java"
+$ sudo update-alternatives --set java /usr/lib/jvm/java-19-openjdk-amd64/bin/java
+$ sudo update-alternatives --set javac /usr/lib/jvm/java-19-openjdk-amd64/bin/javac
+$ javac --version
+javac 19.0.2
+$ git clean -xfd
+$ javac -d "out/" somebug/*.java
+$ javac -classpath "out/" "someuser/UserClass.java"
+someuser/UserClass.java:10: error: incompatible types: MyInterface<Random> cannot be converted to MyImpl
+
+$ sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+$ sudo update-alternatives --set javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
+$ javac --version
+javac 17.0.9
+$ git clean -xfd
+$ javac -d "out/" somebug/*.java
+$ javac -classpath "out/" "someuser/UserClass.java"
 someuser/UserClass.java:10: error: incompatible types: MyInterface<Random> cannot be converted to MyImpl
 
