@@ -11,7 +11,7 @@ public class GraderVarious {
 
 	public void gradeCode() {
 		final TryCatchAll<Integer> tryTarget = TryCatchAll.instance();
-		TConsumer<? super Integer, ?> consumer = Integer::byteValue;
+		TConsumer<? super Integer, ?> consumer = i -> {};
 		final TryCatchAll<Integer> got = tryTarget.andConsume(consumer);
 		LOGGER.info("Got: {}.", got);
 	}
