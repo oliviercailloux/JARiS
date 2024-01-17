@@ -7,6 +7,6 @@ public interface TryCatchAll<T>
   }
 
   @Override
-  public abstract TryCatchAll<T> andConsume(TConsumer<? super T, ?> consumer);
+  public abstract TryCatchAll<T> andConsume(TConsumer<Integer, ?> consumer);
 
 }
