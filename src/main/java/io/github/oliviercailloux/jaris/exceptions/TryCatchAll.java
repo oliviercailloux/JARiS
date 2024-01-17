@@ -1,10 +1,6 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
-import io.github.oliviercailloux.jaris.throwing.TBiFunction;
 import io.github.oliviercailloux.jaris.throwing.TConsumer;
-import io.github.oliviercailloux.jaris.throwing.TFunction;
-import io.github.oliviercailloux.jaris.throwing.TRunnable;
-import io.github.oliviercailloux.jaris.throwing.TSupplier;
 
 /**
  * Represents either a result or a failure and provides operations to deal with cases of successes
