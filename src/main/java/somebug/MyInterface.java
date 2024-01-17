@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.jaris.exceptions;
+package somebug;
 
 import java.util.Optional;
 import java.util.Random;

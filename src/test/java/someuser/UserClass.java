@@ -1,8 +1,9 @@
-package io.github.oliviercailloux.jaris.exceptions;
+package someuser;
 
-import io.github.oliviercailloux.jaris.exceptions.MyImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import somebug.MyImpl;
+import somebug.TConsumer;
 
 public class UserClass {
 	public void gradeCode() {
