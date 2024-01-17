@@ -35,15 +35,13 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
    *        throw {@code Throwable}; when catching species of exceptions, this makes no sense and we
    *        reduce possible signatures to clarify the intended use.
    */
-  public interface TryVariableCatchInterface<T, X extends Z, Z extends Throwable>
-      extends TryOptional<T, X> {
+  public interface TryVariableCatchInterface<T, X extends Z, Z extends Throwable> {
 
     /**
      * Returns {@code true} iff this instance contains a result (and not a cause).
      *
      * @return {@code true} iff {@link #isFailure()} returns {@code false}
      */
-    @Override
     public boolean isSuccess();
 
     /**
@@ -51,7 +49,6 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
      *
      * @return {@code true} iff {@link #isSuccess()} returns {@code false}
      */
-    @Override
     public boolean isFailure();
 
     /**
@@ -99,8 +96,8 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
      * @return an optional, containing the result if this instance is a success, empty otherwise
      * @throws Y if the consumer was invoked and threw an exception of type {@code Y}
      */
-    public <Y extends Exception> Optional<T>
-        orConsumeCause(TConsumer<? super X, Y> consumer) throws Y;
+    public <Y extends Exception> Optional<T> orConsumeCause(TConsumer<? super X, Y> consumer)
+        throws Y;
 
     /**
      * Returns the result contained in this instance if this instance is a success, or throws the
@@ -173,16 +170,6 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     public boolean equals(Object o2);
   }
 
-  /**
-   * A sort of try optional that guarantees that a success has no associated value. Is homeomorphic
-   * to an {@code Optional<X>} (plus indication of catching checked or catching all). Suitable for
-   * {@link TryVoid} and {@link TryCatchAllVoid}, depending on the catching strategy. The name
-   * (“variable catch”) indicates that this interface applies to both catching strategies.
-   *
-   * @param <X> the type of cause kept in this object if it is a failure.
-   * @param <Z> a priori constraint applied to some functionals on the type of throwable that they
-   *        may throw (see {@link TryVariableCatchInterface}).
-   */
   public interface TryVariableCatchVoidInterface<X extends Z, Z extends Throwable>
       extends TryOptional<Void, X> {
 
@@ -365,8 +352,8 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public <Y extends Exception> Optional<T>
-        orConsumeCause(TConsumer<? super X, Y> consumer) throws Y {
+    public <Y extends Exception> Optional<T> orConsumeCause(TConsumer<? super X, Y> consumer)
+        throws Y {
       return Optional.of(result);
     }
 
@@ -405,8 +392,8 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public <Y extends Exception> Optional<Object>
-        orConsumeCause(TConsumer<? super X, Y> consumer) throws Y {
+    public <Y extends Exception> Optional<Object> orConsumeCause(TConsumer<? super X, Y> consumer)
+        throws Y {
       consumer.accept(cause);
       return Optional.empty();
     }
@@ -506,111 +493,6 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
   }
 
-  public static class TrySuccess<T> extends TryVariableCatchSuccess<T, Exception, Exception>
-      implements Try<T, Exception> {
-    public static <T, X extends Exception> Try<T, X> given(T result) {
-      return new TrySuccess<>(result).cast();
-    }
-
-    private TrySuccess(T result) {
-      super(result);
-    }
-
-    private <Y extends Exception> Try<T, Y> cast() {
-      /*
-       * Safe: there is no cause in this (immutable) instance, thus its declared type does not
-       * matter.
-       */
-      @SuppressWarnings("unchecked")
-      final Try<T, Y> casted = (Try<T, Y>) this;
-      return casted;
-    }
-
-    @Override
-    public Try<T, Exception> andRun(TRunnable<? extends Exception> runnable) {
-      final TryVoid<? extends Exception> ran = TryVoid.run(runnable);
-      return ran.map(() -> this, Try::failure);
-    }
-
-    @Override
-    public Try<T, Exception>
-        andConsume(TConsumer<? super T, ? extends Exception> consumer) {
-      return andRun(() -> consumer.accept(result));
-    }
-
-    @Override
-    public <U, V, Y extends Exception> Try<V, Exception> and(Try<U, ? extends Exception> t2,
-        TBiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y {
-      return t2.map(u -> Try.success(merger.apply(result, u)), Try::failure);
-    }
-
-    @Override
-    public <U> Try<U, Exception>
-        andApply(TFunction<? super T, ? extends U, ? extends Exception> mapper) {
-      return Try.get(() -> mapper.apply(result));
-    }
-
-    @Override
-    public <Y extends Exception, Z extends Exception, W extends Exception> Try<T, Z> or(
-        TSupplier<? extends T, Y> supplier,
-        TBiFunction<? super Exception, ? super Y, ? extends Z, W> exceptionsMerger)
-        throws W {
-      return cast();
-    }
-  }
-
-  public static class TryFailure<X extends Exception>
-      extends TryOptionalImpl.TryVariableCatchFailure<X, Exception> implements Try<Object, X> {
-    public static <T, X extends Exception> Try<T, X> given(X cause) {
-      return new TryFailure<>(cause).cast();
-    }
-
-    private TryFailure(X cause) {
-      super(cause);
-    }
-
-    private <U> Try<U, X> cast() {
-      /*
-       * We can thus have a declared Try<String, X> t which will be treated as a Try<Object, X> by
-       * this class. This is fine. But do not replace with Try<Void, X>, otherwise, or() or
-       * orMapCause() can attempt to produce Void instances.
-       */
-      @SuppressWarnings("unchecked")
-      final Try<U, X> casted = (Try<U, X>) this;
-      return casted;
-    }
-
-    @Override
-    public Try<Object, X> andRun(TRunnable<? extends X> runnable) {
-      return this;
-    }
-
-    @Override
-    public Try<Object, X> andConsume(TConsumer<? super Object, ? extends X> consumer) {
-      return this;
-    }
-
-    @Override
-    public <U, V, Y extends Exception> Try<V, X> and(Try<U, ? extends X> t2,
-        TBiFunction<? super Object, ? super U, ? extends V, Y> merger) throws Y {
-      return cast();
-    }
-
-    @Override
-    public <U> Try<U, X>
-        andApply(TFunction<? super Object, ? extends U, ? extends X> mapper) {
-      return cast();
-    }
-
-    @Override
-    public <Y extends Exception, Z extends Exception, W extends Exception> Try<Object, Z> or(
-        TSupplier<? extends Object, Y> supplier,
-        TBiFunction<? super X, ? super Y, ? extends Z, W> exceptionsMerger) throws W {
-      final Try<Object, Y> t2 = Try.get(supplier);
-      return t2.map(Try::success, y -> Try.failure(exceptionsMerger.apply(cause, y)));
-    }
-  }
-
   public static class TryVoidSuccess extends TryVariableCatchVoidSuccess<Exception, Exception>
       implements TryVoid<Exception> {
     public static <X extends Exception> TryVoid<X> given() {
@@ -632,9 +514,8 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public <T> Try<T, Exception>
-        andGet(TSupplier<? extends T, ? extends Exception> supplier) {
-      return Try.get(supplier);
+    public <T> Try<T, Exception> andGet(TSupplier<? extends T, ? extends Exception> supplier) {
+      return null;
     }
 
     @Override
@@ -660,7 +541,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
 
     @Override
     public <T> Try<T, X> andGet(TSupplier<? extends T, ? extends X> supplier) {
-      return Try.failure(cause);
+      return null;
     }
 
     @Override
@@ -702,7 +583,6 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
       // TODO Auto-generated method stub
       throw new UnsupportedOperationException("Unimplemented method 'andApply'");
     }
-
   }
 
   public static class TryCatchAllFailure extends
@@ -738,59 +618,6 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
         andApply(TFunction<? super Object, ? extends U, ? extends Throwable> mapper) {
       // TODO Auto-generated method stub
       throw new UnsupportedOperationException("Unimplemented method 'andApply'");
-    }
-
-  }
-
-  public static class TryCatchAllVoidSuccess extends
-      TryOptionalImpl.TryVariableCatchVoidSuccess<Throwable, Throwable> implements TryCatchAllVoid {
-    public static TryCatchAllVoid given() {
-      return new TryCatchAllVoidSuccess();
-    }
-
-    private TryCatchAllVoidSuccess() {
-      /* Reducing visibility. */
-    }
-
-    @Override
-    public <T> TryCatchAll<T> andGet(TSupplier<? extends T, ?> supplier) {
-      return null;
-    }
-
-    @Override
-    public TryCatchAllVoid andRun(TRunnable<?> runnable) {
-      return TryCatchAllVoid.run(runnable);
-    }
-
-    @Override
-    public TryCatchAllVoid or(TRunnable<?> runnable) {
-      return this;
-    }
-  }
-
-  public static class TryCatchAllVoidFailure extends
-      TryOptionalImpl.TryVariableCatchVoidFailure<Throwable, Throwable> implements TryCatchAllVoid {
-    public static TryCatchAllVoid given(Throwable cause) {
-      return new TryCatchAllVoidFailure(cause);
-    }
-
-    private TryCatchAllVoidFailure(Throwable cause) {
-      super(cause);
-    }
-
-    @Override
-    public <T> TryCatchAll<T> andGet(TSupplier<? extends T, ?> supplier) {
-      return null;
-    }
-
-    @Override
-    public TryCatchAllVoid andRun(TRunnable<?> runnable) {
-      return this;
-    }
-
-    @Override
-    public TryCatchAllVoid or(TRunnable<?> runnable) {
-      return TryCatchAllVoid.run(runnable);
     }
   }
 

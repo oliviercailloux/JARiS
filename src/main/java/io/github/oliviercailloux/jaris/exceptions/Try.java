@@ -39,56 +39,6 @@ import io.github.oliviercailloux.jaris.throwing.TSupplier;
  */
 public interface Try<T, X extends Exception>
     extends TryOptionalImpl.TryVariableCatchInterface<T, X, Exception> {
-  /**
-   * Returns a success containing the given result.
-   *
-   * @param <T> the type of result declared to be (and effectively) kept in the instance
-   * @param <X> the type of cause declared to be (but not effectively) kept in the instance.
-   * @param result the result to contain
-   * @return a success
-   */
-  public static <T, X extends Exception> Try<T, X> success(T result) {
-    return TryOptionalImpl.TrySuccess.given(result);
-  }
-
-  /**
-   * Returns a failure containing the given cause.
-   *
-   * @param <T> the type of result declared to be (but not effectively) kept in the instance
-   * @param <X> the type of cause declared to be (and effectively) kept in the instance.
-   * @param cause the cause to contain
-   * @return a failure
-   */
-  public static <T, X extends Exception> Try<T, X> failure(X cause) {
-    return TryOptionalImpl.TryFailure.given(cause);
-  }
-
-  /**
-   * Attempts to get and encapsulate a result from the given supplier.
-   * <p>
-   * This method returns a failure iff the given supplier throws a checked exception.
-   *
-   * @param <T> the type of result declared to be kept in the instance
-   * @param <X> the type of cause declared to be kept in the instance; a sort of exception that the
-   *        supplier may throw.
-   * @param supplier the supplier to get a result from
-   * @return a success containing the result if the supplier returns a result; a failure containing
-   *         the throwable if the supplier throws a checked exception
-   * @throws NullPointerException if the supplier returns {@code null}
-   */
-  public static <T, X extends Exception> Try<T, X>
-      get(TSupplier<? extends T, ? extends X> supplier) {
-    try {
-      return success(supplier.get());
-    } catch (RuntimeException e) {
-      throw e;
-    } catch (Exception e) {
-      /* This is safe, provided the supplier did not sneaky-throw. */
-      @SuppressWarnings("unchecked")
-      final X exc = (X) e;
-      return failure(exc);
-    }
-  }
 
   /**
    * Runs the runnable iff this instance is a success, and returns this instance if it succeeds and
