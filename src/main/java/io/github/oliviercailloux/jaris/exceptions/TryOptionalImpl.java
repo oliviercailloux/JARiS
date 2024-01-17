@@ -685,34 +685,24 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public <W extends Exception> TryCatchAll<T> or(TSupplier<? extends T, ?> supplier,
-        TBiFunction<? super Throwable, ? super Throwable, ? extends Throwable,
-            W> exceptionsMerger)
-        throws W {
-      return this;
-    }
-
-    @Override
-    public TryCatchAll<T> andRun(TRunnable<?> runnable) {
-      final TryCatchAllVoid ran = TryCatchAllVoid.run(runnable);
-      return ran.map(() -> this, TryCatchAll::failure);
-    }
-
-    @Override
     public TryCatchAll<T> andConsume(TConsumer<? super T, ?> consumer) {
-      return andRun(() -> consumer.accept(result));
+      return null;
     }
 
     @Override
-    public <U, V, Y extends Exception> TryCatchAll<V> and(TryCatchAll<U> t2,
-        TBiFunction<? super T, ? super U, ? extends V, Y> merger) throws Y {
-      return t2.map(u -> TryCatchAll.success(merger.apply(result, u)), TryCatchAll::failure);
+    public TryVariableCatchInterface<T, Throwable, Throwable>
+        andRun(TRunnable<? extends Throwable> runnable) {
+      // TODO Auto-generated method stub
+      throw new UnsupportedOperationException("Unimplemented method 'andRun'");
     }
 
     @Override
-    public <U> TryCatchAll<U> andApply(TFunction<? super T, ? extends U, ?> mapper) {
-      return TryCatchAll.get(() -> mapper.apply(result));
+    public <U> TryVariableCatchInterface<U, Throwable, Throwable>
+        andApply(TFunction<? super T, ? extends U, ? extends Throwable> mapper) {
+      // TODO Auto-generated method stub
+      throw new UnsupportedOperationException("Unimplemented method 'andApply'");
     }
+
   }
 
   public static class TryCatchAllFailure extends
@@ -732,37 +722,24 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public <W extends Exception> TryCatchAll<Object>
-        or(TSupplier<? extends Object, ?> supplier, TBiFunction<? super Throwable,
-            ? super Throwable, ? extends Throwable, W> exceptionsMerger) throws W {
-      final TryCatchAll<Object> t2 = TryCatchAll.get(supplier);
-      return t2.map(TryCatchAll::success, y -> {
-        final Throwable merged = exceptionsMerger.apply(cause, y);
-        checkNotNull(merged, "Exceptions merger returned null");
-        return TryCatchAll.failure(merged);
-      });
-    }
-
-    @Override
-    public TryCatchAll<Object> andRun(TRunnable<?> runnable) {
-      return this;
-    }
-
-    @Override
     public TryCatchAll<Object> andConsume(TConsumer<? super Object, ?> consumer) {
       return this;
     }
 
     @Override
-    public <U, V, Y extends Exception> TryCatchAll<V> and(TryCatchAll<U> t2,
-        TBiFunction<? super Object, ? super U, ? extends V, Y> merger) throws Y {
-      return cast();
+    public TryVariableCatchInterface<Object, Throwable, Throwable>
+        andRun(TRunnable<? extends Throwable> runnable) {
+      // TODO Auto-generated method stub
+      throw new UnsupportedOperationException("Unimplemented method 'andRun'");
     }
 
     @Override
-    public <U> TryCatchAll<U> andApply(TFunction<? super Object, ? extends U, ?> mapper) {
-      return cast();
+    public <U> TryVariableCatchInterface<U, Throwable, Throwable>
+        andApply(TFunction<? super Object, ? extends U, ? extends Throwable> mapper) {
+      // TODO Auto-generated method stub
+      throw new UnsupportedOperationException("Unimplemented method 'andApply'");
     }
+
   }
 
   public static class TryCatchAllVoidSuccess extends
@@ -777,7 +754,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
 
     @Override
     public <T> TryCatchAll<T> andGet(TSupplier<? extends T, ?> supplier) {
-      return TryCatchAll.get(supplier);
+      return null;
     }
 
     @Override
@@ -803,7 +780,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
 
     @Override
     public <T> TryCatchAll<T> andGet(TSupplier<? extends T, ?> supplier) {
-      return TryCatchAll.failure(cause);
+      return null;
     }
 
     @Override
