@@ -51,9 +51,9 @@ public class DomHelper {
   /**
    * The <a href="https://infra.spec.whatwg.org/#html-namespace">HTML namespace</a> URI, defined as
    * {@code http://www.w3.org/1999/xhtml}.
-   */ 
+   */
   public static final URI HTML_NS_URI = URI.create("http://www.w3.org/1999/xhtml");
-  
+
   /**
    * Initializes and returns the DOM helper service.
    * <p>
@@ -245,12 +245,14 @@ public class DomHelper {
   }
 
   public static boolean hasAttribute(Element element, XmlName name) {
-    return element.hasAttributeNS(name.namespace().map(URI::toString).orElse(null), name.localName());
+    return element.hasAttributeNS(name.namespace().map(URI::toString).orElse(null),
+        name.localName());
   }
 
   public static String getAttribute(Element element, XmlName name) {
     checkArgument(hasAttribute(element, name));
-    return element.getAttributeNS(name.namespace().map(URI::toString).orElse(null), name.localName());
+    return element.getAttributeNS(name.namespace().map(URI::toString).orElse(null),
+        name.localName());
   }
 
   LSInput toLsInput(StreamSource document) {
