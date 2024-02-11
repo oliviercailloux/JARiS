@@ -1,5 +1,6 @@
 package io.github.oliviercailloux.jaris.xml;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Verify.verify;
 
@@ -241,6 +242,15 @@ public class DomHelper {
     verify(Iterables.getOnlyElement(toElements(doc.getChildNodes())).getTagName()
         .equals(qualifiedName));
     return doc;
+  }
+
+  public static boolean hasAttribute(Element element, XmlName name) {
+    return element.hasAttributeNS(name.namespace().map(URI::toString).orElse(null), name.localName());
+  }
+
+  public static String getAttribute(Element element, XmlName name) {
+    checkArgument(hasAttribute(element, name));
+    return element.getAttributeNS(name.namespace().map(URI::toString).orElse(null), name.localName());
   }
 
   LSInput toLsInput(StreamSource document) {
