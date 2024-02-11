@@ -20,6 +20,24 @@ The following sections list some of the utilities that this library provides (by
 == Compiler bug
 Bug about https://github.com/oliviercailloux/JARiS/compare/simplified...solved[inference] https://bugs.java.com/[reported] on the 17th of Jan.
 
+$ sudo update-alternatives --set java /usr/lib/jvm/java-19-openjdk-amd64/bin/java
+$ sudo update-alternatives --set javac /usr/lib/jvm/java-19-openjdk-amd64/bin/javac
+$ javac --version
+javac 19.0.2
+$ git clean -xfd
+$ javac -d "out/" somebug/*.java
+$ javac -classpath "out/" "someuser/UserClass.java"
+someuser/UserClass.java:10: error: incompatible types: MyInterface<Random> cannot be converted to MyImpl
+
+$ sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+$ sudo update-alternatives --set javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
+$ javac --version
+javac 17.0.9
+$ git clean -xfd
+$ javac -d "out/" somebug/*.java
+$ javac -classpath "out/" "someuser/UserClass.java"
+someuser/UserClass.java:10: error: incompatible types: MyInterface<Random> cannot be converted to MyImpl
+
 == Credentials
 https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/credentials/CredentialsReader.html[`CredentialsReader`] permits to read user’s credentials (authentication information) from the system properties, then if not found there, from the environment, then if not found there, from a file.
 
