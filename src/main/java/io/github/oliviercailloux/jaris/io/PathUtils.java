@@ -71,12 +71,12 @@ public class PathUtils {
    * Copies recursively the given source to the given target.
    * 
    * Thanks to https://stackoverflow.com/a/60621544/.
-   * 
+   *
    * @param source the source to start the copy from
    * @param target the target to copy to, will be created, must be in the same file system than the
    *        source
    * @return the target path
-   * @see {@link MoreFiles#deleteRecursively(Path, RecursiveDeleteOption...)}
+   * @see MoreFiles#deleteRecursively(Path, RecursiveDeleteOption...)
    */
   public static Path copyRecursively(Path source, Path target, CopyOption... options)
       throws IOException {
