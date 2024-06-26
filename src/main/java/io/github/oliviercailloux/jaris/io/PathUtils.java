@@ -1,5 +1,7 @@
 package io.github.oliviercailloux.jaris.io;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.MoreFiles;
 import io.github.oliviercailloux.jaris.exceptions.Unchecker;
@@ -85,7 +87,10 @@ public class PathUtils {
       @Override
       public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
           throws IOException {
-        Files.createDirectories(sourceToTarget(dir));
+        Path targetDir = sourceToTarget(dir);
+        if (!Files.exists(targetDir)) {
+          Files.createDirectory(targetDir);
+        }
         return FileVisitResult.CONTINUE;
       }
 
