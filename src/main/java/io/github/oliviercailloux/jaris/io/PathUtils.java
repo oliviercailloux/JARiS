@@ -6,6 +6,7 @@ import io.github.oliviercailloux.jaris.exceptions.Unchecker;
 import io.github.oliviercailloux.jaris.throwing.TPredicate;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.CopyOption;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -64,6 +65,46 @@ public class PathUtils {
     } catch (InternalException e) {
       throw e.getCause();
     }
+  }
+
+  /**
+   * Copies recursively the given source to the given target.
+   * 
+   * Thanks to https://stackoverflow.com/a/60621544/.
+   * 
+   * @param source the source to start the copy from
+   * @param target the target to copy to, will be created, must be in the same file system than the
+   *        source
+   * @return the target path
+   * @see {@link MoreFiles#deleteRecursively(Path, RecursiveDeleteOption...)}
+   */
+  public static Path copyRecursively(Path source, Path target, CopyOption... options)
+      throws IOException {
+    Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
+
+      @Override
+      public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+          throws IOException {
+        Files.createDirectories(sourceToTarget(dir));
+        return FileVisitResult.CONTINUE;
+      }
+
+      @Override
+      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        Files.copy(file, sourceToTarget(file), options);
+        return FileVisitResult.CONTINUE;
+      }
+
+      /**
+       * If source and target live in different file systems, resolving may be undefined (as for
+       * example with Jimfs).
+       */
+      private Path sourceToTarget(Path sourceAbsolutePath) {
+        return target.resolve(source.relativize(sourceAbsolutePath));
+      }
+    });
+
+    return target;
   }
 
   /**
