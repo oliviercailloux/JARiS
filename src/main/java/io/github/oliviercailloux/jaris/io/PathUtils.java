@@ -2,17 +2,22 @@ package io.github.oliviercailloux.jaris.io;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import com.google.common.io.MoreFiles;
+import com.google.common.io.RecursiveDeleteOption;
 import io.github.oliviercailloux.jaris.exceptions.Unchecker;
 import io.github.oliviercailloux.jaris.throwing.TPredicate;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
 import java.nio.file.CopyOption;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.ProviderNotFoundException;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.function.Predicate;
@@ -72,11 +77,16 @@ public class PathUtils {
   /**
    * Copies recursively the given source to the given target.
    * 
+   * If the paths do not live in the same file system, each name element in the given source path
+   * must be a valid single name element in the given target file system. If the source and target
+   * live in the same file system, this condition is satisifed, but it may fail otherwise. For
+   * example, it fails with the single name element “a\b” in a unix source file system and a windows
+   * target file system. See https://github.com/google/jimfs/issues/112.
+   * 
    * Thanks to https://stackoverflow.com/a/60621544/.
    *
    * @param source the source to start the copy from
-   * @param target the target to copy to, will be created, must be in the same file system than the
-   *        source
+   * @param target the target to copy to, will be created, parent must exist
    * @return the target path
    * @see MoreFiles#deleteRecursively(Path, RecursiveDeleteOption...)
    */
@@ -100,12 +110,19 @@ public class PathUtils {
         return FileVisitResult.CONTINUE;
       }
 
-      /**
-       * If source and target live in different file systems, resolving may be undefined (as for
-       * example with Jimfs).
-       */
       private Path sourceToTarget(Path sourceAbsolutePath) {
-        return target.resolve(source.relativize(sourceAbsolutePath));
+        Path sourceRelativePath = source.relativize(sourceAbsolutePath);
+        if (sourceRelativePath.getFileSystem().equals(target.getFileSystem())) {
+          return target.resolve(sourceRelativePath);
+        }
+        Path targetRelativePath = target;
+        for (Path element : sourceRelativePath) {
+          Path targetElement = target.getFileSystem().getPath(element.toString());
+          checkArgument(!targetElement.isAbsolute());
+          checkArgument(targetElement.getNameCount() == 1);
+          targetRelativePath = targetRelativePath.resolve(targetElement);
+        }
+        return targetRelativePath;
       }
     });
 
@@ -133,5 +150,30 @@ public class PathUtils {
         return FileVisitResult.CONTINUE;
       }
     });
+  }
+
+  /**
+   * Returns a path associated to the given URI, creating a file system automatically if necessary
+   * and if possible.
+   * 
+   * This works around some limitations of Path.of, which throws if the file system cannot be
+   * created automatically. This method tries (harder) to create the file system automatically and
+   * as a counterpart may require it to be closed after use. That is the reason why this method
+   * returns a {@link CloseablePath}.
+   * 
+   * This method is not suitable with a multi thread access to the file system underlying the given
+   * URI.
+   * 
+   * @param uri the URI to create the path from
+   * @return the path associated to the given URI
+   * @throws IOException if an I/O error occurs while trying to create the file system automatically
+   * @throws ProviderNotFoundException if a provider supporting the URI scheme is not installed
+   */
+  public static CloseablePath fromUri(URI uri) throws IOException, ProviderNotFoundException {
+    /*
+     * If multi thread and one opens a fs and another one does not then the first one closes the fs,
+     * the second one will not be able to use it.
+     */
+    return new CloseablePath(uri);
   }
 }
