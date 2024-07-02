@@ -161,7 +161,7 @@ public class PathUtils {
    * as a counterpart may require it to be closed after use. That is the reason why this method
    * returns a {@link CloseablePath}.
    * 
-   * This method is not suitable with a multi thread access to the file system underlying the given
+   * This method is not suitable when multiple threads access the file system underlying the given
    * URI.
    * 
    * @param uri the URI to create the path from
