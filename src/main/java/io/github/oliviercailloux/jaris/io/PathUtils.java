@@ -2,9 +2,7 @@ package io.github.oliviercailloux.jaris.io;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Streams;
 import com.google.common.io.MoreFiles;
 import com.google.common.io.RecursiveDeleteOption;
 import io.github.oliviercailloux.jaris.exceptions.Unchecker;
@@ -16,6 +14,7 @@ import java.nio.file.CopyOption;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.ProviderNotFoundException;
 import java.nio.file.SimpleFileVisitor;
@@ -112,21 +111,48 @@ public class PathUtils {
 
       private Path sourceToTarget(Path sourceAbsolutePath) {
         Path sourceRelativePath = source.relativize(sourceAbsolutePath);
-        if (sourceRelativePath.getFileSystem().equals(target.getFileSystem())) {
-          return target.resolve(sourceRelativePath);
-        }
-        Path targetRelativePath = target;
-        for (Path element : sourceRelativePath) {
-          Path targetElement = target.getFileSystem().getPath(element.toString());
-          checkArgument(!targetElement.isAbsolute());
-          checkArgument(targetElement.getNameCount() == 1);
-          targetRelativePath = targetRelativePath.resolve(targetElement);
-        }
-        return targetRelativePath;
+        return resolve(target, sourceRelativePath);
       }
     });
 
     return target;
+  }
+
+  /*
+   * A generalization of Path#resolve that works even if the paths do not live in the same file.
+   * 
+   * If the paths live in the same file system, this method behaves like Path#resolve. If the paths
+   * do not live in the same file system, and the given additional path is relative and has no root
+   * component, its name elements are added to the given start path.
+   * 
+   * @param start the path to start the resolution from
+   * 
+   * @param addition the path to resolve, must be in the same file system as start, or be relative
+   * and have no root.
+   * 
+   * @return a path in the start file system
+   * 
+   * @throws InvalidPathException if some element of the additional path do not constitute a
+   * relative path with a single name element in the file system of the start path (either because
+   * the element contains characters that cannot be converted to legal characters, or represents an
+   * absolute path, or a path with more than one name element, in the file system of the start
+   * path).
+   */
+  public static Path resolve(Path start, Path addition) throws InvalidPathException {
+    if (addition.getFileSystem().equals(start.getFileSystem())) {
+      return start.resolve(addition);
+    }
+    checkArgument(!addition.isAbsolute());
+    checkArgument(addition.getRoot() == null);
+
+    Path targetRelativePath = start;
+    for (Path element : addition) {
+      Path targetElement = start.getFileSystem().getPath(element.toString());
+      checkArgument(!targetElement.isAbsolute());
+      checkArgument(targetElement.getNameCount() == 1);
+      targetRelativePath = targetRelativePath.resolve(targetElement);
+    }
+    return targetRelativePath;
   }
 
   /**
