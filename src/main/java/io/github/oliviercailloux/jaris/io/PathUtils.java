@@ -189,7 +189,7 @@ public class PathUtils {
    * 
    * This method is not suitable when multiple threads access the file system underlying the given
    * URI.
-   * 
+   *
    * @param uri the URI to create the path from
    * @return the path associated to the given URI
    * @throws IOException if an I/O error occurs while trying to create the file system automatically

@@ -52,9 +52,11 @@ public class PathUtilsTests {
     assertThrows(FileSystemNotFoundException.class, () -> Path.of(uri));
     try (CloseablePath p1 = PathUtils.fromUri(uri)) {
       try (CloseablePath p2 = PathUtils.fromUri(uri2)) {
-        assertEquals("cafebabe", Integer.toHexString(ByteBuffer.wrap(MoreFiles.asByteSource(p2.delegate()).slice(0, 4).read()).getInt()));
+        assertEquals("cafebabe", Integer.toHexString(
+            ByteBuffer.wrap(MoreFiles.asByteSource(p2.delegate()).slice(0, 4).read()).getInt()));
       }
-      assertEquals("cafebabe", Integer.toHexString(ByteBuffer.wrap(MoreFiles.asByteSource(p1.delegate()).slice(0, 4).read()).getInt()));
+      assertEquals("cafebabe", Integer.toHexString(
+          ByteBuffer.wrap(MoreFiles.asByteSource(p1.delegate()).slice(0, 4).read()).getInt()));
     }
   }
 
