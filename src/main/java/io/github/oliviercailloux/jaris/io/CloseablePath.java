@@ -1,5 +1,6 @@
 package io.github.oliviercailloux.jaris.io;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 /**
@@ -23,4 +24,8 @@ public interface CloseablePath extends Path, AutoCloseable {
    * 
    */
   Path delegate();
+
+  @Override
+  void close() throws IOException;
+  
 }
