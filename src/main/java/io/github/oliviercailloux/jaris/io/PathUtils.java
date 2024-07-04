@@ -200,6 +200,10 @@ public class PathUtils {
      * If multi thread and one opens a fs and another one does not then the first one closes the fs,
      * the second one will not be able to use it.
      */
-    return new CloseablePath(uri);
+    return new UriCloseablePath(uri);
+  }
+
+  public static CloseablePath asCloseable(Path path) {
+    return new WrapCloseablePath(path);
   }
 }

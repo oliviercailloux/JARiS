@@ -1,44 +1,25 @@
 package io.github.oliviercailloux.jaris.io;
 
-import com.google.common.collect.ImmutableMap;
-import java.io.Closeable;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.nio.file.ProviderNotFoundException;
 
-public class CloseablePath extends ForwardingPath implements Closeable {
+/**
+ * A path that delegates to an underlying path (generally, used to instanciate this class) and that
+ * can be closed (for example, the underlying file system).
+ */
+public interface CloseablePath extends Path, AutoCloseable {
 
-  private final Path delegate;
-  private final FileSystem fsToClose;
-
-  CloseablePath(URI uri) throws IOException, ProviderNotFoundException {
-    Path path;
-    FileSystem fs;
-    try {
-      path = Path.of(uri);
-      fs = null;
-    } catch (@SuppressWarnings("unused") FileSystemNotFoundException e) {
-      fs = FileSystems.newFileSystem(uri, ImmutableMap.of());
-      path = Path.of(uri);
-    }
-    delegate = path;
-    fsToClose = fs;
-  }
-
-  @Override
-  protected Path delegate() {
-    return delegate;
-  }
-
-  @Override
-  public void close() throws IOException {
-    if (fsToClose != null) {
-      fsToClose.close();
-    }
-  }
+  /**
+   * Returns the delegate to this path.
+   * 
+   * This method should generally not be used, as this object can in most cases be used
+   * transparently as the original path. This method is useful in case a user of this instance
+   * requires access to an interface that the underlying path is expected to implement, or checks
+   * the class that it implements.
+   * 
+   * @return the path that this instance delegates to.
+   * 
+   * @see PathUtilsTests
+   * 
+   */
+  Path delegate();
 }

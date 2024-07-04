@@ -1,11 +1,15 @@
 package io.github.oliviercailloux.jaris.io;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.MoreFiles;
 import com.google.common.jimfs.Jimfs;
 import java.net.URI;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
@@ -13,12 +17,46 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.ProviderMismatchException;
 import org.junit.jupiter.api.Test;
+import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PathUtilsTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(PathUtilsTests.class);
+
+  @Test
+  public void testReadCloseablePaths() throws Exception {
+    String classFile = LoggerFactory.class.getSimpleName() + ".class";
+    URI uri = LoggerFactory.class.getResource(classFile).toURI();
+    assertThrows(FileSystemNotFoundException.class, () -> Path.of(uri));
+    try (CloseablePath path = PathUtils.fromUri(uri)) {
+      assertThrows(ProviderMismatchException.class, () -> Files.newByteChannel(path));
+      try (SeekableByteChannel byteChannel = Files.newByteChannel(path.delegate())) {
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        int nb = byteChannel.read(buffer);
+        assertEquals(4, nb);
+        int firstInt = buffer.getInt(0);
+        assertEquals("cafebabe", Integer.toHexString(firstInt));
+      }
+    }
+  }
+
+  @Test
+  public void testNestedCloseablePaths() throws Exception {
+    String classFile = LoggerFactory.class.getSimpleName() + ".class";
+    URI uri = LoggerFactory.class.getResource(classFile).toURI();
+    LOGGER.info("URI: {}.", uri);
+    URI uri2 =
+        ILoggerFactory.class.getResource(ILoggerFactory.class.getSimpleName() + ".class").toURI();
+    assertThrows(FileSystemNotFoundException.class, () -> Path.of(uri));
+    try (CloseablePath p1 = PathUtils.fromUri(uri)) {
+      try (CloseablePath p2 = PathUtils.fromUri(uri2)) {
+        assertEquals("cafebabe", Integer.toHexString(ByteBuffer.wrap(MoreFiles.asByteSource(p2.delegate()).slice(0, 4).read()).getInt()));
+      }
+      assertEquals("cafebabe", Integer.toHexString(ByteBuffer.wrap(MoreFiles.asByteSource(p1.delegate()).slice(0, 4).read()).getInt()));
+    }
+  }
 
   @Test
   public void testCopyRecursively() throws Exception {
@@ -50,8 +88,7 @@ public class PathUtilsTests {
   @Test
   public void testCopyRecursivelyCpToJim() throws Exception {
     String classFile = LoggerFactory.class.getSimpleName() + ".class";
-    URI uri =
-        LoggerFactory.class.getResource(classFile).toURI();
+    URI uri = LoggerFactory.class.getResource(classFile).toURI();
     assertThrows(FileSystemNotFoundException.class, () -> Path.of(uri));
     try (FileSystem fs = FileSystems.newFileSystem(uri, ImmutableMap.of())) {
       Path root = Path.of(uri).getParent().getParent();
@@ -61,17 +98,16 @@ public class PathUtilsTests {
         PathUtils.copyRecursively(root, copied);
         assertTrue(Files.exists(copied.resolve("slf4j/").resolve(classFile)));
         assertTrue(Files.exists(
-          copied.resolve("slf4j/").resolve("spi/").resolve("SLF4JServiceProvider.class")));
+            copied.resolve("slf4j/").resolve("spi/").resolve("SLF4JServiceProvider.class")));
       }
     }
   }
-  
+
   @Test
   public void testCopyRecursivelyCpToJimUsingCloseablePath() throws Exception {
     String classFile = LoggerFactory.class.getSimpleName() + ".class";
-    URI uri =
-        LoggerFactory.class.getResource(classFile).toURI();
-        LOGGER.info("URI: {}.", uri);
+    URI uri = LoggerFactory.class.getResource(classFile).toURI();
+    LOGGER.info("URI: {}.", uri);
     assertThrows(FileSystemNotFoundException.class, () -> Path.of(uri));
     try (CloseablePath p = PathUtils.fromUri(uri)) {
       Path root = p.getParent().getParent();
@@ -81,11 +117,11 @@ public class PathUtilsTests {
         PathUtils.copyRecursively(root, copied);
         assertTrue(Files.exists(copied.resolve("slf4j/").resolve(classFile)));
         assertTrue(Files.exists(
-          copied.resolve("slf4j/").resolve("spi/").resolve("SLF4JServiceProvider.class")));
+            copied.resolve("slf4j/").resolve("spi/").resolve("SLF4JServiceProvider.class")));
       }
     }
   }
-  
+
   @Test
   public void testJimfsDoesNotResolveForeignPaths() throws Exception {
     try (FileSystem fs = Jimfs.newFileSystem()) {
