@@ -30,7 +30,24 @@ public class PathUtilsTests {
     String classFile = LoggerFactory.class.getSimpleName() + ".class";
     URI uri = LoggerFactory.class.getResource(classFile).toURI();
     assertThrows(FileSystemNotFoundException.class, () -> Path.of(uri));
-    try (CloseablePath path = PathUtils.fromUri(uri)) {
+    try (CloseablePath path = PathUtils.fromUri(uri).path()) {
+      assertThrows(ProviderMismatchException.class, () -> Files.newByteChannel(path));
+      try (SeekableByteChannel byteChannel = Files.newByteChannel(path.delegate())) {
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        int nb = byteChannel.read(buffer);
+        assertEquals(4, nb);
+        int firstInt = buffer.getInt(0);
+        assertEquals("cafebabe", Integer.toHexString(firstInt));
+      }
+    }
+  }
+
+  @Test
+  public void testReadResolvedCloseablePaths() throws Exception {
+    String classFile = LoggerFactory.class.getSimpleName() + ".class";
+    URI pckgUri = LoggerFactory.class.getResource("").toURI();
+    assertThrows(FileSystemNotFoundException.class, () -> Path.of(pckgUri));
+    try (CloseablePath path = PathUtils.fromUri(pckgUri).resolve(classFile).path()) {
       assertThrows(ProviderMismatchException.class, () -> Files.newByteChannel(path));
       try (SeekableByteChannel byteChannel = Files.newByteChannel(path.delegate())) {
         ByteBuffer buffer = ByteBuffer.allocate(4);
@@ -50,8 +67,8 @@ public class PathUtilsTests {
     URI uri2 =
         ILoggerFactory.class.getResource(ILoggerFactory.class.getSimpleName() + ".class").toURI();
     assertThrows(FileSystemNotFoundException.class, () -> Path.of(uri));
-    try (CloseablePath p1 = PathUtils.fromUri(uri)) {
-      try (CloseablePath p2 = PathUtils.fromUri(uri2)) {
+    try (CloseablePath p1 = PathUtils.fromUri(uri).path()) {
+      try (CloseablePath p2 = PathUtils.fromUri(uri2).path()) {
         assertEquals("cafebabe", Integer.toHexString(
             ByteBuffer.wrap(MoreFiles.asByteSource(p2.delegate()).slice(0, 4).read()).getInt()));
       }
@@ -111,7 +128,7 @@ public class PathUtilsTests {
     URI uri = LoggerFactory.class.getResource(classFile).toURI();
     LOGGER.info("URI: {}.", uri);
     assertThrows(FileSystemNotFoundException.class, () -> Path.of(uri));
-    try (CloseablePath p = PathUtils.fromUri(uri)) {
+    try (CloseablePath p = PathUtils.fromUri(uri).path()) {
       Path root = p.getParent().getParent();
       LOGGER.info("Root: {}.", root);
       try (FileSystem target = Jimfs.newFileSystem()) {

@@ -78,7 +78,7 @@ public class PathUtils {
    * 
    * If the paths do not live in the same file system, each name element in the given source path
    * must be a valid single name element in the given target file system. If the source and target
-   * live in the same file system, this condition is satisifed, but it may fail otherwise. For
+   * live in the same file system, this condition is satisfied, but it may fail otherwise. For
    * example, it fails with the single name element “a\b” in a unix source file system and a windows
    * target file system. See https://github.com/google/jimfs/issues/112.
    * 
@@ -195,7 +195,7 @@ public class PathUtils {
    * @throws IOException if an I/O error occurs while trying to create the file system automatically
    * @throws ProviderNotFoundException if a provider supporting the URI scheme is not installed
    */
-  public static CloseablePath fromUri(URI uri) throws IOException, ProviderNotFoundException {
+  public static CloseablePath pathFromUri(URI uri) throws IOException, ProviderNotFoundException {
     /*
      * If multi thread and one opens a fs and another one does not then the first one closes the fs,
      * the second one will not be able to use it.
@@ -203,7 +203,31 @@ public class PathUtils {
     return new UriCloseablePath(uri);
   }
 
-  public static CloseablePath asCloseable(Path path) {
+  public static CloseablePath pathAsCloseable(Path path) {
     return new WrapCloseablePath(path);
+  }
+
+  public static CloseablePathFactory fromUri(URI uri) {
+    return new CloseablePathFactory() {
+      @Override
+      public CloseablePath path() throws ProviderNotFoundException, IOException {
+        return new UriCloseablePath(uri);
+      }
+    };
+  }
+  
+  public static CloseablePathFactory wrapping(Path path) {
+    return new CloseablePathFactory() {
+      @Override
+      public CloseablePath path() {
+        return new WrapCloseablePath(path);
+      }
+    };
+  }
+
+  public static String read(CloseablePathFactory path) throws IOException {
+    try (CloseablePath p = path.path()) {
+      return Files.readString(p);
+    }
   }
 }
