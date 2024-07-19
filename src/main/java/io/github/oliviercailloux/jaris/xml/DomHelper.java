@@ -7,12 +7,15 @@ import static com.google.common.base.Verify.verify;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import io.github.oliviercailloux.jaris.io.CloseablePath;
+import io.github.oliviercailloux.jaris.io.CloseablePathFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.AbstractList;
 import java.util.RandomAccess;
 import javax.xml.XMLConstants;
@@ -324,6 +327,25 @@ public class DomHelper {
     final Document doc;
     try {
       doc = deser.parse(toLsInput(input));
+    } catch (LSException e) {
+      throw new XmlException("Unable to parse the provided document.", e);
+    }
+
+    return doc;
+  }
+
+  /**
+   * Retrieves the content of the given path as a document.
+   *
+   * @param input the content
+   * @return a document
+   * @throws XmlException iff loading the XML document failed.
+   */
+  public Document asDocument(CloseablePathFactory input) throws XmlException, IOException {
+    lazyInitDeser();
+    final Document doc;
+    try (CloseablePath path = input.path(); InputStream inputStream = Files.newInputStream(path.delegate())) {
+      doc = deser.parse(toLsInput(new StreamSource(inputStream)));
     } catch (LSException e) {
       throw new XmlException("Unable to parse the provided document.", e);
     }
