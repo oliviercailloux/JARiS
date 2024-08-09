@@ -210,7 +210,8 @@ public class PathUtils {
 
   public static CloseablePathFactory fromResource(Class<?> clazz, String resourceName) {
     URL resource = clazz.getResource(resourceName);
-    checkArgument(resource != null, "Resource from class %s name %s not found.", clazz, resourceName);
+    checkArgument(resource != null, "Resource from class %s name %s not found.", clazz,
+        resourceName);
     final URI uri = URI.create(resource.toString());
     return fromUri(uri);
   }
@@ -224,7 +225,7 @@ public class PathUtils {
       }
     };
   }
-  
+
   public static CloseablePathFactory wrapping(Path path) {
     checkArgument(path != null, "Path is null.");
     return new CloseablePathFactory() {
