@@ -344,7 +344,8 @@ public class DomHelper {
   public Document asDocument(CloseablePathFactory input) throws XmlException, IOException {
     lazyInitDeser();
     final Document doc;
-    try (CloseablePath path = input.path(); InputStream inputStream = Files.newInputStream(path.delegate())) {
+    try (CloseablePath path = input.path();
+        InputStream inputStream = Files.newInputStream(path.delegate())) {
       doc = deser.parse(toLsInput(new StreamSource(inputStream)));
     } catch (LSException e) {
       throw new XmlException("Unable to parse the provided document.", e);
