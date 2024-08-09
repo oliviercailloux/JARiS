@@ -10,6 +10,7 @@ import io.github.oliviercailloux.jaris.throwing.TPredicate;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.CopyOption;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
@@ -207,7 +208,15 @@ public class PathUtils {
     return new WrapCloseablePath(path);
   }
 
+  public static CloseablePathFactory fromResource(Class<?> clazz, String resourceName) {
+    URL resource = clazz.getResource(resourceName);
+    checkArgument(resource != null, "Resource from class %s name %s not found.", clazz, resourceName);
+    final URI uri = URI.create(resource.toString());
+    return fromUri(uri);
+  }
+
   public static CloseablePathFactory fromUri(URI uri) {
+    checkArgument(uri != null, "URI is null.");
     return new CloseablePathFactory() {
       @Override
       public CloseablePath path() throws ProviderNotFoundException, IOException {
@@ -217,6 +226,7 @@ public class PathUtils {
   }
   
   public static CloseablePathFactory wrapping(Path path) {
+    checkArgument(path != null, "Path is null.");
     return new CloseablePathFactory() {
       @Override
       public CloseablePath path() {
