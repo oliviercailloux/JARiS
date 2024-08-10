@@ -1,10 +1,9 @@
 package io.github.oliviercailloux.jaris.io;
 
-import io.github.oliviercailloux.jaris.io.CloseablePath;
-import io.github.oliviercailloux.jaris.io.PathUtils;
+import com.google.common.io.ByteSource;
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Path;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.ProviderNotFoundException;
 
 public interface CloseablePathFactory {
@@ -12,5 +11,14 @@ public interface CloseablePathFactory {
 
   default CloseablePathFactory resolve(String other) {
     return new CloseablePathFactoryResolving(this, other);
+  }
+
+  default ByteSource asByteSource() {
+    return new ByteSource() {
+      @Override
+      public InputStream openStream() throws IOException {
+        return Files.newInputStream(path());
+      }
+    };
   }
 }
