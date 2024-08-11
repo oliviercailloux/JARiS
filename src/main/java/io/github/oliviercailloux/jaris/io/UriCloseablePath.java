@@ -14,7 +14,6 @@ class UriCloseablePath extends ForwardingPath implements CloseablePath {
   private final Path delegate;
   private final FileSystem fsToClose;
 
-  
   UriCloseablePath(URI uri) throws IOException, ProviderNotFoundException {
     Path path;
     FileSystem fs;
