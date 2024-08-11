@@ -17,7 +17,7 @@ public interface CloseablePathFactory {
     return new ByteSource() {
       @Override
       public InputStream openStream() throws IOException {
-        return Files.newInputStream(path());
+        return Files.newInputStream(path().delegate());
       }
     };
   }
