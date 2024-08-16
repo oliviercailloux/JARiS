@@ -7,6 +7,7 @@ import static com.google.common.base.Verify.verify;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.io.ByteSource;
 import io.github.oliviercailloux.jaris.io.CloseablePath;
 import io.github.oliviercailloux.jaris.io.CloseablePathFactory;
 import java.io.IOException;
@@ -341,12 +342,13 @@ public class DomHelper {
    * @return a document
    * @throws XmlException iff loading the XML document failed.
    */
-  public Document asDocument(CloseablePathFactory input) throws XmlException, IOException {
+  public Document asDocument(ByteSource input) throws XmlException, IOException {
     lazyInitDeser();
     final Document doc;
-    try (CloseablePath path = input.path();
-        InputStream inputStream = Files.newInputStream(path.delegate())) {
-      doc = deser.parse(toLsInput(new StreamSource(inputStream)));
+    final LSInput lsInput = implLs.createLSInput();
+    try (InputStream stream = input.openStream()) {
+      lsInput.setByteStream(stream);
+      doc = deser.parse(lsInput);
     } catch (LSException e) {
       throw new XmlException("Unable to parse the provided document.", e);
     }
