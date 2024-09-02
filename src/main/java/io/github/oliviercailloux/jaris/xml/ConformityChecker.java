@@ -41,17 +41,17 @@ public class ConformityChecker {
   }
 
   public void verifyValid(ByteSource document) throws VerifyException, XmlException, IOException {
-    try(InputStream is = document.openStream()) {
+    try (InputStream is = document.openStream()) {
       verifyValid(new StreamSource(is));
     }
   }
 
   public void verifyValid(CharSource document) throws VerifyException, XmlException, IOException {
-    try(Reader r = document.openStream()) {
+    try (Reader r = document.openStream()) {
       verifyValid(new StreamSource(r));
     }
   }
-  
+
   /**
    * Throws an exception iff the provided document is invalid.
    *

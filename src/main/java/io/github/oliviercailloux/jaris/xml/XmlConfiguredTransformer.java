@@ -57,7 +57,7 @@ public interface XmlConfiguredTransformer {
    *         {@link TransformerException}.
    */
   public default String transform(ByteSource document) throws XmlException, IOException {
-    try(InputStream is = document.openStream()) {
+    try (InputStream is = document.openStream()) {
       return transform(new StreamSource(is));
     }
   }
@@ -71,7 +71,7 @@ public interface XmlConfiguredTransformer {
    *         {@link TransformerException}.
    */
   public default String transform(CharSource document) throws XmlException, IOException {
-    try(Reader r = document.openStream()) {
+    try (Reader r = document.openStream()) {
       return transform(new StreamSource(r));
     }
   }

@@ -232,15 +232,14 @@ public class DomHelper {
   /**
    * Creates a DOM Document with the specified document element.
    *
-   * @param namespaceUri The namespace URI of the document element to create
-   * @param qualifiedName The qualified name of the document element to be created
+   * @param name The namespace URI and qualified name of the document element to be created
    * @return A new {@code Document} object with its document element
    * @exception DOMException INVALID_CHARACTER_ERR: Raised if the specified qualified name is not an
    *            XML name according to [<a href='http://www.w3.org/TR/2004/REC-xml-20040204'>XML
    *            1.0</a>]. <br>
-   *            NAMESPACE_ERR: Raised if the {@code qualifiedName} is malformed, or if the
-   *            {@code qualifiedName} has a prefix that is “{@code xml}” and the
-   *            {@code namespaceUri} is different from {@link XMLConstants#XML_NS_URI}.
+   *            NAMESPACE_ERR: Raised if the {@code name} is malformed, or if the {@code name} has a
+   *            prefix that is “{@code xml}” and its namespace is different than
+   *            {@link XMLConstants#XML_NS_URI}.
    */
   public Document createDocument(QName name) {
     String namespaceUri = name.getNamespaceURI();

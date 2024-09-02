@@ -199,7 +199,8 @@ public class XmlTransformer {
     return usingStylesheet(stylesheet, ImmutableMap.of(), OutputProperties.indent());
   }
 
-  public XmlConfiguredTransformer usingStylesheet(ByteSource stylesheet) throws XmlException, IOException {
+  public XmlConfiguredTransformer usingStylesheet(ByteSource stylesheet)
+      throws XmlException, IOException {
     return usingStylesheet(stylesheet, ImmutableMap.of(), OutputProperties.indent());
   }
 
@@ -246,7 +247,8 @@ public class XmlTransformer {
   }
 
   public XmlConfiguredTransformer usingStylesheet(CharSource stylesheet,
-      Map<XmlName, String> parameters, OutputProperties outputProperties) throws XmlException, IOException {
+      Map<XmlName, String> parameters, OutputProperties outputProperties)
+      throws XmlException, IOException {
     checkNotNull(stylesheet);
     checkNotNull(parameters);
     checkArgument(!stylesheet.isEmpty());
@@ -256,7 +258,8 @@ public class XmlTransformer {
   }
 
   public XmlConfiguredTransformer usingStylesheet(ByteSource stylesheet,
-      Map<XmlName, String> parameters, OutputProperties outputProperties) throws XmlException, IOException {
+      Map<XmlName, String> parameters, OutputProperties outputProperties)
+      throws XmlException, IOException {
     checkNotNull(stylesheet);
     checkNotNull(parameters);
     checkArgument(!stylesheet.isEmpty());

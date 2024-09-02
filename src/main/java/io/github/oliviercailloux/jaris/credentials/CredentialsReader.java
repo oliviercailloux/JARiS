@@ -51,10 +51,10 @@ import org.slf4j.LoggerFactory;
  * environment variables. Similarly, if they are all set, it returns credentials read from there; if
  * some but not all are set, it throws.</li>
  * <li>Finally, if no keys exist in the system properties or environment variables, it reads the
- * given {@code source}. Each line of the source content provides the information corresponding to one key
- * from {@code keys}, in order. All usual line terminators are recognized: CR+LF, LF, and CR. If the
- * source has more lines than there are keys in {@code keys}, and some of these lines are not empty,
- * it throws an exception.</li>
+ * given {@code source}. Each line of the source content provides the information corresponding to
+ * one key from {@code keys}, in order. All usual line terminators are recognized: CR+LF, LF, and
+ * CR. If the source has more lines than there are keys in {@code keys}, and some of these lines are
+ * not empty, it throws an exception.</li>
  * </ul>
  * <p>
  * Note that a piece of information may be provided and empty: a system property or environment
@@ -85,7 +85,8 @@ import org.slf4j.LoggerFactory;
  * }
  *
  * CredentialsReader<MyOwnCredentials> reader =
- *   CredentialsReader.using(MyOwnCredentials.class, MoreFiles.asCharSource("my file.txt", StandardCharsets.UTF_8));
+ *   CredentialsReader.using(MyOwnCredentials.class, 
+ *     MoreFiles.asCharSource("my file.txt", StandardCharsets.UTF_8));
  * MyOwnCredentials credentials = reader.getCredentials();
  * String valueReadCorrespondingToMyFirstKey = credentials.MY_FIRST_KEY();
  * // and so on for other keys.
@@ -193,8 +194,8 @@ public class CredentialsReader<K> {
    * @throws IllegalStateException if some keys, but not all, exist as system properties or
    *         environment variables, or if the given source has non empty line content after the
    *         <i>n</i>th line, where <i>n</i> is the number of {@code keys}.
-   * @throws UncheckedIOException if an I/O error occurs reading from the given source or a malformed or
-   *         unmappable byte sequence is read from the given source.
+   * @throws UncheckedIOException if an I/O error occurs reading from the given source or a
+   *         malformed or unmappable byte sequence is read from the given source.
    * @see CredentialsReader
    */
   public K getCredentials() throws IllegalStateException, UncheckedIOException {
@@ -255,7 +256,8 @@ public class CredentialsReader<K> {
         lines = source.readLines();
       } catch (NoSuchFileException e) {
         throw new NoSuchElementException("No credential information found (searching for keys "
-            + parameters + " in system properties, in environment, and in source " + source + ").", e);
+            + parameters + " in system properties, in environment, and in source " + source + ").",
+            e);
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
