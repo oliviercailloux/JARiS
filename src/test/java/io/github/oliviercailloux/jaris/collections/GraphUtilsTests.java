@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
+import io.github.oliviercailloux.jaris.graphs.GraphUtils;
 import java.util.Iterator;
 import org.junit.jupiter.api.Test;
 
