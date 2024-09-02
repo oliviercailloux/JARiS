@@ -4,8 +4,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.VerifyException;
+import com.google.common.io.ByteSource;
+import com.google.common.io.CharSource;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +40,18 @@ public class ConformityChecker {
     this.schema = checkNotNull(schema);
   }
 
+  public void verifyValid(ByteSource document) throws VerifyException, XmlException, IOException {
+    try(InputStream is = document.openStream()) {
+      verifyValid(new StreamSource(is));
+    }
+  }
+
+  public void verifyValid(CharSource document) throws VerifyException, XmlException, IOException {
+    try(Reader r = document.openStream()) {
+      verifyValid(new StreamSource(r));
+    }
+  }
+  
   /**
    * Throws an exception iff the provided document is invalid.
    *

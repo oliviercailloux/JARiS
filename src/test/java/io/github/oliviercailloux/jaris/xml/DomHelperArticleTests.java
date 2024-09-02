@@ -8,6 +8,7 @@ import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
 import javax.xml.transform.stream.StreamSource;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -26,7 +27,7 @@ public class DomHelperArticleTests {
   @Test
   void testCreateNamespace() throws Exception {
     DomHelper h = DomHelper.domHelper();
-    Document doc = h.createDocument(ARTICLE_NS, "Article");
+    Document doc = h.createDocument(new QName(ARTICLE_NS, "Article"));
     doc.getDocumentElement().setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:k",
         ARTICLE_NS_K);
     Element title = doc.createElementNS(ARTICLE_NS_K, "k:Empty");
@@ -39,7 +40,7 @@ public class DomHelperArticleTests {
   @Test
   void testCreateNamespaceWithoutXmlnsNs() throws Exception {
     DomHelper h = DomHelper.domHelper();
-    Document doc = h.createDocument(ARTICLE_NS, "Article");
+    Document doc = h.createDocument(new QName(ARTICLE_NS, "Article"));
     doc.getDocumentElement().setAttribute("xmlns:k", ARTICLE_NS_K);
     Element title = doc.createElementNS(ARTICLE_NS_K, "k:Empty");
     doc.getDocumentElement().appendChild(title);

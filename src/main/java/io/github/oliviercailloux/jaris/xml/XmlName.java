@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
  * <p>
  * The namespace name, if present, is an absolute URI.
  * </p>
+ * @see QName
  */
 public record XmlName (Optional<URI> namespace, String localName) {
   /**

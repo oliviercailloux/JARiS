@@ -8,21 +8,22 @@ import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.io.ByteSource;
-import io.github.oliviercailloux.jaris.io.CloseablePath;
-import io.github.oliviercailloux.jaris.io.CloseablePathFactory;
+import com.google.common.io.CharSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.AbstractList;
 import java.util.RandomAccess;
 import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -225,7 +226,7 @@ public class DomHelper {
    *         {@link #HTML_NS_URI} and name “{@code html}”.
    */
   public Document html() {
-    return createDocument(HTML_NS_URI.toString(), "html");
+    return createDocument(new QName(HTML_NS_URI.toString(), "html"));
   }
 
   /**
@@ -241,7 +242,11 @@ public class DomHelper {
    *            {@code qualifiedName} has a prefix that is “{@code xml}” and the
    *            {@code namespaceUri} is different from {@link XMLConstants#XML_NS_URI}.
    */
-  public Document createDocument(String namespaceUri, String qualifiedName) {
+  public Document createDocument(QName name) {
+    String namespaceUri = name.getNamespaceURI();
+    String prefix = name.getPrefix();
+    String localPart = name.getLocalPart();
+    String qualifiedName = prefix.isEmpty() ? localPart : prefix + ":" + localPart;
     final Document doc = implXml.createDocument(namespaceUri, qualifiedName, null);
     verify(Iterables.getOnlyElement(toElements(doc.getChildNodes())).getTagName()
         .equals(qualifiedName));
@@ -317,7 +322,7 @@ public class DomHelper {
   }
 
   /**
-   * Retrieves the content of the given stream as a document.
+   * Retrieves the content of the given input as a document.
    *
    * @param input the content
    * @return a document
@@ -336,7 +341,7 @@ public class DomHelper {
   }
 
   /**
-   * Retrieves the content of the given path as a document.
+   * Retrieves the content of the given input as a document.
    *
    * @param input the content
    * @return a document
@@ -348,6 +353,27 @@ public class DomHelper {
     final LSInput lsInput = implLs.createLSInput();
     try (InputStream stream = input.openStream()) {
       lsInput.setByteStream(stream);
+      doc = deser.parse(lsInput);
+    } catch (LSException e) {
+      throw new XmlException("Unable to parse the provided document.", e);
+    }
+
+    return doc;
+  }
+
+  /**
+   * Retrieves the content of the given input as a document.
+   *
+   * @param input the content
+   * @return a document
+   * @throws XmlException iff loading the XML document failed.
+   */
+  public Document asDocument(CharSource input) throws XmlException, IOException {
+    lazyInitDeser();
+    final Document doc;
+    final LSInput lsInput = implLs.createLSInput();
+    try (Reader r = input.openStream()) {
+      lsInput.setCharacterStream(r);
       doc = deser.parse(lsInput);
     } catch (LSException e) {
       throw new XmlException("Unable to parse the provided document.", e);
@@ -404,5 +430,16 @@ public class DomHelper {
     }
     verify(res, "Write failed");
     return writer.toString();
+  }
+
+  @SuppressWarnings("unused")
+  private Document cloneDocument(Document doc) {
+    // Thanks to https://stackoverflow.com/questions/5226852/cloning-dom-document-object .
+    // As a DOMSource is not a StreamSource, I ignore how to (and perhaps cannot) use the LS API.
+    // So, this should probably be moved to XmlTransformer.
+    DOMResult result = new DOMResult();
+    XmlTransformer.usingFoundFactory().usingEmptyStylesheet().transform(new DOMSource(doc), result);
+    Document d = (Document) result.getNode();
+    return d;
   }
 }

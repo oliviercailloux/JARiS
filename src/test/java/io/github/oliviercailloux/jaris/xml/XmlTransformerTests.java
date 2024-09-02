@@ -6,11 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.ByteSource;
+import com.google.common.io.Resources;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
 import java.io.StringReader;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.stream.StreamSource;
@@ -31,8 +35,9 @@ class XmlTransformerTests {
 
   @Test
   void testTransformSimple() throws Exception {
-    final StreamSource style =
-        new StreamSource(XmlTransformerTests.class.getResource("short.xsl").toString());
+
+    final ByteSource style =
+        Resources.asByteSource(XmlTransformerTests.class.getResource("short.xsl"));
     final StreamSource input =
         new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
     final String expected =
@@ -88,6 +93,25 @@ class XmlTransformerTests {
       assertDoesNotThrow(() -> XmlTransformer
           .usingFactory(new net.sf.saxon.TransformerFactoryImpl()).usingStylesheet(myStyle));
     }
+  }
+
+  @Test
+  void testUsingByteSourceUrl() throws Exception {
+    final ByteSource myStyle = Resources
+        .asByteSource(new URL("https", "cdn.docbook.org", "/release/xsl/1.79.2/fo/docbook.xsl"));
+
+    final OutputCapturer capturer = OutputCapturer.capturer();
+    capturer.capture();
+
+    final XmlTransformer t = XmlTransformer.usingFactory(new net.sf.saxon.TransformerFactoryImpl());
+    assertEquals("net.sf.saxon.TransformerFactoryImpl",
+        t.factory().getClass().getName());
+    final XmlException readExc = assertThrows(XmlException.class, () -> t.usingStylesheet(myStyle));
+    final String reason = readExc.getCause().getMessage();
+    assertTrue(reason.contains("I/O error reported by XML parser processing file:"), reason);
+    capturer.restore();
+    assertTrue(capturer.out().isEmpty());
+    assertTrue(capturer.err().isEmpty());
   }
 
   @Test
@@ -218,7 +242,7 @@ class XmlTransformerTests {
   void testCreateNamespace() throws Exception {
     DomHelper h = DomHelper.domHelper();
 
-    Document doc = h.createDocument(ARTICLE_NS, "Article");
+    Document doc = h.createDocument(new QName(ARTICLE_NS, "Article"));
     doc.getDocumentElement().setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:k",
         ARTICLE_NS_K);
     Element title = doc.createElementNS(ARTICLE_NS_K, "k:Empty");

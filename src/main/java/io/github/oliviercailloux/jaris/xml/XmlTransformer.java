@@ -5,13 +5,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.ByteSource;
+import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.collections.CollectionUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.util.Map;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -181,7 +187,7 @@ public class XmlTransformer {
    * Returns a sourced transformer that may be used to transform documents using the provided
    * stylesheet and a default output property {@link OutputProperties#INDENT}.
    * <p>
-   * Equivalent to {@link #usingStylesheet(Source, Map)} with an empty map of parameters.
+   * Equivalent to {@link #usingStylesheet(ByteSource, Map)} with an empty map of parameters.
    * </p>
    *
    * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
@@ -190,6 +196,10 @@ public class XmlTransformer {
    *         {@link TransformerConfigurationException}.
    */
   public XmlConfiguredTransformer usingStylesheet(Source stylesheet) throws XmlException {
+    return usingStylesheet(stylesheet, ImmutableMap.of(), OutputProperties.indent());
+  }
+
+  public XmlConfiguredTransformer usingStylesheet(ByteSource stylesheet) throws XmlException, IOException {
     return usingStylesheet(stylesheet, ImmutableMap.of(), OutputProperties.indent());
   }
 
@@ -207,10 +217,12 @@ public class XmlTransformer {
    */
   public XmlConfiguredTransformer usingStylesheet(Source stylesheet,
       Map<XmlName, String> parameters) throws XmlException {
-    checkNotNull(stylesheet);
-    checkNotNull(parameters);
-    checkArgument(!stylesheet.isEmpty());
-    return usingStylesheetInternal(stylesheet, parameters, OutputProperties.indent());
+    return usingStylesheet(stylesheet, parameters, OutputProperties.indent());
+  }
+
+  public XmlConfiguredTransformer usingStylesheet(ByteSource stylesheet,
+      Map<XmlName, String> parameters) throws XmlException, IOException {
+    return usingStylesheet(stylesheet, parameters, OutputProperties.indent());
   }
 
   /**
@@ -231,6 +243,26 @@ public class XmlTransformer {
     checkNotNull(parameters);
     checkArgument(!stylesheet.isEmpty());
     return usingStylesheetInternal(stylesheet, parameters, outputProperties);
+  }
+
+  public XmlConfiguredTransformer usingStylesheet(CharSource stylesheet,
+      Map<XmlName, String> parameters, OutputProperties outputProperties) throws XmlException, IOException {
+    checkNotNull(stylesheet);
+    checkNotNull(parameters);
+    checkArgument(!stylesheet.isEmpty());
+    try (Reader r = stylesheet.openStream()) {
+      return usingStylesheetInternal(new StreamSource(r), parameters, outputProperties);
+    }
+  }
+
+  public XmlConfiguredTransformer usingStylesheet(ByteSource stylesheet,
+      Map<XmlName, String> parameters, OutputProperties outputProperties) throws XmlException, IOException {
+    checkNotNull(stylesheet);
+    checkNotNull(parameters);
+    checkArgument(!stylesheet.isEmpty());
+    try (InputStream is = stylesheet.openStream()) {
+      return usingStylesheetInternal(new StreamSource(is), parameters, outputProperties);
+    }
   }
 
   /**
