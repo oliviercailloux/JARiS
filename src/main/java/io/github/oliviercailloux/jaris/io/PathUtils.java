@@ -120,7 +120,7 @@ public class PathUtils {
   }
 
   /*
-   * A generalization of Path#resolve that works even if the paths do not live in the same file.
+   * A generalization of Path#resolve that works even if the paths do not live in the same file system.
    * 
    * If the paths live in the same file system, this method behaves like Path#resolve. If the paths
    * do not live in the same file system, and the given additional path is relative and has no root
