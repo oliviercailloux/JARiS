@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.jaris.collections;
+package io.github.oliviercailloux.jaris.graphs;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
