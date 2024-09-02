@@ -1,5 +1,7 @@
 package io.github.oliviercailloux.jaris.collections;
 
+import static com.google.common.base.Verify.verify;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.github.oliviercailloux.jaris.exceptions.Unchecker;
@@ -17,8 +19,11 @@ import java.util.stream.Collector;
 public class CollectionUtils {
   @SuppressWarnings("serial")
   private static class InternalException extends RuntimeException {
-    public InternalException(Exception e) {
+    private final int id;
+
+    public InternalException(Exception e, int id) {
       super(e);
+      this.id = id;
     }
 
     /**
@@ -28,31 +33,20 @@ public class CollectionUtils {
     public synchronized Exception getCause() {
       return (Exception) super.getCause();
     }
-  }
 
-  @SuppressWarnings("serial")
-  private static class InternalExceptionY extends RuntimeException {
-    public InternalExceptionY(Exception e) {
-      super(e);
-    }
-
-    /**
-     * Guaranteed to be an X, if only X’s are given to the constructor.
-     */
-    @Override
-    public synchronized Exception getCause() {
-      return (Exception) super.getCause();
+    public int getId() {
+      return id;
     }
   }
 
   /**
    * Wraps any checked exceptions into an InternalException with the checked exception as its cause.
    */
-  private static final Unchecker<Exception, InternalException> UNCHECKER =
-      Unchecker.wrappingWith(InternalException::new);
+  private static final Unchecker<Exception, InternalException> UNCHECKER0 =
+      Unchecker.wrappingWith(e -> new InternalException(e, 0));
 
-  private static final Unchecker<Exception, InternalExceptionY> UNCHECKER_Y =
-      Unchecker.wrappingWith(InternalExceptionY::new);
+  private static final Unchecker<Exception, InternalException> UNCHECKER1 =
+      Unchecker.wrappingWith(e -> new InternalException(e, 1));
 
   /**
    * Returns an immutable map with the given {@code keys} and whose value for each key was computed
@@ -68,7 +62,7 @@ public class CollectionUtils {
    */
   public static <K, V, X extends Exception> ImmutableMap<K, V> toMap(Set<K> keys,
       TFunction<? super K, V, X> valueFunction) throws X {
-    final Function<? super K, V> wrapped = UNCHECKER.wrapFunction(valueFunction);
+    final Function<? super K, V> wrapped = UNCHECKER0.wrapFunction(valueFunction);
     try {
       return Maps.toMap(keys, wrapped::apply);
     } catch (InternalException e) {
@@ -98,7 +92,7 @@ public class CollectionUtils {
    */
   public static <K, L, V, X extends Exception> ImmutableMap<L, V> transformKeys(Map<K, V> map,
       TFunction<? super K, L, X> keyTransformer) throws X {
-    final Function<? super K, L> behavedKeyTransformer = UNCHECKER.wrapFunction(keyTransformer);
+    final Function<? super K, L> behavedKeyTransformer = UNCHECKER0.wrapFunction(keyTransformer);
     final Collector<Entry<K, V>, ?, ImmutableMap<L, V>> collector =
         ImmutableMap.toImmutableMap(e -> behavedKeyTransformer.apply(e.getKey()), Entry::getValue);
     final ImmutableMap<L, V> collected;
@@ -145,9 +139,9 @@ public class CollectionUtils {
       transformKeysAndValues(Map<K, V> map, TFunction<? super K, L, X> keyTransformer,
           ValueTransformer<? super K, ? super L, ? super V, W, Y> valueTransformer) throws X, Y {
     final Function<Map.Entry<K, V>, L> behavedKeyTransformer =
-        UNCHECKER.wrapFunction(e -> keyTransformer.apply(e.getKey()));
+        UNCHECKER0.wrapFunction(e -> keyTransformer.apply(e.getKey()));
     final Function<Triple<K, L, V>, W> behavedValueTransformer =
-        UNCHECKER_Y.wrapFunction(t -> valueTransformer.transform(t.oldKey, t.newKey, t.oldValue));
+        UNCHECKER1.wrapFunction(t -> valueTransformer.transform(t.oldKey, t.newKey, t.oldValue));
     @SuppressWarnings("unused")
     final Function<Entry<K, V>, Triple<K, L, V>> oldEntryToTriple =
         e -> new Triple<K, L, V>(e.getKey(), behavedKeyTransformer.apply(e), e.getValue());
@@ -157,10 +151,12 @@ public class CollectionUtils {
     try {
       collected = map.entrySet().stream().map(oldEntryToTriple).collect(collector);
     } catch (InternalException e) {
-      @SuppressWarnings("unchecked")
-      final X cause = (X) e.getCause();
-      throw cause;
-    } catch (InternalExceptionY e) {
+      if (e.getId() == 0) {
+        @SuppressWarnings("unchecked")
+        final X cause = (X) e.getCause();
+        throw cause;
+      }
+      verify(e.getId() == 1);
       @SuppressWarnings("unchecked")
       final Y cause = (Y) e.getCause();
       throw cause;
