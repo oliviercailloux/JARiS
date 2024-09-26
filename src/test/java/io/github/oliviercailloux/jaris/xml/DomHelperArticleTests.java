@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import com.google.common.collect.ImmutableList;
 import java.io.StringReader;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.xml.XMLConstants;
@@ -58,6 +59,8 @@ public class DomHelperArticleTests {
     final Element root = articleDoc.getDocumentElement();
     assertEquals("Article", root.getTagName());
     assertEquals(ARTICLE_NS, root.getNamespaceURI());
+    assertEquals(XmlName.expandedName(URI.create(ARTICLE_NS), "Article"), DomHelper.xmlName(root));
+
     ImmutableList<Node> children = DomHelper.toList(root.getChildNodes());
     Node textNode = children.get(0);
     assertEquals("\n    ", textNode.getNodeValue());
@@ -65,6 +68,12 @@ public class DomHelperArticleTests {
     Element title = (Element) children.get(1);
     assertEquals("k:Title", title.getTagName());
     assertEquals(ARTICLE_NS_K, title.getNamespaceURI());
+    assertEquals(XmlName.expandedName(URI.create(ARTICLE_NS_K), "Title"), DomHelper.xmlName(title));
+    
+    Element authors = (Element) children.get(3);
+    assertEquals("Authors", authors.getTagName());
+    assertEquals(ARTICLE_NS, authors.getNamespaceURI());
+    assertEquals(XmlName.expandedName(URI.create(ARTICLE_NS), "Authors"), DomHelper.xmlName(authors));
 
     Element newElement = articleDoc.createElementNS(ARTICLE_NS_K, "k:Empty");
     root.insertBefore(newElement, title.getNextSibling());

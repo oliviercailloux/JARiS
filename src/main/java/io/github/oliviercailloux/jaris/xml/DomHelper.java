@@ -163,6 +163,14 @@ public class DomHelper {
     }
   }
 
+  public static XmlName xmlName(Element element) {
+    String ns = element.lookupNamespaceURI(element.getPrefix());
+    if (ns == null) {
+      return XmlName.localName(element.getLocalName());
+    }
+    return XmlName.expandedName(URI.create(ns), element.getLocalName());
+  }
+  
   /**
    * Returns an immutable copy of the given list of nodes, using a proper generic collection.
    *
