@@ -69,11 +69,12 @@ public class DomHelperArticleTests {
     assertEquals("k:Title", title.getTagName());
     assertEquals(ARTICLE_NS_K, title.getNamespaceURI());
     assertEquals(XmlName.expandedName(URI.create(ARTICLE_NS_K), "Title"), DomHelper.xmlName(title));
-    
+
     Element authors = (Element) children.get(3);
     assertEquals("Authors", authors.getTagName());
     assertEquals(ARTICLE_NS, authors.getNamespaceURI());
-    assertEquals(XmlName.expandedName(URI.create(ARTICLE_NS), "Authors"), DomHelper.xmlName(authors));
+    assertEquals(XmlName.expandedName(URI.create(ARTICLE_NS), "Authors"),
+        DomHelper.xmlName(authors));
 
     Element newElement = articleDoc.createElementNS(ARTICLE_NS_K, "k:Empty");
     root.insertBefore(newElement, title.getNextSibling());

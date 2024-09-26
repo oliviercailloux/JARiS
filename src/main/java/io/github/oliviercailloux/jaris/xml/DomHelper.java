@@ -170,7 +170,7 @@ public class DomHelper {
     }
     return XmlName.expandedName(URI.create(ns), element.getLocalName());
   }
-  
+
   /**
    * Returns an immutable copy of the given list of nodes, using a proper generic collection.
    *
