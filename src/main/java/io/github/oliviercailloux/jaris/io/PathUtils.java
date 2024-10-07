@@ -239,7 +239,7 @@ public class PathUtils {
 
   public static String read(CloseablePathFactory path) throws IOException {
     try (CloseablePath p = path.path()) {
-      return Files.readString(p);
+      return Files.readString(p.delegate());
     }
   }
 }
