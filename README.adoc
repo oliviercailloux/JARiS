@@ -17,6 +17,9 @@ The API is _not_ stable. Write to me if you are interested in using this library
 
 The following sections list some of the utilities that this library provides (by package).
 
+== TODO
+Resolve inconsistency: SchemaHelper#asSchema(ByteSource schemaSource) throws XmlException (modifies IOException) while helper.conformityChecker(compiledSchema).verifyValid(documentSource) throws IOException.
+
 == Compiler bug
 Bug about https://github.com/oliviercailloux/JARiS/compare/simplified...solved[inference] https://bugs.java.com/[reported] on the 17th of Jan.
 
