@@ -12,7 +12,7 @@ import javax.xml.XMLConstants;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.SetSystemProperty;
+import org.junitpioneer.jupiter.RestoreSystemProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,20 +20,16 @@ public class RngCheckerTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(RngCheckerTests.class);
   
-  static final String RELAXNG_FACTORY_PROPERTY = "javax.xml.validation.SchemaFactory:http://relaxng.org/ns/structure/1.0";
-  static final String RELAXNG_FACTORY_VALUE = "com.thaiopensource.relaxng.jaxp.XMLSyntaxSchemaFactory";
-
   @Test
   public void testAutoFactoryFails() throws Exception {
     assertThrows(IllegalArgumentException.class,
         () -> SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI));
   }
 
-  @SetSystemProperty(key = RELAXNG_FACTORY_PROPERTY, value = RELAXNG_FACTORY_VALUE)
+  @RestoreSystemProperties
   @Test
   public void testAutoFactoryExplicit() throws Exception {
-    assertEquals(SchemaFactory.class.getName() + ":" + XMLConstants.RELAXNG_NS_URI, RELAXNG_FACTORY_PROPERTY);
-    assertEquals(XMLSyntaxSchemaFactory.class.getName(), RELAXNG_FACTORY_VALUE);
+    System.setProperty(SchemaFactory.class.getName() + ":" + XMLConstants.RELAXNG_NS_URI, XMLSyntaxSchemaFactory.class.getName());
     SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI);
     assertNotNull(schemaFactory);
   }
