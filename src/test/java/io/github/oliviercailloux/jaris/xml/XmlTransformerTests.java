@@ -19,6 +19,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.stream.StreamSource;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RestoreSystemProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -47,6 +48,7 @@ class XmlTransformerTests {
             .usingStylesheet(style).transform(input));
   }
 
+  @RestoreSystemProperties
   @Test
   void testDocBookStyle() throws Exception {
     final StreamSource myStyle =
