@@ -2,8 +2,12 @@ package io.github.oliviercailloux.jaris.xml;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.io.ByteSource;
+import java.io.IOException;
+import java.io.InputStream;
 import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import org.slf4j.Logger;
@@ -102,6 +106,16 @@ public class SchemaHelper {
     try {
       asSchema = factory.newSchema(schemaSource);
     } catch (SAXException e) {
+      throw new XmlException("While parsing schema.", e);
+    }
+    return asSchema;
+  }
+
+  public Schema asSchema(ByteSource schemaSource) throws XmlException {
+    final Schema asSchema;
+    try (InputStream is = schemaSource.openStream()) {
+      asSchema = factory.newSchema(new StreamSource(is));
+    } catch (IOException | SAXException e) {
       throw new XmlException("While parsing schema.", e);
     }
     return asSchema;
