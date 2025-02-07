@@ -13,8 +13,8 @@
  * </p>
  * <p>
  * As the focus is on simplicity (over flexibility), its use is appropriate if you need to do only
- * simple things with your documents and control the origin of the documents (so do not need
- * flexible error management).
+ * simple things with your documents and you control the origin of the documents, so that you do not
+ * need flexible error management.
  * </p>
  * <p>
  * The public API of the classes in this package favors
@@ -25,6 +25,10 @@
  * {@link javax.xml.transform.Source}), which makes it nicer to use in this context; and that
  * {@code InputSource} has an “encoding” parameter, which we do not need. See also
  * <a href="https://stackoverflow.com/q/69194590">SO</a>.
+ * </p>
+ * <p>
+ * Exceptions are generally wrapped under XmlException, but IOExceptions that are not hidden by the
+ * underlying APIs are thrown as-is, typically, when the user provides a ByteSource.
  * </p>
  */
 package io.github.oliviercailloux.jaris.xml;
