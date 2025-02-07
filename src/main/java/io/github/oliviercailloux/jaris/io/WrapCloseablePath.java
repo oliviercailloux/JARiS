@@ -1,13 +1,7 @@
 package io.github.oliviercailloux.jaris.io;
 
-import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.nio.file.ProviderNotFoundException;
 
 class WrapCloseablePath extends ForwardingPath implements CloseablePath {
 
