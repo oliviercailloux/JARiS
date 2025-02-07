@@ -28,7 +28,7 @@ class XmlConfiguredTransformerImpl implements XmlConfiguredTransformer {
 
   private XmlConfiguredTransformerImpl(Transformer transformer) {
     this.transformer = checkNotNull(transformer);
-    checkArgument(transformer.getErrorListener() instanceof XmlTransformRecordingErrorListener);
+    checkArgument(transformer.getErrorListener() instanceof XmlTransformErrorListener);
   }
 
   @Override
@@ -37,41 +37,12 @@ class XmlConfiguredTransformerImpl implements XmlConfiguredTransformer {
     checkArgument(!document.isEmpty());
     checkNotNull(result);
 
-    final XmlTransformRecordingErrorListener recordingErrorListener =
-        (XmlTransformRecordingErrorListener) transformer.getErrorListener();
-    recordingErrorListener.reset();
-
     LOGGER.debug("Transforming document using transformer {}.", transformer);
     try {
       transformer.transform(document, result);
     } catch (TransformerException e) {
-      recordingErrorListener.thrown(e);
+      throw new XmlException("Error while transforming document.", e);
     }
-
-    /*
-     * The spec is unclear about whether the error listener throwing should fail processing; and by
-     * experiment, it seems that throwing when warning() goes unnoticed. So let’s crash it manually
-     * according to the severity level demanded for, rather than in the catch block (which may not
-     * be triggered).
-     */
-    recordingErrorListener.throwFirstGraveAsXmlException();
-    /*
-     * We want to log everything; and throw the first grave exception (grave meaning any or at least
-     * error, depending on pedantism). We avoid doing both logging and throwing when there is only
-     * one grave exc and it is the last exc seen (so the ordering is clear); but when a grave exc is
-     * followed by another one, we want to log both in order for the ordering to be visible in the
-     * logs, even though this leads to double treatment (logging and throwing).
-     *
-     * We observed that saxonica may send two fatal errors for one terminal message: the message
-     * itself, and a second one, “Processing terminated by xsl:message at line 237 in chunker.xsl”.
-     * Hence our desire to throw the first grave exception (which is more informative), and log
-     * everything (so that the complete order of exceptions is visible). We observed that Saxonica
-     * terminates with the latter exception (appearing in our catch block) instead of the former, so
-     * we must override this.
-     *
-     * In pedantic mode, everything is grave. Otherwise, errors and supplementary (the one thrown
-     * that ends the process) are grave.
-     */
   }
 
   /**

@@ -125,7 +125,7 @@ public class XmlTransformer {
    */
   public static XmlTransformer usingFactory(TransformerFactory factory) {
     return generalTransformer(factory,
-        XmlTransformRecordingErrorListener.WARNING_NOT_GRAVE_ERROR_LISTENER);
+        XmlTransformErrorListener.WARNING_NOT_GRAVE_ERROR_LISTENER);
   }
 
   /**
@@ -139,11 +139,11 @@ public class XmlTransformer {
    */
   public static XmlTransformer pedanticTransformer(TransformerFactory factory) {
     return generalTransformer(factory,
-        XmlTransformRecordingErrorListener.EVERYTHING_GRAVE_ERROR_LISTENER);
+        XmlTransformErrorListener.EVERYTHING_GRAVE_ERROR_LISTENER);
   }
 
   private static XmlTransformer generalTransformer(TransformerFactory factory,
-      XmlTransformRecordingErrorListener errorListener) {
+      XmlTransformErrorListener errorListener) {
     factory.setErrorListener(errorListener);
     /*
      * https://www.saxonica.com/html/documentation/configuration/config-features.html;
@@ -166,7 +166,7 @@ public class XmlTransformer {
 
   private XmlTransformer(TransformerFactory tf) {
     this.factory = checkNotNull(tf);
-    checkArgument(factory.getErrorListener() instanceof XmlTransformRecordingErrorListener);
+    checkArgument(factory.getErrorListener() instanceof XmlTransformErrorListener);
   }
 
   TransformerFactory factory() {
