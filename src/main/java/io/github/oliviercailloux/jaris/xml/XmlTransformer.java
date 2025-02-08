@@ -18,6 +18,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
+import net.sf.saxon.jaxp.TransformerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -282,6 +283,8 @@ public class XmlTransformer {
     if (stylesheet == null || stylesheet.isEmpty()) {
       try {
         transformer = factory.newTransformer();
+        //TODO
+        // ((TransformerImpl)transformer).setMessageEmitter(new net.sf.saxon.event.MessageWarner());
       } catch (TransformerConfigurationException e) {
         throw new VerifyException(e);
       }

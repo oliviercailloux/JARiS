@@ -32,6 +32,14 @@ public class OutputCapturer {
     System.setErr(new PrintStream(errStream));
   }
 
+  public void captureErr() {
+    checkState(originalOut == null);
+    originalOut = System.out;
+    originalErr = System.err;
+    errStream = new ByteArrayOutputStream();
+    System.setErr(new PrintStream(errStream));
+  }
+
   public void restore() {
     System.setOut(originalOut);
     System.setErr(originalErr);

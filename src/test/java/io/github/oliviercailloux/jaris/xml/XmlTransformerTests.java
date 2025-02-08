@@ -19,6 +19,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.stream.StreamSource;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junitpioneer.jupiter.RestoreSystemProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +38,6 @@ class XmlTransformerTests {
 
   @Test
   void testTransformSimple() throws Exception {
-
     final ByteSource style =
         Resources.asByteSource(XmlTransformerTests.class.getResource("short.xsl"));
     final StreamSource input =
@@ -56,10 +57,9 @@ class XmlTransformerTests {
          * Much faster (obtains transformer from stylesheet in 4 sec instead of 17 sec), but depends
          * on what is installed locally.
          */
-        new
-        StreamSource(Path.of("/usr/share/xml/docbook/stylesheet/docbook-xsl-ns/fo/docbook.xsl")
-        .toUri().toString());
-        // new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
+        new StreamSource(Path.of("/usr/share/xml/docbook/stylesheet/docbook-xsl-ns/fo/docbook.xsl")
+            .toUri().toString());
+    // new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
 
     {
       /* This is too complex for pure JDK embedded transformer. */
@@ -106,8 +106,7 @@ class XmlTransformerTests {
     capturer.capture();
 
     final XmlTransformer t = XmlTransformer.usingFactory(new net.sf.saxon.TransformerFactoryImpl());
-    assertEquals("net.sf.saxon.TransformerFactoryImpl",
-        t.factory().getClass().getName());
+    assertEquals("net.sf.saxon.TransformerFactoryImpl", t.factory().getClass().getName());
     final XmlException readExc = assertThrows(XmlException.class, () -> t.usingStylesheet(myStyle));
     final String reason = readExc.getCause().getMessage();
     assertTrue(reason.contains("I/O error reported by XML parser processing file:"), reason);
@@ -184,8 +183,11 @@ class XmlTransformerTests {
         () -> XmlTransformer.usingSystemDefaultFactory().usingStylesheet(style).transform(input));
   }
 
-  @Test
-  void testTransformMessaging() throws Exception {
+  @ParameterizedTest
+  @EnumSource(names = {"JDK", "XALAN"})
+  void testTransformMessaging(KnownFactory factory) throws Exception {
+    final OutputCapturer capturer = OutputCapturer.capturer();
+    capturer.capture();
     final StreamSource style =
         new StreamSource(XmlTransformerTests.class.getResource("short messaging.xsl").toString());
     final StreamSource input =
@@ -193,21 +195,163 @@ class XmlTransformerTests {
     final String expected =
         Files.readString(Path.of(XmlTransformerTests.class.getResource("transformed.txt").toURI()));
     assertEquals(expected,
-        XmlTransformer.usingSystemDefaultFactory().usingStylesheet(style).transform(input));
-
-    assertThrows(XmlException.class,
-        () -> XmlTransformer.pedanticTransformer(TransformerFactory.newDefaultInstance())
-            .usingStylesheet(style).transform(input));
+        XmlTransformer.usingFactory(factory.factory()).usingStylesheet(style).transform(input));
+    capturer.restore();
+    assertTrue(capturer.out().isEmpty());
+    assertTrue(capturer.err().isEmpty());
   }
 
   @Test
-  void testTransformMessagingTerminate() throws Exception {
+  void testTransformMessagingS() throws Exception {
+    final OutputCapturer capturer = OutputCapturer.capturer();
+    capturer.capture();
+    final StreamSource style =
+        new StreamSource(XmlTransformerTests.class.getResource("short messaging.xsl").toString());
+    final StreamSource input =
+        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    final String expected =
+        Files.readString(Path.of(XmlTransformerTests.class.getResource("transformed.txt").toURI()));
+    assertEquals(expected, XmlTransformer.usingFactory(KnownFactory.SAXON.factory())
+        .usingStylesheet(style).transform(input));
+    capturer.restore();
+    assertTrue(capturer.out().isEmpty());
+    assertEquals("A message that does not terminate\nA message that does not terminate\n",
+        capturer.err());
+  }
+
+  @Test
+  void testTransformMessagingPedanticWithJdkFailsToStop() throws Exception {
+    final OutputCapturer capturer = OutputCapturer.capturer();
+    capturer.captureErr();
+    final StreamSource style =
+        new StreamSource(XmlTransformerTests.class.getResource("short messaging.xsl").toString());
+    final StreamSource input =
+        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    final String expected =
+        Files.readString(Path.of(XmlTransformerTests.class.getResource("transformed.txt").toURI()));
+    assertEquals(expected, XmlTransformer.pedanticTransformer(KnownFactory.JDK.factory())
+        .usingStylesheet(style).transform(input));
+    capturer.restore();
+    assertTrue(capturer.err().isEmpty());
+  }
+
+  @Test
+  void testTransformMessagingPedanticX() throws Exception {
+    final OutputCapturer capturer = OutputCapturer.capturer();
+    capturer.captureErr();
+    final StreamSource style =
+        new StreamSource(XmlTransformerTests.class.getResource("short messaging.xsl").toString());
+    final StreamSource input =
+        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    XmlException thrown = assertThrows(XmlException.class, () -> XmlTransformer
+        .pedanticTransformer(KnownFactory.XALAN.factory()).usingStylesheet(style).transform(input));
+    assertTrue(thrown.getMessage().contains("Error while transforming document."),
+        thrown.getMessage());
+    assertTrue(thrown.getCause().getMessage().contains("A message that does not terminate"),
+        thrown.getCause().getMessage());
+    capturer.restore();
+    assertTrue(capturer.err().isEmpty());
+  }
+
+  @Test
+  void testTransformMessagingPedanticWithSaxonFailsToStop() throws Exception {
+    final OutputCapturer capturer = OutputCapturer.capturer();
+    capturer.captureErr();
+    final StreamSource style =
+        new StreamSource(XmlTransformerTests.class.getResource("short messaging.xsl").toString());
+    final StreamSource input =
+        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    final String expected =
+        Files.readString(Path.of(XmlTransformerTests.class.getResource("transformed.txt").toURI()));
+    assertEquals(expected, XmlTransformer.pedanticTransformer(KnownFactory.SAXON.factory())
+        .usingStylesheet(style).transform(input));
+    capturer.restore();
+    assertEquals("A message that does not terminate\nA message that does not terminate\n",
+        capturer.err());
+  }
+
+  @ParameterizedTest
+  @EnumSource(names = {"JDK", "XALAN"})
+  void testTransformMessagingTerminate(KnownFactory factory) throws Exception {
+    final OutputCapturer capturer = OutputCapturer.capturer();
+    capturer.captureErr();
     final StreamSource style = new StreamSource(
         XmlTransformerTests.class.getResource("short messaging terminate.xsl").toString());
     final StreamSource input =
         new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
-    assertThrows(XmlException.class,
-        () -> XmlTransformer.usingSystemDefaultFactory().usingStylesheet(style).transform(input));
+    assertThrows(XmlException.class, () -> XmlTransformer.usingFactory(factory.factory())
+        .usingStylesheet(style).transform(input));
+    capturer.restore();
+    assertTrue(capturer.err().isEmpty());
+  }
+
+  @Test
+  void testTransformMessagingTerminateS() throws Exception {
+    final OutputCapturer capturer = OutputCapturer.capturer();
+    capturer.captureErr();
+    final StreamSource style = new StreamSource(
+        XmlTransformerTests.class.getResource("short messaging terminate.xsl").toString());
+    final StreamSource input =
+        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    assertThrows(XmlException.class, () -> XmlTransformer.usingFactory(KnownFactory.SAXON.factory())
+        .usingStylesheet(style).transform(input));
+    capturer.restore();
+    assertEquals("A message about premature end\n", capturer.err());
+  }
+
+  @Test
+  void testTransformMessagingTerminatePedantic() throws Exception {
+    final OutputCapturer capturer = OutputCapturer.capturer();
+    capturer.captureErr();
+    final StreamSource style = new StreamSource(
+        XmlTransformerTests.class.getResource("short messaging terminate.xsl").toString());
+    final StreamSource input =
+        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    XmlException thrown = assertThrows(XmlException.class, () -> XmlTransformer
+        .pedanticTransformer(KnownFactory.JDK.factory()).usingStylesheet(style).transform(input));
+    capturer.restore();
+    assertTrue(capturer.err().isEmpty());
+    assertTrue(thrown.getMessage().contains("Error while transforming document."),
+        thrown.getMessage());
+    assertTrue(
+        thrown.getCause().getMessage().contains("Termination forced by an xsl:message instruction"),
+        thrown.getCause().getMessage());
+  }
+
+  @Test
+  void testTransformMessagingTerminatePedanticX() throws Exception {
+    final OutputCapturer capturer = OutputCapturer.capturer();
+    capturer.captureErr();
+    final StreamSource style = new StreamSource(
+        XmlTransformerTests.class.getResource("short messaging terminate.xsl").toString());
+    final StreamSource input =
+        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    XmlException thrown = assertThrows(XmlException.class, () -> XmlTransformer
+        .pedanticTransformer(KnownFactory.XALAN.factory()).usingStylesheet(style).transform(input));
+    capturer.restore();
+    assertTrue(capturer.err().isEmpty());
+    assertTrue(thrown.getMessage().contains("Error while transforming document."),
+        thrown.getMessage());
+    assertTrue(thrown.getCause().getMessage().contains("premature"),
+        thrown.getCause().getMessage());
+  }
+
+  @Test
+  void testTransformMessagingTerminatePedanticS() throws Exception {
+    final OutputCapturer capturer = OutputCapturer.capturer();
+    capturer.captureErr();
+    final StreamSource style = new StreamSource(
+        XmlTransformerTests.class.getResource("short messaging terminate.xsl").toString());
+    final StreamSource input =
+        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    XmlException thrown = assertThrows(XmlException.class, () -> XmlTransformer
+        .pedanticTransformer(KnownFactory.SAXON.factory()).usingStylesheet(style).transform(input));
+    capturer.restore();
+    assertEquals("A message about premature end\n", capturer.err());
+    assertTrue(thrown.getMessage().contains("Error while transforming document."),
+        thrown.getMessage());
+    assertTrue(thrown.getCause().getMessage().contains("Processing terminated by xsl:message at line 13"),
+        thrown.getCause().getMessage());
   }
 
   @Test

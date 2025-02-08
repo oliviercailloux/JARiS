@@ -1,11 +1,8 @@
 package io.github.oliviercailloux.jaris.xml;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableSet;
-import java.util.LinkedHashSet;
-import java.util.Optional;
 import java.util.Set;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.TransformerException;
@@ -74,6 +71,7 @@ class XmlTransformErrorListener implements ErrorListener {
   private void enact(TransformerException exception, Severity severity)
       throws TransformerException {
     if (graveSeverities.contains(severity)) {
+      LOGGER.error("Received " + severity.asStringForm() + " while processing.");
       throw exception;
     }
     LOGGER.debug(severity.asStringForm() + " while processing.", exception);
