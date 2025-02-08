@@ -25,7 +25,7 @@ class XmlTransformErrorListener implements ErrorListener {
 
   private ImmutableSet<Severity> graveSeverities;
 
-  private static enum Severity {
+  public static enum Severity {
     WARNING("Warning"), ERROR("Error"), FATAL("Fatal error"), THROWN("Exception");
 
     private String stringForm;
@@ -55,25 +55,33 @@ class XmlTransformErrorListener implements ErrorListener {
 
   @Override
   public void warning(TransformerException exception) throws TransformerException {
-    enact(exception, Severity.WARNING);
+    consume(exception, Severity.WARNING);
   }
 
   @Override
   public void error(TransformerException exception) throws TransformerException {
-    enact(exception, Severity.ERROR);
+    consume(exception, Severity.ERROR);
   }
 
   @Override
   public void fatalError(TransformerException exception) throws TransformerException {
-    enact(exception, Severity.FATAL);
+    consume(exception, Severity.FATAL);
   }
 
-  private void enact(TransformerException exception, Severity severity)
-      throws TransformerException {
+  public <X extends Exception> void consume(X exception, Severity severity) throws X {
     if (graveSeverities.contains(severity)) {
       LOGGER.error("Received " + severity.asStringForm() + " while processing.");
       throw exception;
     }
     LOGGER.debug(severity.asStringForm() + " while processing.", exception);
   }
+
+  // private void consume(TransformerException exception, Severity severity)
+  //     throws TransformerException {
+  //   if (graveSeverities.contains(severity)) {
+  //     LOGGER.error("Received " + severity.asStringForm() + " while processing.");
+  //     throw exception;
+  //   }
+  //   LOGGER.debug(severity.asStringForm() + " while processing.", exception);
+  // }
 }

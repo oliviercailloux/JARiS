@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.Map;
+import java.util.function.Consumer;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -19,6 +20,7 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.jaxp.TransformerImpl;
+import net.sf.saxon.s9api.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,18 +149,11 @@ public class XmlTransformer {
       XmlTransformErrorListener errorListener) {
     factory.setErrorListener(errorListener);
     /*
-     * https://www.saxonica.com/html/documentation/configuration/config-features.html;
      * https://stackoverflow.com/a/4699749.
      *
-     * The default implementation (from Apache Xalan) seems to have a bug preventing it from using
+     * The default implementation seems to have a bug preventing it from using
      * the provided error listener.
      */
-    try {
-      factory.setAttribute("http://saxon.sf.net/feature/messageEmitterClass",
-          "net.sf.saxon.serialize.MessageWarner");
-    } catch (@SuppressWarnings("unused") IllegalArgumentException e) {
-      LOGGER.debug("saxon messageEmitterClass attribute not supported, not set");
-    }
     LOGGER.debug("Creating transformer using factory {}.", factory);
     return new XmlTransformer(factory);
   }
@@ -283,8 +278,6 @@ public class XmlTransformer {
     if (stylesheet == null || stylesheet.isEmpty()) {
       try {
         transformer = factory.newTransformer();
-        //TODO
-        // ((TransformerImpl)transformer).setMessageEmitter(new net.sf.saxon.event.MessageWarner());
       } catch (TransformerConfigurationException e) {
         throw new VerifyException(e);
       }
@@ -296,7 +289,12 @@ public class XmlTransformer {
       }
     }
     LOGGER.debug("Obtained transformer from stylesheet {}.", stylesheet);
-    transformer.setErrorListener(factory.getErrorListener());
+    XmlTransformErrorListener errorListener = (XmlTransformErrorListener) factory.getErrorListener();
+    transformer.setErrorListener(errorListener);
+    Consumer<Message> messageHandler = m -> errorListener.consume(new XmlException(m.getStringValue()), XmlTransformErrorListener.Severity.WARNING);
+    ((TransformerImpl)transformer).getUnderlyingXsltTransformer().setMessageHandler(messageHandler);
+    ((TransformerImpl)transformer).getUnderlyingXsltTransformer().setErrorListener(errorListener);
+    //TODO
     parameters.entrySet().stream()
         .forEach(e -> transformer.setParameter(e.getKey().asFullName(), e.getValue()));
     outputProperties.asStringMap().entrySet().stream()
