@@ -27,9 +27,9 @@ class XmlConfiguredTransformerSaxonPedanticImpl implements XmlConfiguredTransfor
   }
 
   private final TransformerImpl transformer;
-  
-    private XmlConfiguredTransformerSaxonPedanticImpl(TransformerImpl transformer) {
-      this.transformer = checkNotNull(transformer);
+
+  private XmlConfiguredTransformerSaxonPedanticImpl(TransformerImpl transformer) {
+    this.transformer = checkNotNull(transformer);
     checkArgument(transformer.getErrorListener() instanceof XmlTransformErrorListener);
   }
 
@@ -45,7 +45,8 @@ class XmlConfiguredTransformerSaxonPedanticImpl implements XmlConfiguredTransfor
     } catch (TransformerException e) {
       throw new XmlException("Error while transforming document.", e);
     }
-    SaxonMessageHandler myHandler = (SaxonMessageHandler) transformer.getUnderlyingController().getMessageHandler();
+    SaxonMessageHandler myHandler =
+        (SaxonMessageHandler) transformer.getUnderlyingController().getMessageHandler();
     if (myHandler.hasBeenCalled()) {
       throw new XmlException("Error while transforming document.");
     }

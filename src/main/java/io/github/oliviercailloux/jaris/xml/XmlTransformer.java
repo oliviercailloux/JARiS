@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.Map;
-import java.util.function.Consumer;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
@@ -22,11 +21,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.TransformerFactoryImpl;
 import net.sf.saxon.jaxp.IdentityTransformer;
-import net.sf.saxon.jaxp.SaxonTransformerFactory;
 import net.sf.saxon.jaxp.TransformerImpl;
-import net.sf.saxon.lib.ErrorReporter;
-import net.sf.saxon.s9api.Message;
-import net.sf.saxon.s9api.XmlProcessingError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -166,10 +161,11 @@ public class XmlTransformer {
 
   private static XmlTransformer generalTransformer(TransformerFactory factory,
       XmlTransformErrorListener errorListener) {
-    /**
+    /*
      * Saxon says that this is deprecated
-     * (https://www.saxonica.com/documentation12/index.html#!javadoc/net.sf.saxon.jaxp/SaxonTransformerFactory@setErrorListener),
-     * but we use it anyway. https://saxonica.plan.io/boards/3/topics/9906
+     * (https://www.saxonica.com/documentation12/index.html#!javadoc/net.sf.saxon.jaxp/
+     * SaxonTransformerFactory@setErrorListener), but we use it anyway.
+     * https://saxonica.plan.io/boards/3/topics/9906
      * 
      */
     factory.setErrorListener(errorListener);
@@ -311,14 +307,6 @@ public class XmlTransformer {
     XmlTransformErrorListener errorListener =
         (XmlTransformErrorListener) factory.getErrorListener();
 
-    /*
-     * https://stackoverflow.com/a/4699749.
-     */
-    verify(factory instanceof TransformerFactoryImpl == transformer instanceof IdentityTransformer);
-    if (transformer instanceof TransformerImpl saxonTransformer) {
-      saxonTransformer.getUnderlyingXsltTransformer()
-          .setMessageHandler(SaxonMessageHandler.newInstance());
-    }
     /* This is required because of no default transmission of listeners. */
     transformer.setErrorListener(errorListener);
 
@@ -327,8 +315,23 @@ public class XmlTransformer {
     outputProperties.asStringMap().entrySet().stream()
         .forEach(e -> transformer.setOutputProperty(e.getKey(), e.getValue()));
 
-    if (transformer instanceof TransformerImpl saxonTransformer && errorListener.pedantic()) {
-      return XmlConfiguredTransformerSaxonPedanticImpl.using(saxonTransformer);
+    try {
+      /*
+       * https://stackoverflow.com/a/4699749.
+       */
+      verify(
+          factory instanceof TransformerFactoryImpl == transformer instanceof IdentityTransformer);
+      if (transformer instanceof TransformerImpl saxonTransformer) {
+        saxonTransformer.getUnderlyingXsltTransformer()
+            .setMessageHandler(SaxonMessageHandler.newInstance());
+      }
+      if (transformer instanceof TransformerImpl saxonTransformer) {
+        if (errorListener.pedantic()) {
+          return XmlConfiguredTransformerSaxonPedanticImpl.using(saxonTransformer);
+        }
+      }
+    } catch (NoClassDefFoundError e) {
+      LOGGER.debug("Saxon not found, no special treatment.", e);
     }
     return XmlConfiguredTransformerImpl.using(transformer);
   }

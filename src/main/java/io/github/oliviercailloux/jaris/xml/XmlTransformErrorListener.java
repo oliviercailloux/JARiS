@@ -68,7 +68,8 @@ class XmlTransformErrorListener implements ErrorListener {
     consume(exception, Severity.FATAL);
   }
 
-  private void consume(TransformerException exception, Severity severity) throws TransformerException {
+  private void consume(TransformerException exception, Severity severity)
+      throws TransformerException {
     if (graveSeverities.contains(severity)) {
       throw exception;
     }

@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 public class RngCheckerTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(RngCheckerTests.class);
-  
+
   @Test
   public void testAutoFactoryFails() throws Exception {
     assertThrows(IllegalArgumentException.class,
@@ -28,7 +28,8 @@ public class RngCheckerTests {
   @RestoreSystemProperties
   @Test
   public void testAutoFactoryExplicit() throws Exception {
-    System.setProperty(SchemaFactory.class.getName() + ":" + XMLConstants.RELAXNG_NS_URI, XMLSyntaxSchemaFactory.class.getName());
+    System.setProperty(SchemaFactory.class.getName() + ":" + XMLConstants.RELAXNG_NS_URI,
+        XMLSyntaxSchemaFactory.class.getName());
     SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI);
     assertNotNull(schemaFactory);
   }
