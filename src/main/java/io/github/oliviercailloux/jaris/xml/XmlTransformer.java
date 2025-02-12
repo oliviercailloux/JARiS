@@ -2,8 +2,8 @@ package io.github.oliviercailloux.jaris.xml;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Verify.verify;
 
-import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
 import com.google.common.io.CharSource;
@@ -13,22 +13,46 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.util.Map;
 import java.util.function.Consumer;
+import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
+import net.sf.saxon.TransformerFactoryImpl;
+import net.sf.saxon.jaxp.IdentityTransformer;
+import net.sf.saxon.jaxp.SaxonTransformerFactory;
 import net.sf.saxon.jaxp.TransformerImpl;
+import net.sf.saxon.lib.ErrorReporter;
 import net.sf.saxon.s9api.Message;
+import net.sf.saxon.s9api.XmlProcessingError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * <p>
- * Instances of this class make a best effort to log warnings (unless configured otherwise) and to
- * fail fast (throwing an exception) if an error or a fatalError is raised during the parsing of the
- * schema or of the document to transform.
+ * Instances of this class use two categories of event seriousness that can happen during parsing of
+ * the schema or during transformation: information and problem.
+ * </p>
+ * <p>
+ * An instance is either <em>normal</em> or {@link #pedanticTransformer <em>pedantic</em>}. If it is
+ * normal, it logs information events and throws exceptions for problem events. If it is pedantic,
+ * it throws exceptions for both information and problem events.
+ * </p>
+ * 
+ * <p>
+ * XSL
+ * <a href="https://developer.mozilla.org/docs/Web/XML/XSLT/Reference/Element/message">messages</a>
+ * are considered information events iff their <code>terminate</code> attribute value is
+ * <code>no</code>. The {@link ErrorListener errors} sent by the underlying processor are considered
+ * information events iff they have severity <em>warning</em> and problem events iff they have
+ * severity <em>error</em> or <em>fatal</em>.
+ * </p>
+ * <p>
+ * The {@link #usingSystemDefaultFactory() system default factory} sometimes spits errors to the
+ * console, which escapes the mechanism described here above, due to
+ * <a href="https://stackoverflow.com/a/21209904/">a bug</a> in the JDK.
  * </p>
  */
 public class XmlTransformer {
@@ -93,10 +117,6 @@ public class XmlTransformer {
    * Provides a transformer instance using the TransformerFactory builtin system-default
    * implementation, thus, equivalent to the one obtained with
    * {@link TransformerFactory#newDefaultInstance}.
-   * <p>
-   * The system default factory sometimes spits errors to the console instead of through the logging
-   * system due to <a href="https://stackoverflow.com/a/21209904/">a bug</a> in the JDK.
-   * </p>
    *
    * @return a transformer instance.
    */
@@ -127,42 +147,46 @@ public class XmlTransformer {
    * @return a transformer instance.
    */
   public static XmlTransformer usingFactory(TransformerFactory factory) {
-    return generalTransformer(factory,
-        XmlTransformErrorListener.WARNING_NOT_GRAVE_ERROR_LISTENER);
+    return generalTransformer(factory, XmlTransformErrorListener.WARNING_NOT_GRAVE_ERROR_LISTENER);
   }
 
   /**
    * Provides a transformer instance using the provided factory.
    * <p>
-   * The returned transformer throws exceptions upon encountering warnings (as well as errors).
+   * The returned transformer throws exceptions upon encountering information events, including
+   * messages, even if specified as non-terminating.
    * </p>
    *
    * @param factory the factory to use.
    * @return a transformer instance.
    */
   public static XmlTransformer pedanticTransformer(TransformerFactory factory) {
-    return generalTransformer(factory,
-        XmlTransformErrorListener.EVERYTHING_GRAVE_ERROR_LISTENER);
+    return generalTransformer(factory, XmlTransformErrorListener.EVERYTHING_GRAVE_ERROR_LISTENER);
   }
 
   private static XmlTransformer generalTransformer(TransformerFactory factory,
       XmlTransformErrorListener errorListener) {
-    factory.setErrorListener(errorListener);
-    /*
-     * https://stackoverflow.com/a/4699749.
-     *
-     * The default implementation seems to have a bug preventing it from using
-     * the provided error listener.
+    /**
+     * Saxon says that this is deprecated
+     * (https://www.saxonica.com/documentation12/index.html#!javadoc/net.sf.saxon.jaxp/SaxonTransformerFactory@setErrorListener)
+     * 
      */
-    LOGGER.debug("Creating transformer using factory {}.", factory);
-    return new XmlTransformer(factory);
+    if (!(factory instanceof TransformerFactoryImpl)) {
+      factory.setErrorListener(errorListener);
+    }
+    LOGGER.debug("Creating our transformer using factory {}.", factory);
+    return new XmlTransformer(factory, errorListener);
   }
 
   private final TransformerFactory factory;
+  private final XmlTransformErrorListener errorListener;
 
-  private XmlTransformer(TransformerFactory tf) {
+  private XmlTransformer(TransformerFactory tf, XmlTransformErrorListener errorListener) {
     this.factory = checkNotNull(tf);
-    checkArgument(factory.getErrorListener() instanceof XmlTransformErrorListener);
+    this.errorListener = checkNotNull(errorListener);
+    if (!(factory instanceof TransformerFactoryImpl)) {
+      checkArgument(factory.getErrorListener() instanceof XmlTransformErrorListener);
+    }
   }
 
   TransformerFactory factory() {
@@ -269,7 +293,7 @@ public class XmlTransformer {
    * @throws XmlException if there are errors when parsing the Source; wrapping a
    *         {@link TransformerConfigurationException}.
    */
-  private XmlConfiguredTransformerImpl usingStylesheetInternal(Source stylesheet,
+  private XmlConfiguredTransformer usingStylesheetInternal(Source stylesheet,
       Map<XmlName, String> parameters, OutputProperties outputProperties) throws XmlException {
     checkNotNull(parameters);
 
@@ -279,7 +303,7 @@ public class XmlTransformer {
       try {
         transformer = factory.newTransformer();
       } catch (TransformerConfigurationException e) {
-        throw new VerifyException(e);
+        throw new XmlException("Failed creating transformer.", e);
       }
     } else {
       try {
@@ -289,17 +313,29 @@ public class XmlTransformer {
       }
     }
     LOGGER.debug("Obtained transformer from stylesheet {}.", stylesheet);
-    XmlTransformErrorListener errorListener = (XmlTransformErrorListener) factory.getErrorListener();
+    /*
+     * https://stackoverflow.com/a/4699749.
+     */
+    verify(factory instanceof TransformerFactoryImpl == transformer instanceof IdentityTransformer);
+    if (transformer instanceof TransformerImpl saxonTransformer) {
+      saxonTransformer.getUnderlyingXsltTransformer()
+          .setMessageHandler(SaxonMessageHandler.newInstance());
+    } else if (transformer instanceof IdentityTransformer) {
+      /* https://saxonica.plan.io/issues/6689 */
+    } else {
+      verify(factory.getErrorListener().equals(errorListener));
+      verify(!transformer.getErrorListener().equals(errorListener));
+    }
     transformer.setErrorListener(errorListener);
-    Consumer<Message> messageHandler = m -> errorListener.consume(new XmlException(m.getStringValue()), XmlTransformErrorListener.Severity.WARNING);
-    ((TransformerImpl)transformer).getUnderlyingXsltTransformer().setMessageHandler(messageHandler);
-    ((TransformerImpl)transformer).getUnderlyingXsltTransformer().setErrorListener(errorListener);
-    //TODO
+    verify(transformer.getErrorListener().equals(errorListener));
     parameters.entrySet().stream()
         .forEach(e -> transformer.setParameter(e.getKey().asFullName(), e.getValue()));
     outputProperties.asStringMap().entrySet().stream()
         .forEach(e -> transformer.setOutputProperty(e.getKey(), e.getValue()));
 
+    if (transformer instanceof TransformerImpl saxonTransformer && errorListener.pedantic()) {
+      return XmlConfiguredTransformerSaxonPedanticImpl.using(saxonTransformer);
+    }
     return XmlConfiguredTransformerImpl.using(transformer);
   }
 }

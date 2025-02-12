@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<Article>
+  <Title>My Article</Title>
+  <Authors>
+    <Author>Mr. Foo</Author>
+  </Authors>
+  <Body>This is my article text.</Body>
+</Article>

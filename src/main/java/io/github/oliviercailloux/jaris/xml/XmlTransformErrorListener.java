@@ -68,20 +68,14 @@ class XmlTransformErrorListener implements ErrorListener {
     consume(exception, Severity.FATAL);
   }
 
-  public <X extends Exception> void consume(X exception, Severity severity) throws X {
+  private void consume(TransformerException exception, Severity severity) throws TransformerException {
     if (graveSeverities.contains(severity)) {
-      LOGGER.error("Received " + severity.asStringForm() + " while processing.");
       throw exception;
     }
     LOGGER.debug(severity.asStringForm() + " while processing.", exception);
   }
 
-  // private void consume(TransformerException exception, Severity severity)
-  //     throws TransformerException {
-  //   if (graveSeverities.contains(severity)) {
-  //     LOGGER.error("Received " + severity.asStringForm() + " while processing.");
-  //     throw exception;
-  //   }
-  //   LOGGER.debug(severity.asStringForm() + " while processing.", exception);
-  // }
+  public boolean pedantic() {
+    return graveSeverities.contains(Severity.WARNING);
+  }
 }

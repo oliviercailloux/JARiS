@@ -2,33 +2,34 @@ package io.github.oliviercailloux.jaris.xml;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Verify.verify;
 
 import java.io.StringWriter;
+import java.util.function.Consumer;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import net.sf.saxon.jaxp.TransformerImpl;
+import net.sf.saxon.s9api.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
-class XmlConfiguredTransformerImpl implements XmlConfiguredTransformer {
+class XmlConfiguredTransformerSaxonPedanticImpl implements XmlConfiguredTransformer {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlConfiguredTransformerImpl.class);
 
-  static XmlConfiguredTransformerImpl using(Transformer transformer) {
-    return new XmlConfiguredTransformerImpl(transformer);
+  static XmlConfiguredTransformerSaxonPedanticImpl using(TransformerImpl transformer) {
+    return new XmlConfiguredTransformerSaxonPedanticImpl(transformer);
   }
 
-  private final Transformer transformer;
-
-  private XmlConfiguredTransformerImpl(Transformer transformer) {
-    this.transformer = checkNotNull(transformer);
+  private final TransformerImpl transformer;
+  
+    private XmlConfiguredTransformerSaxonPedanticImpl(TransformerImpl transformer) {
+      this.transformer = checkNotNull(transformer);
     checkArgument(transformer.getErrorListener() instanceof XmlTransformErrorListener);
   }
 
@@ -44,26 +45,9 @@ class XmlConfiguredTransformerImpl implements XmlConfiguredTransformer {
     } catch (TransformerException e) {
       throw new XmlException("Error while transforming document.", e);
     }
-  }
-
-  /**
-   * Not ready.
-   *
-   * @param document the document
-   * @throws TransformerException iff shit happens
-   */
-  @SuppressWarnings("unused")
-  private String transformToString(Document document)
-      throws TransformerConfigurationException, TransformerException {
-    final StringWriter writer = new StringWriter();
-
-    /* Doesn’t seem to take these properties into account. */
-    transformer.setOutputProperty(OutputKeys.INDENT, "no");
-    transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-    // transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount",
-    // "2");
-
-    transformer.transform(new DOMSource(document), new StreamResult(writer));
-    return writer.toString();
+    SaxonMessageHandler myHandler = (SaxonMessageHandler) transformer.getUnderlyingController().getMessageHandler();
+    if (myHandler.hasBeenCalled()) {
+      throw new XmlException("Error while transforming document.");
+    }
   }
 }
