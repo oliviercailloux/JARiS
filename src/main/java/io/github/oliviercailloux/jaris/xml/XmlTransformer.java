@@ -168,25 +168,20 @@ public class XmlTransformer {
       XmlTransformErrorListener errorListener) {
     /**
      * Saxon says that this is deprecated
-     * (https://www.saxonica.com/documentation12/index.html#!javadoc/net.sf.saxon.jaxp/SaxonTransformerFactory@setErrorListener)
+     * (https://www.saxonica.com/documentation12/index.html#!javadoc/net.sf.saxon.jaxp/SaxonTransformerFactory@setErrorListener),
+     * but we use it anyway. https://saxonica.plan.io/boards/3/topics/9906
      * 
      */
-    if (!(factory instanceof TransformerFactoryImpl)) {
-      factory.setErrorListener(errorListener);
-    }
+    factory.setErrorListener(errorListener);
     LOGGER.debug("Creating our transformer using factory {}.", factory);
-    return new XmlTransformer(factory, errorListener);
+    return new XmlTransformer(factory);
   }
 
   private final TransformerFactory factory;
-  private final XmlTransformErrorListener errorListener;
 
-  private XmlTransformer(TransformerFactory tf, XmlTransformErrorListener errorListener) {
+  private XmlTransformer(TransformerFactory tf) {
     this.factory = checkNotNull(tf);
-    this.errorListener = checkNotNull(errorListener);
-    if (!(factory instanceof TransformerFactoryImpl)) {
-      checkArgument(factory.getErrorListener() instanceof XmlTransformErrorListener);
-    }
+    verify(factory.getErrorListener() instanceof XmlTransformErrorListener);
   }
 
   TransformerFactory factory() {
@@ -313,6 +308,9 @@ public class XmlTransformer {
       }
     }
     LOGGER.debug("Obtained transformer from stylesheet {}.", stylesheet);
+    XmlTransformErrorListener errorListener =
+        (XmlTransformErrorListener) factory.getErrorListener();
+
     /*
      * https://stackoverflow.com/a/4699749.
      */
@@ -320,14 +318,10 @@ public class XmlTransformer {
     if (transformer instanceof TransformerImpl saxonTransformer) {
       saxonTransformer.getUnderlyingXsltTransformer()
           .setMessageHandler(SaxonMessageHandler.newInstance());
-    } else if (transformer instanceof IdentityTransformer) {
-      /* https://saxonica.plan.io/issues/6689 */
-    } else {
-      verify(factory.getErrorListener().equals(errorListener));
-      verify(!transformer.getErrorListener().equals(errorListener));
     }
+    /* This is required because of no default transmission of listeners. */
     transformer.setErrorListener(errorListener);
-    verify(transformer.getErrorListener().equals(errorListener));
+
     parameters.entrySet().stream()
         .forEach(e -> transformer.setParameter(e.getKey().asFullName(), e.getValue()));
     outputProperties.asStringMap().entrySet().stream()
