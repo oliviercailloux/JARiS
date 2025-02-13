@@ -13,10 +13,18 @@ public enum KnownFactory {
         return TransformerFactory.newDefaultInstance();
       }
       if (this == XALAN) {
-        return new org.apache.xalan.processor.TransformerFactoryImpl();
+        try {
+          return new org.apache.xalan.processor.TransformerFactoryImpl();
+        } catch (NoClassDefFoundError e) {
+          throw new IllegalStateException("Xalan not found in classpath.", e);
+        }
       }
       if (this == SAXON) {
-        return new net.sf.saxon.TransformerFactoryImpl();
+        try {
+          return new net.sf.saxon.TransformerFactoryImpl();
+        } catch (NoClassDefFoundError e) {
+          throw new IllegalStateException("Saxon not found in classpath.", e);
+        }
       }
       throw new IllegalStateException("Unknown factory: " + this);
     }
