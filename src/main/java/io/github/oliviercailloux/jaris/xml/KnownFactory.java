@@ -1,5 +1,7 @@
 package io.github.oliviercailloux.jaris.xml;
 
+import com.google.common.base.VerifyException;
+import java.lang.reflect.InvocationTargetException;
 import javax.xml.transform.TransformerFactory;
 
 public enum KnownFactory {
@@ -7,26 +9,26 @@ public enum KnownFactory {
 
   private TransformerFactory factory;
 
-  public TransformerFactory factory() throws NoClassDefFoundError {
+  public TransformerFactory factory() throws ClassNotFoundException {
     if (factory == null) {
       if (this == JDK) {
         return TransformerFactory.newDefaultInstance();
       }
       if (this == XALAN) {
         try {
-          return new org.apache.xalan.processor.TransformerFactoryImpl();
-        } catch (NoClassDefFoundError e) {
-          throw new IllegalStateException("Xalan not found in classpath.", e);
+          return Class.forName("org.apache.xalan.processor.TransformerFactoryImpl").asSubclass(TransformerFactory.class).getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+          throw new ClassNotFoundException("Error while initializing.", e);
         }
       }
       if (this == SAXON) {
         try {
-          return new net.sf.saxon.TransformerFactoryImpl();
-        } catch (NoClassDefFoundError e) {
-          throw new IllegalStateException("Saxon not found in classpath.", e);
+          return Class.forName("net.sf.saxon.TransformerFactoryImpl").asSubclass(TransformerFactory.class).getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+          throw new ClassNotFoundException("Error while initializing.", e);
         }
       }
-      throw new IllegalStateException("Unknown factory: " + this);
+      throw new VerifyException("Unknown factory: " + this);
     }
     return factory;
   }
