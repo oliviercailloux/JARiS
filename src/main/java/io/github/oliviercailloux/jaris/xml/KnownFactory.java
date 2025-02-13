@@ -10,7 +10,7 @@ public enum KnownFactory {
   public TransformerFactory factory() throws NoClassDefFoundError {
     if (factory == null) {
       if (this == JDK) {
-        return TransformerFactory.newInstance();
+        return TransformerFactory.newDefaultInstance();
       }
       if (this == XALAN) {
         return new org.apache.xalan.processor.TransformerFactoryImpl();
