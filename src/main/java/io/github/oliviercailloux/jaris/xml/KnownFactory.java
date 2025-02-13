@@ -16,19 +16,19 @@ public enum KnownFactory {
       }
       if (this == XALAN) {
         try {
-          return Class.forName("org.apache.xalan.processor.TransformerFactoryImpl").asSubclass(TransformerFactory.class)
-              .getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
-            | NoSuchMethodException | SecurityException e) {
+          return Class.forName("org.apache.xalan.processor.TransformerFactoryImpl")
+              .asSubclass(TransformerFactory.class).getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+            | InvocationTargetException | NoSuchMethodException | SecurityException e) {
           throw new ClassNotFoundException("Error while initializing.", e);
         }
       }
       if (this == SAXON) {
         try {
-          return Class.forName("net.sf.saxon.TransformerFactoryImpl").asSubclass(TransformerFactory.class)
-              .getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
-            | NoSuchMethodException | SecurityException e) {
+          return Class.forName("net.sf.saxon.TransformerFactoryImpl")
+              .asSubclass(TransformerFactory.class).getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+            | InvocationTargetException | NoSuchMethodException | SecurityException e) {
           throw new ClassNotFoundException("Error while initializing.", e);
         }
       }
