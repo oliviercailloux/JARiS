@@ -445,7 +445,7 @@ public class DomHelper {
     // As a DOMSource is not a StreamSource, I ignore how to (and perhaps cannot) use the LS API.
     // So, this should probably be moved to XmlTransformer.
     DOMResult result = new DOMResult();
-    XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet().transform(new DOMSource(doc), result);
+    XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet().sourceToResult(new DOMSource(doc), result);
     Document d = (Document) result.getNode();
     return d;
   }

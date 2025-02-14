@@ -45,7 +45,7 @@ class XmlTransformerTests {
         charSource("transformed.txt").read();
     assertEquals(expected,
         XmlTransformerFactory.pedanticTransformer(TransformerFactory.newDefaultInstance())
-            .usingStylesheet(style).transform(input));
+            .usingStylesheet(style).charsToChars(input));
   }
 
   @RestoreSystemProperties
@@ -126,14 +126,14 @@ class XmlTransformerTests {
     {
       System.setProperty(XmlTransformerFactory.FACTORY_PROPERTY, XALAN_FACTORY);
       final String transformed =
-          XmlTransformerFactory.usingFoundFactory().usingStylesheet(myStyle).transform(docBook);
+          XmlTransformerFactory.usingFoundFactory().usingStylesheet(myStyle).charsToChars(docBook);
       assertTrue(transformed
           .contains("<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\" font-family="));
     }
     {
       final String transformed =
           XmlTransformerFactory.usingFactory(new net.sf.saxon.TransformerFactoryImpl())
-              .usingStylesheet(myStyle).transform(docBook);
+              .usingStylesheet(myStyle).charsToChars(docBook);
       LOGGER.debug("Transformed docbook howto: {}.", transformed);
       assertTrue(transformed.matches(
           "(?s).*<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\".* font-family=.*"));
@@ -148,14 +148,14 @@ class XmlTransformerTests {
     {
       System.setProperty(XmlTransformerFactory.FACTORY_PROPERTY, XALAN_FACTORY);
       final String transformed =
-          XmlTransformerFactory.usingFoundFactory().usingStylesheet(myStyle).transform(docBook);
+          XmlTransformerFactory.usingFoundFactory().usingStylesheet(myStyle).charsToChars(docBook);
       assertTrue(transformed
           .contains("<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\" font-family="));
     }
     {
       final String transformed =
           XmlTransformerFactory.usingFactory(new net.sf.saxon.TransformerFactoryImpl())
-              .usingStylesheet(myStyle).transform(docBook);
+              .usingStylesheet(myStyle).charsToChars(docBook);
       LOGGER.debug("Transformed docbook howto: {}.", transformed);
       assertTrue(transformed.matches(
           "(?s).*<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\".* font-family=.*"));
@@ -167,7 +167,7 @@ class XmlTransformerTests {
     final CharSource style = charSource("short invalid.xsl");
     final CharSource input = charSource("short.xml");
     assertThrows(XmlException.class,
-        () -> XmlTransformerFactory.usingSystemDefaultFactory().usingStylesheet(style).transform(input));
+        () -> XmlTransformerFactory.usingSystemDefaultFactory().usingStylesheet(style).charsToChars(input));
   }
 
   @Test
@@ -175,7 +175,7 @@ class XmlTransformerTests {
     final CharSource style = charSource("short.xsl");
     final CharSource input = charSource("short invalid.xml");
     assertThrows(XmlException.class,
-        () -> XmlTransformerFactory.usingSystemDefaultFactory().usingStylesheet(style).transform(input));
+        () -> XmlTransformerFactory.usingSystemDefaultFactory().usingStylesheet(style).charsToChars(input));
   }
 
   @ParameterizedTest
@@ -188,7 +188,7 @@ class XmlTransformerTests {
     final String expected =
         charSource("transformed.txt").read();
     assertEquals(expected,
-        XmlTransformerFactory.usingFactory(factory.factory()).usingStylesheet(style).transform(input));
+        XmlTransformerFactory.usingFactory(factory.factory()).usingStylesheet(style).charsToChars(input));
     capturer.restore();
     assertTrue(capturer.out().isEmpty());
     assertTrue(capturer.err().isEmpty());
@@ -202,7 +202,7 @@ class XmlTransformerTests {
     final CharSource input = charSource("short.xml");
     final String expected = charSource("transformed.txt").read();
     assertEquals(expected, XmlTransformerFactory.usingFactory(KnownFactory.SAXON.factory())
-        .usingStylesheet(style).transform(input));
+        .usingStylesheet(style).charsToChars(input));
     capturer.restore();
     assertTrue(capturer.out().isEmpty());
     assertTrue(capturer.err().isEmpty());
@@ -216,7 +216,7 @@ class XmlTransformerTests {
     final CharSource input = charSource("short.xml");
     final String expected = charSource("transformed.txt").read();
     assertEquals(expected, XmlTransformerFactory.pedanticTransformer(KnownFactory.JDK.factory())
-        .usingStylesheet(style).transform(input));
+        .usingStylesheet(style).charsToChars(input));
     capturer.restore();
     assertTrue(capturer.err().isEmpty());
   }
@@ -228,7 +228,7 @@ class XmlTransformerTests {
     final CharSource style = charSource("short messaging.xsl");
     final CharSource input = charSource("short.xml");
     XmlException thrown = assertThrows(XmlException.class, () -> XmlTransformerFactory
-        .pedanticTransformer(KnownFactory.XALAN.factory()).usingStylesheet(style).transform(input));
+        .pedanticTransformer(KnownFactory.XALAN.factory()).usingStylesheet(style).charsToChars(input));
     assertTrue(thrown.getMessage().contains("Error while transforming document."),
         thrown.getMessage());
     assertTrue(thrown.getCause().getMessage().contains("A message that does not terminate"),
@@ -245,7 +245,7 @@ class XmlTransformerTests {
     final CharSource style = charSource("short messaging.xsl");
     final CharSource input = charSource("short.xml");
     RuntimeException thrown = assertThrows(RuntimeException.class, () -> XmlTransformerFactory
-        .pedanticTransformer(KnownFactory.SAXON.factory()).usingStylesheet(style).transform(input));
+        .pedanticTransformer(KnownFactory.SAXON.factory()).usingStylesheet(style).charsToChars(input));
     assertEquals(XmlException.class, thrown.getClass());
     assertTrue(thrown.getMessage().contains("Error while transforming document"),
         thrown.getMessage());
@@ -262,7 +262,7 @@ class XmlTransformerTests {
     final CharSource style = charSource("short messaging terminate.xsl");
     final CharSource input = charSource("short.xml");
     assertThrows(XmlException.class, () -> XmlTransformerFactory.usingFactory(factory.factory())
-        .usingStylesheet(style).transform(input));
+        .usingStylesheet(style).charsToChars(input));
     capturer.restore();
     assertTrue(capturer.out().isEmpty());
     assertTrue(capturer.err().isEmpty());
@@ -275,7 +275,7 @@ class XmlTransformerTests {
     final CharSource style = charSource("short messaging terminate.xsl");
     final CharSource input = charSource("short.xml");
     assertThrows(XmlException.class, () -> XmlTransformerFactory.usingFactory(KnownFactory.SAXON.factory())
-        .usingStylesheet(style).transform(input));
+        .usingStylesheet(style).charsToChars(input));
     capturer.restore();
     assertTrue(capturer.out().isEmpty());
     assertTrue(capturer.err().isEmpty());
@@ -288,7 +288,7 @@ class XmlTransformerTests {
     final CharSource style = charSource("short messaging terminate.xsl");
     final CharSource input = charSource("short.xml");
     XmlException thrown = assertThrows(XmlException.class, () -> XmlTransformerFactory
-        .pedanticTransformer(KnownFactory.JDK.factory()).usingStylesheet(style).transform(input));
+        .pedanticTransformer(KnownFactory.JDK.factory()).usingStylesheet(style).charsToChars(input));
     assertTrue(thrown.getMessage().contains("Error while transforming document."),
         thrown.getMessage());
     assertTrue(
@@ -306,7 +306,7 @@ class XmlTransformerTests {
     final CharSource style = charSource("short messaging terminate.xsl");
     final CharSource input = charSource("short.xml");
     XmlException thrown = assertThrows(XmlException.class, () -> XmlTransformerFactory
-        .pedanticTransformer(KnownFactory.XALAN.factory()).usingStylesheet(style).transform(input));
+        .pedanticTransformer(KnownFactory.XALAN.factory()).usingStylesheet(style).charsToChars(input));
     assertTrue(thrown.getMessage().contains("Error while transforming document."),
         thrown.getMessage());
     assertTrue(thrown.getCause().getMessage().contains("premature"),
@@ -323,7 +323,7 @@ class XmlTransformerTests {
     final CharSource style = charSource("short messaging terminate.xsl");
     final CharSource input = charSource("short.xml");
     XmlException thrown = assertThrows(XmlException.class, () -> XmlTransformerFactory
-        .pedanticTransformer(KnownFactory.SAXON.factory()).usingStylesheet(style).transform(input));
+        .pedanticTransformer(KnownFactory.SAXON.factory()).usingStylesheet(style).charsToChars(input));
     assertTrue(thrown.getMessage().contains("Error while transforming document."),
         thrown.getMessage());
     assertTrue(
@@ -340,7 +340,7 @@ class XmlTransformerTests {
     Document docCopy = XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet().charsToDom(source);
     assertEquals(source.read(), DomHelper.domHelper().toString(docCopy));
     String directResult =
-        XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet().transform(source);
+        XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet().charsToChars(source);
     assertEquals(source.read().replaceAll("    ", "   "), directResult);
 
     final Element root = docCopy.getDocumentElement();
@@ -369,7 +369,7 @@ class XmlTransformerTests {
         XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet().charsToDom(sourceOneline);
     assertEquals(source.read(), DomHelper.domHelper().toString(docCopy));
     String directResult = XmlTransformerFactory.usingFactory(KnownFactory.SAXON.factory())
-        .usingEmptyStylesheet().transform(sourceOneline);
+        .usingEmptyStylesheet().charsToChars(sourceOneline);
     assertEquals(source.read().replaceAll("    ", "   "), directResult);
   }
 
@@ -382,7 +382,7 @@ class XmlTransformerTests {
         XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet().charsToDom(sourceOneline);
     assertEquals(source.read(), DomHelper.domHelper().toString(docCopy));
     String directResult = XmlTransformerFactory.usingFactory(KnownFactory.XALAN.factory())
-        .usingEmptyStylesheet().transform(sourceOneline);
+        .usingEmptyStylesheet().charsToChars(sourceOneline);
     String expectedBug = source.read().replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
     assertEquals(expectedBug, directResult);
@@ -399,7 +399,7 @@ class XmlTransformerTests {
     assertEquals(source.read(), DomHelper.domHelper().toString(docCopy));
     String directResult =
         XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet(OutputProperties.noIndent())
-            .transform(sourceOneline);
+            .charsToChars(sourceOneline);
     assertEquals(sourceOneline.read(), directResult);
   }
 

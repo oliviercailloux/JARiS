@@ -32,7 +32,7 @@ class XmlTransformerImpl implements XmlTransformer {
   }
 
   @Override
-  public void transform(Source document, Result result) throws XmlException {
+  public void sourceToResult(Source document, Result result) throws XmlException {
     checkNotNull(document);
     checkArgument(!document.isEmpty());
     checkNotNull(result);

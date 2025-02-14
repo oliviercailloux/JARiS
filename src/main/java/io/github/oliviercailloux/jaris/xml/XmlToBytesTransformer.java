@@ -15,7 +15,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 public interface XmlToBytesTransformer {
-  
+
   /**
    * Transforms the provided document.
    *
@@ -24,34 +24,49 @@ public interface XmlToBytesTransformer {
    * @throws XmlException iff an error occurs when transforming the document. Wraps a
    *         {@link TransformerException}.
    */
-  public void transform(Source document, Result result) throws XmlException;
+  public void sourceToResult(Source document, Result result) throws XmlException;
 
-  public default void bytesToBytes(ByteSource document, ByteSink result) throws XmlException, IOException {
-    try (InputStream is = document.openBufferedStream(); OutputStream os = result.openBufferedStream()) {
-      transform(new StreamSource(is), new StreamResult(os));
+  public default void sourceToBytes(Source document, ByteSink result)
+      throws XmlException, IOException {
+    try (OutputStream os = result.openBufferedStream()) {
+      sourceToResult(document, new StreamResult(os));
+    }
+  }
+
+  public default byte[] sourceToBytes(Source document) throws XmlException {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    sourceToResult(document, new StreamResult(out));
+    return out.toByteArray();
+  }
+
+  public default void bytesToBytes(ByteSource document, ByteSink result)
+      throws XmlException, IOException {
+    try (InputStream is = document.openBufferedStream();
+        OutputStream os = result.openBufferedStream()) {
+      sourceToResult(new StreamSource(is), new StreamResult(os));
     }
   }
 
   public default byte[] bytesToBytes(ByteSource document) throws XmlException, IOException {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     try (InputStream is = document.openBufferedStream()) {
-      transform(new StreamSource(is), new StreamResult(out));
+      sourceToResult(new StreamSource(is), new StreamResult(out));
     }
     return out.toByteArray();
   }
 
-  public default void bytesToResult(ByteSource document, Result result) throws XmlException, IOException {
+  public default void bytesToResult(ByteSource document, Result result)
+      throws XmlException, IOException {
     try (InputStream is = document.openBufferedStream()) {
-      transform(new StreamSource(is), result);
+      sourceToResult(new StreamSource(is), result);
     }
   }
 
   public default byte[] charsToBytes(CharSource document) throws XmlException, IOException {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     try (Reader r = document.openBufferedStream()) {
-      transform(new StreamSource(r), new StreamResult(out));
+      sourceToResult(new StreamSource(r), new StreamResult(out));
     }
     return out.toByteArray();
   }
-
 }
