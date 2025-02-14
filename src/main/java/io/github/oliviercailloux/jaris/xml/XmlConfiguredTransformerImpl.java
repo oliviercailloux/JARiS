@@ -2,7 +2,6 @@ package io.github.oliviercailloux.jaris.xml;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Verify.verify;
 
 import java.io.StringWriter;
 import javax.xml.transform.OutputKeys;

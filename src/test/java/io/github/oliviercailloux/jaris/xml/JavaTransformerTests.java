@@ -1,12 +1,12 @@
 package io.github.oliviercailloux.jaris.xml;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
+import io.github.oliviercailloux.jaris.xml.XmlTransformer.OutputProperties;
 import java.io.StringWriter;
 import java.net.URL;
 import java.nio.file.Files;
@@ -25,6 +25,7 @@ import net.sf.saxon.jaxp.TransformerImpl;
 import net.sf.saxon.s9api.Message;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,8 +134,8 @@ public class JavaTransformerTests {
     {
       ArgumentCaptor<TransformerException> argument =
           ArgumentCaptor.forClass(TransformerException.class);
-      Mockito.verify(listener, Mockito.never()).warning(Mockito.any());
-      Mockito.verify(listener, Mockito.never()).error(Mockito.any());
+      Mockito.verify(listener, Mockito.never()).warning(ArgumentMatchers.any());
+      Mockito.verify(listener, Mockito.never()).error(ArgumentMatchers.any());
       Mockito.verify(listener).fatalError(argument.capture());
       assertTrue(argument.getValue().getMessage()
           .contains("Processing terminated by xsl:message at line"));
@@ -175,5 +176,90 @@ public class JavaTransformerTests {
         ArgumentCaptor.forClass(TransformerException.class);
     Mockito.verify(listener).warning(argument.capture());
     assertEquals("A message that does not terminate", argument.getValue().getMessage());
+  }
+
+  @Test
+  public void testXalanNotPretty() throws Exception {
+    final OutputCapturer capturer = OutputCapturer.capturer();
+    capturer.capture();
+
+    TransformerFactory factory = KnownFactory.XALAN.factory();
+    final StreamSource sourceOneline = new StreamSource(
+        XmlTransformerTests.class.getResource("short namespace oneline.xml").toString());
+    final String expected = Files.readString(
+        Path.of(XmlTransformerTests.class.getResource("short namespace oneline.xml").toURI()));
+    Transformer transformer = factory.newTransformer();
+    ErrorListener listener = Mockito.mock(ErrorListener.class);
+    transformer.setErrorListener(listener);
+
+    final StringWriter resultWriter = new StringWriter();
+    final StreamResult result = new StreamResult(resultWriter);
+    transformer.transform(sourceOneline, result);
+    assertEquals(expected, resultWriter.toString());
+
+    capturer.restore();
+    assertTrue(capturer.out().isEmpty(), capturer.out());
+    assertTrue(capturer.err().isEmpty());
+
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  @Test
+  public void testXalanIndent() throws Exception {
+    final OutputCapturer capturer = OutputCapturer.capturer();
+    capturer.capture();
+
+    TransformerFactory factory = KnownFactory.XALAN.factory();
+    final StreamSource sourceOneline = new StreamSource(
+        XmlTransformerTests.class.getResource("short namespace oneline.xml").toString());
+    final String expected = Files
+        .readString(Path.of(XmlTransformerTests.class.getResource("short namespace.xml").toURI()));
+    Transformer transformer = factory.newTransformer();
+    transformer.setOutputProperty(OutputProperties.INDENT.localName(), "yes");
+    ErrorListener listener = Mockito.mock(ErrorListener.class);
+    transformer.setErrorListener(listener);
+
+    final StringWriter resultWriter = new StringWriter();
+    final StreamResult result = new StreamResult(resultWriter);
+    transformer.transform(sourceOneline, result);
+    String expectedOnLeftMargin = expected.replaceAll("    ", "");
+    //* Seems to be a bug in XALAN. */
+    String expectedBug = expectedOnLeftMargin.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n", "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+    assertEquals(expectedBug, resultWriter.toString());
+
+    capturer.restore();
+    assertTrue(capturer.out().isEmpty(), capturer.out());
+    assertTrue(capturer.err().isEmpty());
+
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  @Test
+  public void testXalanPretty() throws Exception {
+    final OutputCapturer capturer = OutputCapturer.capturer();
+    capturer.capture();
+
+    TransformerFactory factory = KnownFactory.XALAN.factory();
+    final StreamSource sourceOneline = new StreamSource(
+        XmlTransformerTests.class.getResource("short namespace oneline.xml").toString());
+    final String expected = Files
+        .readString(Path.of(XmlTransformerTests.class.getResource("short namespace.xml").toURI()));
+    Transformer transformer = factory.newTransformer();
+    transformer.setOutputProperty(OutputProperties.INDENT.localName(), "yes");
+    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+    ErrorListener listener = Mockito.mock(ErrorListener.class);
+    transformer.setErrorListener(listener);
+
+    final StringWriter resultWriter = new StringWriter();
+    final StreamResult result = new StreamResult(resultWriter);
+    transformer.transform(sourceOneline, result);
+    String expectedBug = expected.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n", "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+    assertEquals(expectedBug, resultWriter.toString());
+
+    capturer.restore();
+    assertTrue(capturer.out().isEmpty(), capturer.out());
+    assertTrue(capturer.err().isEmpty());
+
+    Mockito.verifyNoMoreInteractions(listener);
   }
 }

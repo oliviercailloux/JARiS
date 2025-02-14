@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Verify.verify;
 
+import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
 import com.google.common.io.CharSource;
@@ -11,6 +12,7 @@ import io.github.oliviercailloux.jaris.collections.CollectionUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.net.URI;
 import java.util.Map;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
@@ -56,15 +58,51 @@ public class XmlTransformer {
 
   public static final String FACTORY_PROPERTY = "javax.xml.transform.TransformerFactory";
 
+  public static class OutputPropertyValue {
+    private final Object value;
+
+    public static OutputPropertyValue trueValue() {
+      return new OutputPropertyValue(true);
+    }
+
+    public static OutputPropertyValue falseValue() {
+      return new OutputPropertyValue(false);
+    }
+
+    public static OutputPropertyValue fromBoolean(boolean value) {
+      return new OutputPropertyValue(value);
+    }
+
+    public static OutputPropertyValue fromInt(int value) {
+      return new OutputPropertyValue(value);
+    }
+
+    private OutputPropertyValue(Object value) {
+      this.value = value;
+    }
+
+    public String toOutputPropertyString() {
+      if (value instanceof Boolean b) {
+        return b ? "yes" : "no";
+      }
+      if (value instanceof Integer i) {
+        return Integer.toString(i);
+      }
+      throw new VerifyException("Unsupported value: " + value);
+    }
+  }
   /**
    * See https://www.w3.org/TR/2021/REC-xslt20-20210330/#serialization
    */
   public static class OutputProperties {
+    public static final URI XALAN_PROPERTIES_URI = URI.create("http://xml.apache.org/xslt");
     /**
      * specifies whether the Transformer may add additional whitespace when outputting the result
      * tree
      */
     public static final XmlName INDENT = XmlName.localName(OutputKeys.INDENT);
+    public static final XmlName XALAN_INDENT_AMOUNT =
+        XmlName.expandedName(XALAN_PROPERTIES_URI, "indent-amount");
     public static final XmlName OMIT_XML_DECLARATION =
         XmlName.localName(OutputKeys.OMIT_XML_DECLARATION);
 
@@ -72,39 +110,41 @@ public class XmlTransformer {
       return new OutputProperties(ImmutableMap.of());
     }
 
+    /**
+     * Indentation set to true; {@link KnownFactory#XALAN XALAN} indent amount set to 4.
+     *
+     * @return an OutputProperties object with indentation settings.
+     */
     public static OutputProperties indent() {
-      return new OutputProperties(ImmutableMap.of(INDENT, Boolean.TRUE));
+      return new OutputProperties(ImmutableMap.of(INDENT, OutputPropertyValue.trueValue(), XALAN_INDENT_AMOUNT,
+          OutputPropertyValue.fromInt(4)));
     }
 
     public static OutputProperties noIndent() {
-      return new OutputProperties(ImmutableMap.of(INDENT, Boolean.FALSE));
+      return new OutputProperties(ImmutableMap.of(INDENT, OutputPropertyValue.falseValue()));
     }
 
     public static OutputProperties omitXmlDeclaration() {
-      return new OutputProperties(ImmutableMap.of(OMIT_XML_DECLARATION, Boolean.TRUE));
+      return new OutputProperties(ImmutableMap.of(OMIT_XML_DECLARATION, OutputPropertyValue.trueValue()));
     }
 
-    public static OutputProperties fromMap(Map<XmlName, Boolean> properties) {
+    public static OutputProperties fromMap(Map<XmlName, OutputPropertyValue> properties) {
       return new OutputProperties(properties);
     }
 
-    private final ImmutableMap<XmlName, Boolean> properties;
+    private final ImmutableMap<XmlName, OutputPropertyValue> properties;
 
-    public OutputProperties(Map<XmlName, Boolean> properties) {
+    public OutputProperties(Map<XmlName, OutputPropertyValue> properties) {
       this.properties = ImmutableMap.copyOf(properties);
     }
 
-    public ImmutableMap<XmlName, Boolean> asMap() {
+    public ImmutableMap<XmlName, OutputPropertyValue> asMap() {
       return properties;
     }
 
     ImmutableMap<String, String> asStringMap() {
       return CollectionUtils.transformKeysAndValues(properties, XmlName::asFullName,
-          ((x, s, b) -> asLegacyBooleanString(b)));
-    }
-
-    static String asLegacyBooleanString(Boolean b) {
-      return b ? "yes" : "no";
+          ((x, s, b) -> b.toOutputPropertyString()));
     }
   }
 
@@ -185,7 +225,7 @@ public class XmlTransformer {
   }
 
   /**
-   * Returns a sourced transformer that may be used to transform documents using the “identity”
+   * Returns a configured transformer that may be used to transform documents using the “identity”
    * transform and a default output property {@link OutputProperties#INDENT}.
    *
    * @return a configured transformer
@@ -195,7 +235,7 @@ public class XmlTransformer {
   }
 
   /**
-   * Returns a sourced transformer that may be used to transform documents using the “identity”
+   * Returns a configured transformer that may be used to transform documents using the “identity”
    * transform.
    *
    * @param outputProperties any properties to be used with the transformer.
@@ -206,57 +246,87 @@ public class XmlTransformer {
   }
 
   /**
-   * Returns a sourced transformer that may be used to transform documents using the provided
+   * Returns a configured transformer that may be used to transform documents using the provided
    * stylesheet and a default output property {@link OutputProperties#INDENT}.
    * <p>
    * Equivalent to {@link #usingStylesheet(ByteSource, Map)} with an empty map of parameters.
    * </p>
    *
    * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
-   * @return a sourced transformer
+   * @return a configured transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */
+  @Deprecated
   public XmlConfiguredTransformer usingStylesheet(Source stylesheet) throws XmlException {
     return usingStylesheet(stylesheet, ImmutableMap.of(), OutputProperties.indent());
   }
 
+  /**
+   * Returns a configured transformer that may be used to transform documents using the provided
+   * stylesheet and a default output property {@link OutputProperties#INDENT}.
+   * <p>
+   * Equivalent to {@link #usingStylesheet(ByteSource, Map)} with an empty map of parameters.
+   * </p>
+   *
+   * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
+   * @return a configured transformer
+   * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
+   *         {@link TransformerConfigurationException}.
+   */
   public XmlConfiguredTransformer usingStylesheet(ByteSource stylesheet)
       throws XmlException, IOException {
     return usingStylesheet(stylesheet, ImmutableMap.of(), OutputProperties.indent());
   }
 
   /**
-   * Returns a sourced transformer that may be used to transform documents using the provided
-   * stylesheet parameterized with the given parameters and using a default output property
-   * {@link OutputProperties#INDENT}.
+   * Returns a configured transformer that may be used to transform documents using the provided
+   * stylesheet and a default output property {@link OutputProperties#INDENT}.
+   * <p>
+   * Equivalent to {@link #usingStylesheet(CharSource, Map)} with an empty map of parameters.
+   * </p>
    *
    * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
-   * @param parameters any string parameters to be used with the given stylesheet, may be empty,
-   *        null keys or values not allowed.
-   * @return a sourced transformer
+   * @return a configured transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */
+  public XmlConfiguredTransformer usingStylesheet(CharSource stylesheet)
+      throws XmlException, IOException {
+    return usingStylesheet(stylesheet, ImmutableMap.of(), OutputProperties.indent());
+  }
+
+  @Deprecated
   public XmlConfiguredTransformer usingStylesheet(Source stylesheet,
       Map<XmlName, String> parameters) throws XmlException {
     return usingStylesheet(stylesheet, parameters, OutputProperties.indent());
   }
 
+  /**
+   * Returns a configured transformer that may be used to transform documents using the provided
+   * stylesheet parameterized with the given parameters and using a default “indented” output property.
+   *
+   * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
+   * @param parameters any string parameters to be used with the given stylesheet, may be empty,
+   *        null keys or values not allowed.
+   * @return a configured transformer
+   * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
+   *         {@link TransformerConfigurationException}.
+   */
   public XmlConfiguredTransformer usingStylesheet(ByteSource stylesheet,
       Map<XmlName, String> parameters) throws XmlException, IOException {
     return usingStylesheet(stylesheet, parameters, OutputProperties.indent());
   }
 
   /**
-   * Returns a sourced transformer that may be used to transform documents using the provided
+   * Returns a configured transformer that may be used to transform documents using the provided
    * stylesheet parameterized with the given parameters.
    *
    * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,
    *        null keys or values not allowed.
    * @param outputProperties any properties to be used with the transformer.
-   * @return a sourced transformer
+   * @return a configured transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */

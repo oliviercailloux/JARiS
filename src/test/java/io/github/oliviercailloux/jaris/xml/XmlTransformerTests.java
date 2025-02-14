@@ -1,5 +1,6 @@
 package io.github.oliviercailloux.jaris.xml;
 
+import static io.github.oliviercailloux.jaris.xml.Resourcer.charSource;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -7,17 +8,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
+import com.google.common.io.CharSource;
+import com.google.common.io.MoreFiles;
 import com.google.common.io.Resources;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
 import io.github.oliviercailloux.jaris.xml.XmlTransformer.OutputProperties;
 import java.io.StringReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.stream.CharSource;
 import javax.xml.transform.stream.StreamSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -39,12 +44,10 @@ class XmlTransformerTests {
 
   @Test
   void testTransformSimple() throws Exception {
-    final ByteSource style =
-        Resources.asByteSource(XmlTransformerTests.class.getResource("short.xsl"));
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    final CharSource style = charSource("short.xsl");
+    final CharSource input = charSource("short.xml");
     final String expected =
-        Files.readString(Path.of(XmlTransformerTests.class.getResource("transformed.txt").toURI()));
+        charSource("transformed.txt").read();
     assertEquals(expected,
         XmlTransformer.pedanticTransformer(TransformerFactory.newDefaultInstance())
             .usingStylesheet(style).transform(input));
@@ -53,14 +56,15 @@ class XmlTransformerTests {
   @RestoreSystemProperties
   @Test
   void testDocBookStyle() throws Exception {
+    /*
+     * Much faster (obtains transformer from stylesheet in 4 sec instead of 17 sec), but depends
+     * on what is installed locally.
+     */
     final StreamSource myStyle =
-        /*
-         * Much faster (obtains transformer from stylesheet in 4 sec instead of 17 sec), but depends
-         * on what is installed locally.
-         */
-        new StreamSource(Path.of("/usr/share/xml/docbook/stylesheet/docbook-xsl-ns/fo/docbook.xsl")
-            .toUri().toString());
-    // new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
+        new StreamSource(Path.of("/usr/share/xml/docbook/stylesheet/docbook-xsl-ns/fo/docbook.xsl").toUri().toString());
+    // final CharSource myStyle =
+    //     charSource(Path.of("/usr/share/xml/docbook/stylesheet/docbook-xsl-ns/fo/docbook.xsl"));
+    // new CharSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
 
     {
       /* This is too complex for pure JDK embedded transformer. */
@@ -118,8 +122,9 @@ class XmlTransformerTests {
 
   @Test
   void testTransformSimpleDocBook() throws Exception {
-    final StreamSource docBook = new StreamSource(
-        XmlTransformerTests.class.getResource("docbook simple article.xml").toString());
+    final CharSource docBook = charSource("docbook simple article.xml");
+    // final CharSource myStyle =
+    // charSource(new URL("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl"));
     final StreamSource myStyle =
         new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
 
@@ -142,10 +147,8 @@ class XmlTransformerTests {
 
   @Test
   void testTransformComplexDocBook() throws Exception {
-    final StreamSource docBook =
-        new StreamSource(XmlTransformerTests.class.getResource("docbook howto.xml").toString());
-    final StreamSource myStyle =
-        new StreamSource(XmlTransformerTests.class.getResource("mystyle.xsl").toString());
+    final CharSource docBook = charSource("docbook howto.xml");
+    final CharSource myStyle = charSource("mystyle.xsl");
 
     {
       System.setProperty(XmlTransformer.FACTORY_PROPERTY, XALAN_FACTORY);
@@ -166,20 +169,16 @@ class XmlTransformerTests {
 
   @Test
   void testTransformInvalidXsl() throws Exception {
-    final StreamSource style =
-        new StreamSource(XmlTransformerTests.class.getResource("short invalid.xsl").toString());
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    final CharSource style = charSource("short invalid.xsl");
+    final CharSource input = charSource("short.xml");
     assertThrows(XmlException.class,
         () -> XmlTransformer.usingSystemDefaultFactory().usingStylesheet(style).transform(input));
   }
 
   @Test
   void testTransformInvalidXml() throws Exception {
-    final StreamSource style =
-        new StreamSource(XmlTransformerTests.class.getResource("short.xsl").toString());
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short invalid.xml").toString());
+    final CharSource style = charSource("short.xsl");
+    final CharSource input = charSource("short invalid.xml");
     assertThrows(XmlException.class,
         () -> XmlTransformer.usingSystemDefaultFactory().usingStylesheet(style).transform(input));
   }
@@ -189,12 +188,10 @@ class XmlTransformerTests {
   void testTransformMessaging(KnownFactory factory) throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final StreamSource style =
-        new StreamSource(XmlTransformerTests.class.getResource("short messaging.xsl").toString());
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    final CharSource style = charSource("short messaging.xsl");
+    final CharSource input = charSource("short.xml");
     final String expected =
-        Files.readString(Path.of(XmlTransformerTests.class.getResource("transformed.txt").toURI()));
+        charSource("transformed.txt").read();
     assertEquals(expected,
         XmlTransformer.usingFactory(factory.factory()).usingStylesheet(style).transform(input));
     capturer.restore();
@@ -206,12 +203,9 @@ class XmlTransformerTests {
   void testTransformMessagingS() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final StreamSource style =
-        new StreamSource(XmlTransformerTests.class.getResource("short messaging.xsl").toString());
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
-    final String expected =
-        Files.readString(Path.of(XmlTransformerTests.class.getResource("transformed.txt").toURI()));
+    final CharSource style = charSource("short messaging.xsl");
+    final CharSource input = charSource("short.xml");
+    final String expected = charSource("transformed.txt").read();
     assertEquals(expected, XmlTransformer.usingFactory(KnownFactory.SAXON.factory())
         .usingStylesheet(style).transform(input));
     capturer.restore();
@@ -223,12 +217,9 @@ class XmlTransformerTests {
   void testTransformMessagingPedanticWithJdkFailsToStop() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.captureErr();
-    final StreamSource style =
-        new StreamSource(XmlTransformerTests.class.getResource("short messaging.xsl").toString());
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
-    final String expected =
-        Files.readString(Path.of(XmlTransformerTests.class.getResource("transformed.txt").toURI()));
+    final CharSource style = charSource("short messaging.xsl");
+    final CharSource input = charSource("short.xml");
+    final String expected = charSource("transformed.txt").read();
     assertEquals(expected, XmlTransformer.pedanticTransformer(KnownFactory.JDK.factory())
         .usingStylesheet(style).transform(input));
     capturer.restore();
@@ -239,10 +230,8 @@ class XmlTransformerTests {
   void testTransformMessagingPedanticX() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final StreamSource style =
-        new StreamSource(XmlTransformerTests.class.getResource("short messaging.xsl").toString());
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    final CharSource style = charSource("short messaging.xsl");
+    final CharSource input = charSource("short.xml");
     XmlException thrown = assertThrows(XmlException.class, () -> XmlTransformer
         .pedanticTransformer(KnownFactory.XALAN.factory()).usingStylesheet(style).transform(input));
     assertTrue(thrown.getMessage().contains("Error while transforming document."),
@@ -258,10 +247,8 @@ class XmlTransformerTests {
   void testTransformMessagingPedanticSaxon() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final StreamSource style =
-        new StreamSource(XmlTransformerTests.class.getResource("short messaging.xsl").toString());
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    final CharSource style = charSource("short messaging.xsl");
+    final CharSource input = charSource("short.xml");
     RuntimeException thrown = assertThrows(RuntimeException.class, () -> XmlTransformer
         .pedanticTransformer(KnownFactory.SAXON.factory()).usingStylesheet(style).transform(input));
     assertEquals(XmlException.class, thrown.getClass());
@@ -277,10 +264,8 @@ class XmlTransformerTests {
   void testTransformMessagingTerminate(KnownFactory factory) throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final StreamSource style = new StreamSource(
-        XmlTransformerTests.class.getResource("short messaging terminate.xsl").toString());
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    final CharSource style = charSource("short messaging terminate.xsl");
+    final CharSource input = charSource("short.xml");
     assertThrows(XmlException.class, () -> XmlTransformer.usingFactory(factory.factory())
         .usingStylesheet(style).transform(input));
     capturer.restore();
@@ -292,10 +277,8 @@ class XmlTransformerTests {
   void testTransformMessagingTerminateS() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final StreamSource style = new StreamSource(
-        XmlTransformerTests.class.getResource("short messaging terminate.xsl").toString());
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    final CharSource style = charSource("short messaging terminate.xsl");
+    final CharSource input = charSource("short.xml");
     assertThrows(XmlException.class, () -> XmlTransformer.usingFactory(KnownFactory.SAXON.factory())
         .usingStylesheet(style).transform(input));
     capturer.restore();
@@ -307,10 +290,8 @@ class XmlTransformerTests {
   void testTransformMessagingTerminatePedantic() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final StreamSource style = new StreamSource(
-        XmlTransformerTests.class.getResource("short messaging terminate.xsl").toString());
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    final CharSource style = charSource("short messaging terminate.xsl");
+    final CharSource input = charSource("short.xml");
     XmlException thrown = assertThrows(XmlException.class, () -> XmlTransformer
         .pedanticTransformer(KnownFactory.JDK.factory()).usingStylesheet(style).transform(input));
     assertTrue(thrown.getMessage().contains("Error while transforming document."),
@@ -327,10 +308,8 @@ class XmlTransformerTests {
   void testTransformMessagingTerminatePedanticX() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final StreamSource style = new StreamSource(
-        XmlTransformerTests.class.getResource("short messaging terminate.xsl").toString());
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    final CharSource style = charSource("short messaging terminate.xsl");
+    final CharSource input = charSource("short.xml");
     XmlException thrown = assertThrows(XmlException.class, () -> XmlTransformer
         .pedanticTransformer(KnownFactory.XALAN.factory()).usingStylesheet(style).transform(input));
     assertTrue(thrown.getMessage().contains("Error while transforming document."),
@@ -346,10 +325,8 @@ class XmlTransformerTests {
   void testTransformMessagingTerminatePedanticS() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final StreamSource style = new StreamSource(
-        XmlTransformerTests.class.getResource("short messaging terminate.xsl").toString());
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short.xml").toString());
+    final CharSource style = charSource("short messaging terminate.xsl");
+    final CharSource input = charSource("short.xml");
     XmlException thrown = assertThrows(XmlException.class, () -> XmlTransformer
         .pedanticTransformer(KnownFactory.SAXON.factory()).usingStylesheet(style).transform(input));
     assertTrue(thrown.getMessage().contains("Error while transforming document."),
@@ -364,16 +341,12 @@ class XmlTransformerTests {
 
   @Test
   void testCopy() throws Exception {
-    final String source =
-        Files.readString(Path.of(getClass().getResource("short namespace.xml").toURI()));
-    // final Document articleDoc = DomHelper.domHelper().asDocument(streamSource);
-
-    DOMResult result = new DOMResult();
-    XmlTransformer.usingFoundFactory().usingEmptyStylesheet().transform(new StreamSource(new StringReader(source)), result);
-    Document docCopy = (Document) result.getNode();
-    assertEquals(source, DomHelper.domHelper().toString(docCopy));
-    String directResult = XmlTransformer.usingFoundFactory().usingEmptyStylesheet().transform(new StreamSource(new StringReader(source)));
-    assertEquals(source.replaceAll("    ", "   "), directResult);
+    final CharSource source = charSource("short namespace.xml");
+    Document docCopy = XmlTransformer.usingFoundFactory().usingEmptyStylesheet().charsToDom(source);
+    assertEquals(source.read(), DomHelper.domHelper().toString(docCopy));
+    String directResult =
+        XmlTransformer.usingFoundFactory().usingEmptyStylesheet().transform(source);
+    assertEquals(source.read().replaceAll("    ", "   "), directResult);
 
     final Element root = docCopy.getDocumentElement();
     assertEquals("Article", root.getTagName());
@@ -388,40 +361,51 @@ class XmlTransformerTests {
     Element newElement = docCopy.createElementNS(ARTICLE_NS_K, "k:Empty");
     root.insertBefore(newElement, title.getNextSibling());
 
-    final String expected =
-        Files.readString(Path.of(getClass().getResource("short namespace expanded.xml").toURI()));
+    final String expected = charSource("short namespace expanded.xml").read();
     assertEquals(expected, DomHelper.domHelper().toString(docCopy));
   }
 
   @Test
-  void testPretty() throws Exception {
-    final String source =
-        Files.readString(Path.of(getClass().getResource("short namespace.xml").toURI()));
-    final String sourceOneline =
-        Files.readString(Path.of(getClass().getResource("short namespace oneline.xml").toURI()));
+  void testPrettySaxon() throws Exception {
+    final CharSource source = charSource("short namespace.xml");
+    final CharSource sourceOneline = charSource("short namespace oneline.xml");
 
-    DOMResult result = new DOMResult();
-    XmlTransformer.usingFoundFactory().usingEmptyStylesheet().transform(new StreamSource(new StringReader(sourceOneline)), result);
-    Document docCopy = (Document) result.getNode();
-    assertEquals(source, DomHelper.domHelper().toString(docCopy));
-    // String directResult = XmlTransformer.usingFoundFactory().usingEmptyStylesheet().transform(new StreamSource(new StringReader(sourceOneline)));
-    String directResult = XmlTransformer.usingFactory(KnownFactory.XALAN.factory()).usingEmptyStylesheet().transform(new StreamSource(new StringReader(sourceOneline)));
-    assertEquals(source.replaceAll("    ", "   "), directResult);
+    Document docCopy =
+        XmlTransformer.usingFoundFactory().usingEmptyStylesheet().charsToDom(sourceOneline);
+    assertEquals(source.read(), DomHelper.domHelper().toString(docCopy));
+    String directResult = XmlTransformer.usingFactory(KnownFactory.SAXON.factory())
+        .usingEmptyStylesheet().transform(sourceOneline);
+    assertEquals(source.read().replaceAll("    ", "   "), directResult);
+  }
+
+  @Test
+  void testPretty() throws Exception {
+    final CharSource source = charSource("short namespace.xml");
+    final CharSource sourceOneline = charSource("short namespace oneline.xml");
+
+    Document docCopy =
+        XmlTransformer.usingFoundFactory().usingEmptyStylesheet().charsToDom(sourceOneline);
+    assertEquals(source.read(), DomHelper.domHelper().toString(docCopy));
+    String directResult = XmlTransformer.usingFactory(KnownFactory.XALAN.factory())
+        .usingEmptyStylesheet().transform(sourceOneline);
+    String expectedBug = source.read().replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+    assertEquals(expectedBug, directResult);
   }
 
   @Test
   void testNotPretty() throws Exception {
-    final String source =
-        Files.readString(Path.of(getClass().getResource("short namespace.xml").toURI()));
-    final String sourceOneline =
-        Files.readString(Path.of(getClass().getResource("short namespace oneline.xml").toURI()));
+    final CharSource source = charSource("short namespace.xml");
+    final CharSource sourceOneline = charSource("short namespace oneline.xml");
 
-    DOMResult result = new DOMResult();
-    XmlTransformer.usingFoundFactory().usingEmptyStylesheet().transform(new StreamSource(new StringReader(sourceOneline)), result);
-    Document docCopy = (Document) result.getNode();
-    assertEquals(source, DomHelper.domHelper().toString(docCopy));
-    String directResult = XmlTransformer.usingFoundFactory().usingEmptyStylesheet(OutputProperties.noIndent()).transform(new StreamSource(new StringReader(sourceOneline)));
-    assertEquals(sourceOneline, directResult);
+    Document docCopy = 
+    XmlTransformer.usingFoundFactory().usingEmptyStylesheet()
+        .charsToDom(sourceOneline);
+    assertEquals(source.read(), DomHelper.domHelper().toString(docCopy));
+    String directResult =
+        XmlTransformer.usingFoundFactory().usingEmptyStylesheet(OutputProperties.noIndent())
+            .transform(sourceOneline);
+    assertEquals(sourceOneline.read(), directResult);
   }
 
   @Test
@@ -433,16 +417,15 @@ class XmlTransformerTests {
         ARTICLE_NS_K);
     Element title = doc.createElementNS(ARTICLE_NS_K, "k:Empty");
     doc.getDocumentElement().appendChild(title);
-    final String start =
-        Files.readString(Path.of(getClass().getResource("very short namespace.xml").toURI()));
+    final CharSource start =
+        charSource(Path.of(getClass().getResource("very short namespace.xml").toURI()));
     String serialized = h.toString(doc);
-    assertEquals(start, serialized);
+    assertEquals(start.read(), serialized);
 
-    DOMResult result = new DOMResult();
+    Document docCopy = 
     XmlTransformer.usingFoundFactory().usingEmptyStylesheet()
-        .transform(new StreamSource(new StringReader(serialized)), result);
-    Document docCopy = (Document) result.getNode();
-    assertEquals(start, DomHelper.domHelper().toString(docCopy));
+        .charsToDom(CharSource.wrap(serialized));
+    assertEquals(start.read(), DomHelper.domHelper().toString(docCopy));
 
     final Element root = docCopy.getDocumentElement();
     assertEquals("Article", root.getTagName());

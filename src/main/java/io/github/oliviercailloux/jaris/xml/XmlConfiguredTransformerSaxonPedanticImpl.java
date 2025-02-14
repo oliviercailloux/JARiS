@@ -3,20 +3,12 @@ package io.github.oliviercailloux.jaris.xml;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.StringWriter;
-import java.util.function.Consumer;
-import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import net.sf.saxon.jaxp.TransformerImpl;
-import net.sf.saxon.s9api.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
 
 class XmlConfiguredTransformerSaxonPedanticImpl implements XmlConfiguredTransformer {
   @SuppressWarnings("unused")
