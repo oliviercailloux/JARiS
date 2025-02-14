@@ -116,8 +116,8 @@ public class XmlTransformer {
      * @return an OutputProperties object with indentation settings.
      */
     public static OutputProperties indent() {
-      return new OutputProperties(ImmutableMap.of(INDENT, OutputPropertyValue.trueValue(), XALAN_INDENT_AMOUNT,
-          OutputPropertyValue.fromInt(4)));
+      return new OutputProperties(ImmutableMap.of(INDENT, OutputPropertyValue.trueValue(),
+          XALAN_INDENT_AMOUNT, OutputPropertyValue.fromInt(4)));
     }
 
     public static OutputProperties noIndent() {
@@ -125,7 +125,8 @@ public class XmlTransformer {
     }
 
     public static OutputProperties omitXmlDeclaration() {
-      return new OutputProperties(ImmutableMap.of(OMIT_XML_DECLARATION, OutputPropertyValue.trueValue()));
+      return new OutputProperties(
+          ImmutableMap.of(OMIT_XML_DECLARATION, OutputPropertyValue.trueValue()));
     }
 
     public static OutputProperties fromMap(Map<XmlName, OutputPropertyValue> properties) {
@@ -201,23 +202,16 @@ public class XmlTransformer {
 
   private static XmlTransformer generalTransformer(TransformerFactory factory,
       XmlTransformErrorListener errorListener) {
-    /*
-     * Saxon says that this is deprecated
-     * (https://www.saxonica.com/documentation12/index.html#!javadoc/net.sf.saxon.jaxp/
-     * SaxonTransformerFactory@setErrorListener), but we use it anyway.
-     * https://saxonica.plan.io/boards/3/topics/9906
-     * 
-     */
-    factory.setErrorListener(errorListener);
     LOGGER.debug("Creating our transformer using factory {}.", factory);
-    return new XmlTransformer(factory);
+    return new XmlTransformer(factory, errorListener);
   }
 
   private final TransformerFactory factory;
+  private final XmlTransformErrorListener errorListener;
 
-  private XmlTransformer(TransformerFactory tf) {
+  private XmlTransformer(TransformerFactory tf, XmlTransformErrorListener errorListener) {
     this.factory = checkNotNull(tf);
-    verify(factory.getErrorListener() instanceof XmlTransformErrorListener);
+    this.errorListener = errorListener;
   }
 
   TransformerFactory factory() {
@@ -304,7 +298,8 @@ public class XmlTransformer {
 
   /**
    * Returns a configured transformer that may be used to transform documents using the provided
-   * stylesheet parameterized with the given parameters and using a default “indented” output property.
+   * stylesheet parameterized with the given parameters and using a default “indented” output
+   * property.
    *
    * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,
@@ -371,22 +366,33 @@ public class XmlTransformer {
 
     final Transformer transformer;
     LOGGER.debug("Obtaining transformer from stylesheet {}.", stylesheet);
+    /*
+     * Saxon says that this is deprecated
+     * (https://www.saxonica.com/documentation12/index.html#!javadoc/net.sf.saxon.jaxp/
+     * SaxonTransformerFactory@setErrorListener), but we use it anyway.
+     * https://saxonica.plan.io/boards/3/topics/9906
+     */
+    ErrorListener current = factory.getErrorListener();
     if (stylesheet == null || stylesheet.isEmpty()) {
       try {
+        factory.setErrorListener(errorListener);
         transformer = factory.newTransformer();
       } catch (TransformerConfigurationException e) {
         throw new XmlException("Failed creating transformer.", e);
+      } finally {
+        factory.setErrorListener(current);
       }
     } else {
       try {
+        factory.setErrorListener(errorListener);
         transformer = factory.newTransformer(stylesheet);
       } catch (TransformerConfigurationException e) {
         throw new XmlException("Could not parse the provided stylesheet.", e);
+      } finally {
+        factory.setErrorListener(current);
       }
     }
     LOGGER.debug("Obtained transformer from stylesheet {}.", stylesheet);
-    XmlTransformErrorListener errorListener =
-        (XmlTransformErrorListener) factory.getErrorListener();
 
     /* This is required because of no default transmission of listeners. */
     transformer.setErrorListener(errorListener);
