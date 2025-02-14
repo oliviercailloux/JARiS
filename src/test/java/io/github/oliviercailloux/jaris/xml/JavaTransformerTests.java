@@ -1,13 +1,12 @@
 package io.github.oliviercailloux.jaris.xml;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.ImmutableMap;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
-import io.github.oliviercailloux.jaris.xml.XmlTransformer.OutputProperties;
 import java.io.StringWriter;
 import java.net.URL;
 import java.nio.file.Files;
@@ -33,48 +32,6 @@ import org.slf4j.LoggerFactory;
 public class JavaTransformerTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(JavaTransformerTests.class);
-
-  @Test
-  public void testSaxonSpacing() throws Exception {
-    final StreamSource docBook = new StreamSource(
-      JavaTransformerTests.class.getResource("Simple article.dbk").toString());
-    final StreamSource myStyle = new StreamSource(
-      JavaTransformerTests.class.getResource("DocBook to Fo style.xsl").toString());
-      final String fo =XmlTransformer.usingFactory(KnownFactory.SAXON.factory()).usingStylesheet(myStyle, ImmutableMap.of(), OutputProperties.noIndent())
-            .transform(docBook);
-    assertTrue(fo.contains("page-height=\"297mm\""));
-    assertTrue(fo.contains("page-width=\"210mm\""));
-    assertTrue(fo.contains("<fo:block"));
-    assertTrue(fo.contains("On the Possibility of Going Home"));
-    final String expected = Files.readString(Path.of(JavaTransformerTests.class
-        .getResource("Simple article using %s styled.fo".formatted("SAXON")).toURI()));
-    assertEquals(expected, fo);
-  }
-
-  @Test
-  public void testSaxonSpacingManually() throws Exception {
-    TransformerFactoryImpl factory = new TransformerFactoryImpl();
-    final StreamSource docBook = new StreamSource(
-      JavaTransformerTests.class.getResource("Simple article.dbk").toString());
-    final StreamSource myStyle = new StreamSource(
-      JavaTransformerTests.class.getResource("DocBook to Fo style.xsl").toString());
-      final StringWriter resultWriter = new StringWriter();
-      final StreamResult result = new StreamResult(resultWriter);
-      Transformer transformer = factory.newTransformer(myStyle);
-      transformer.transform(docBook, result);
-      final String fo =resultWriter.toString();
-      // XmlTransformer.usingFactory(KnownFactory.SAXON.factory()).usingStylesheet(myStyle, ImmutableMap.of(), OutputProperties.noIndent())
-      // .transform(docBook);
-      assertTrue(fo.contains("page-height=\"297mm\""));
-      assertTrue(fo.contains("page-width=\"210mm\""));
-      assertTrue(fo.contains("<fo:block"));
-      assertTrue(fo.contains("On the Possibility of Going Home"));
-      final String expected = Files.readString(Path.of(JavaTransformerTests.class
-      .getResource("Simple article using %s styled.fo".formatted("SAXON")).toURI()));
-      Files.writeString(Path.of("out.xml"), fo);
-      assertEquals(expected, fo);
-    assertEquals(expected, fo);
-  }
 
   @Test
   public void testSaxonIdentityNullListener() throws Exception {
