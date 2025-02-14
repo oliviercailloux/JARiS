@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
+import io.github.oliviercailloux.jaris.xml.XmlTransformer.OutputProperties;
 import java.io.StringReader;
 import java.net.URL;
 import java.nio.file.Files;
@@ -365,13 +366,14 @@ class XmlTransformerTests {
   void testCopy() throws Exception {
     final String source =
         Files.readString(Path.of(getClass().getResource("short namespace.xml").toURI()));
-    StreamSource streamSource = new StreamSource(new StringReader(source));
     // final Document articleDoc = DomHelper.domHelper().asDocument(streamSource);
 
     DOMResult result = new DOMResult();
-    XmlTransformer.usingFoundFactory().usingEmptyStylesheet().transform(streamSource, result);
+    XmlTransformer.usingFoundFactory().usingEmptyStylesheet().transform(new StreamSource(new StringReader(source)), result);
     Document docCopy = (Document) result.getNode();
     assertEquals(source, DomHelper.domHelper().toString(docCopy));
+    String directResult = XmlTransformer.usingFoundFactory().usingEmptyStylesheet().transform(new StreamSource(new StringReader(source)));
+    assertEquals(source.replaceAll("    ", "   "), directResult);
 
     final Element root = docCopy.getDocumentElement();
     assertEquals("Article", root.getTagName());
@@ -389,6 +391,37 @@ class XmlTransformerTests {
     final String expected =
         Files.readString(Path.of(getClass().getResource("short namespace expanded.xml").toURI()));
     assertEquals(expected, DomHelper.domHelper().toString(docCopy));
+  }
+
+  @Test
+  void testPretty() throws Exception {
+    final String source =
+        Files.readString(Path.of(getClass().getResource("short namespace.xml").toURI()));
+    final String sourceOneline =
+        Files.readString(Path.of(getClass().getResource("short namespace oneline.xml").toURI()));
+
+    DOMResult result = new DOMResult();
+    XmlTransformer.usingFoundFactory().usingEmptyStylesheet().transform(new StreamSource(new StringReader(sourceOneline)), result);
+    Document docCopy = (Document) result.getNode();
+    assertEquals(source, DomHelper.domHelper().toString(docCopy));
+    // String directResult = XmlTransformer.usingFoundFactory().usingEmptyStylesheet().transform(new StreamSource(new StringReader(sourceOneline)));
+    String directResult = XmlTransformer.usingFactory(KnownFactory.XALAN.factory()).usingEmptyStylesheet().transform(new StreamSource(new StringReader(sourceOneline)));
+    assertEquals(source.replaceAll("    ", "   "), directResult);
+  }
+
+  @Test
+  void testNotPretty() throws Exception {
+    final String source =
+        Files.readString(Path.of(getClass().getResource("short namespace.xml").toURI()));
+    final String sourceOneline =
+        Files.readString(Path.of(getClass().getResource("short namespace oneline.xml").toURI()));
+
+    DOMResult result = new DOMResult();
+    XmlTransformer.usingFoundFactory().usingEmptyStylesheet().transform(new StreamSource(new StringReader(sourceOneline)), result);
+    Document docCopy = (Document) result.getNode();
+    assertEquals(source, DomHelper.domHelper().toString(docCopy));
+    String directResult = XmlTransformer.usingFoundFactory().usingEmptyStylesheet(OutputProperties.noIndent()).transform(new StreamSource(new StringReader(sourceOneline)));
+    assertEquals(sourceOneline, directResult);
   }
 
   @Test
