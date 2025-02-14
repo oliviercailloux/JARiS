@@ -251,7 +251,6 @@ public class XmlTransformer {
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */
-  @Deprecated
   public XmlConfiguredTransformer usingStylesheet(Source stylesheet) throws XmlException {
     return usingStylesheet(stylesheet, ImmutableMap.of(), OutputProperties.indent());
   }
