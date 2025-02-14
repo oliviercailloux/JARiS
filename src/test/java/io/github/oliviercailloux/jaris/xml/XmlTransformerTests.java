@@ -12,6 +12,7 @@ import com.google.common.io.CharSource;
 import com.google.common.io.Resources;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
 import io.github.oliviercailloux.jaris.xml.XmlTransformer.OutputProperties;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,8 +56,8 @@ class XmlTransformerTests {
      * Much faster (obtains transformer from stylesheet in 4 sec instead of 17 sec), but depends
      * on what is installed locally.
      */
-    final StreamSource myStyle =
-        new StreamSource(Path.of("/usr/share/xml/docbook/stylesheet/docbook-xsl-ns/fo/docbook.xsl").toUri().toString());
+    final URI myStyle =
+    Path.of("/usr/share/xml/docbook/stylesheet/docbook-xsl-ns/fo/docbook.xsl").toUri();
     // final CharSource myStyle =
     //     charSource(Path.of("/usr/share/xml/docbook/stylesheet/docbook-xsl-ns/fo/docbook.xsl"));
     // new CharSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
@@ -120,8 +121,8 @@ class XmlTransformerTests {
     final CharSource docBook = charSource("docbook simple article.xml");
     // final CharSource myStyle =
     // charSource(new URL("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl"));
-    final StreamSource myStyle =
-        new StreamSource("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
+    final URI myStyle =
+        new URI("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
 
     {
       System.setProperty(XmlTransformer.FACTORY_PROPERTY, XALAN_FACTORY);

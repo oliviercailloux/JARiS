@@ -220,7 +220,7 @@ public class XmlTransformer {
 
   /**
    * Returns a configured transformer that may be used to transform documents using the “identity”
-   * transform and a default output property {@link OutputProperties#INDENT}.
+   * transform and a default “indented” output property.
    *
    * @return a configured transformer
    */
@@ -241,23 +241,7 @@ public class XmlTransformer {
 
   /**
    * Returns a configured transformer that may be used to transform documents using the provided
-   * stylesheet and a default output property {@link OutputProperties#INDENT}.
-   * <p>
-   * Equivalent to {@link #usingStylesheet(ByteSource, Map)} with an empty map of parameters.
-   * </p>
-   *
-   * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
-   * @return a configured transformer
-   * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
-   *         {@link TransformerConfigurationException}.
-   */
-  public XmlConfiguredTransformer usingStylesheet(Source stylesheet) throws XmlException {
-    return usingStylesheet(stylesheet, ImmutableMap.of(), OutputProperties.indent());
-  }
-
-  /**
-   * Returns a configured transformer that may be used to transform documents using the provided
-   * stylesheet and a default output property {@link OutputProperties#INDENT}.
+   * stylesheet and a default “indented” output property.
    * <p>
    * Equivalent to {@link #usingStylesheet(ByteSource, Map)} with an empty map of parameters.
    * </p>
@@ -274,7 +258,7 @@ public class XmlTransformer {
 
   /**
    * Returns a configured transformer that may be used to transform documents using the provided
-   * stylesheet and a default output property {@link OutputProperties#INDENT}.
+   * stylesheet and a default “indented” output property.
    * <p>
    * Equivalent to {@link #usingStylesheet(CharSource, Map)} with an empty map of parameters.
    * </p>
@@ -289,10 +273,21 @@ public class XmlTransformer {
     return usingStylesheet(stylesheet, ImmutableMap.of(), OutputProperties.indent());
   }
 
-  @Deprecated
-  public XmlConfiguredTransformer usingStylesheet(Source stylesheet,
-      Map<XmlName, String> parameters) throws XmlException {
-    return usingStylesheet(stylesheet, parameters, OutputProperties.indent());
+  /**
+   * Returns a configured transformer that may be used to transform documents using the provided
+   * stylesheet and a default “indented” output property.
+   * <p>
+   * Equivalent to {@link #usingStylesheet(ByteSource, Map)} with an empty map of parameters.
+   * </p>
+   *
+   * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
+   * @return a configured transformer
+   * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
+   *         {@link TransformerConfigurationException}.
+   */
+  public XmlConfiguredTransformer usingStylesheet(URI stylesheet) throws XmlException {
+    return usingStylesheet(new StreamSource(stylesheet.toString()), ImmutableMap.of(),
+        OutputProperties.indent());
   }
 
   /**
@@ -314,22 +309,36 @@ public class XmlTransformer {
 
   /**
    * Returns a configured transformer that may be used to transform documents using the provided
-   * stylesheet parameterized with the given parameters.
+   * stylesheet parameterized with the given parameters and using a default “indented” output
+   * property.
    *
    * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,
    *        null keys or values not allowed.
-   * @param outputProperties any properties to be used with the transformer.
    * @return a configured transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */
-  public XmlConfiguredTransformer usingStylesheet(Source stylesheet,
-      Map<XmlName, String> parameters, OutputProperties outputProperties) throws XmlException {
-    checkNotNull(stylesheet);
-    checkNotNull(parameters);
-    checkArgument(!stylesheet.isEmpty());
-    return usingStylesheetInternal(stylesheet, parameters, outputProperties);
+  public XmlConfiguredTransformer usingStylesheet(CharSource stylesheet,
+      Map<XmlName, String> parameters) throws XmlException, IOException {
+    return usingStylesheet(stylesheet, parameters, OutputProperties.indent());
+  }
+
+  /**
+   * Returns a configured transformer that may be used to transform documents using the provided
+   * stylesheet parameterized with the given parameters and using a default “indented” output
+   * property.
+   *
+   * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
+   * @param parameters any string parameters to be used with the given stylesheet, may be empty,
+   *        null keys or values not allowed.
+   * @return a configured transformer
+   * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
+   *         {@link TransformerConfigurationException}.
+   */
+  public XmlConfiguredTransformer usingStylesheet(URI stylesheet, Map<XmlName, String> parameters)
+      throws XmlException {
+    return usingStylesheet(stylesheet, parameters, OutputProperties.indent());
   }
 
   public XmlConfiguredTransformer usingStylesheet(CharSource stylesheet,
@@ -352,6 +361,34 @@ public class XmlTransformer {
     try (InputStream is = stylesheet.openStream()) {
       return usingStylesheetInternal(new StreamSource(is), parameters, outputProperties);
     }
+  }
+
+  public XmlConfiguredTransformer usingStylesheet(URI stylesheet, Map<XmlName, String> parameters,
+      OutputProperties outputProperties) throws XmlException {
+    checkNotNull(stylesheet);
+    checkNotNull(parameters);
+    return usingStylesheetInternal(new StreamSource(stylesheet.toString()), parameters,
+        outputProperties);
+  }
+
+  /**
+   * Returns a configured transformer that may be used to transform documents using the provided
+   * stylesheet parameterized with the given parameters.
+   *
+   * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
+   * @param parameters any string parameters to be used with the given stylesheet, may be empty,
+   *        null keys or values not allowed.
+   * @param outputProperties any properties to be used with the transformer.
+   * @return a configured transformer
+   * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
+   *         {@link TransformerConfigurationException}.
+   */
+  public XmlConfiguredTransformer usingStylesheet(Source stylesheet,
+      Map<XmlName, String> parameters, OutputProperties outputProperties) throws XmlException {
+    checkNotNull(stylesheet);
+    checkNotNull(parameters);
+    checkArgument(!stylesheet.isEmpty());
+    return usingStylesheetInternal(stylesheet, parameters, outputProperties);
   }
 
   /**
