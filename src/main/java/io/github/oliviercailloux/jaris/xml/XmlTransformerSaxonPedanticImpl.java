@@ -10,17 +10,17 @@ import net.sf.saxon.jaxp.TransformerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class XmlConfiguredTransformerSaxonPedanticImpl implements XmlConfiguredTransformer {
+class XmlTransformerSaxonPedanticImpl implements XmlTransformer {
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = LoggerFactory.getLogger(XmlConfiguredTransformerImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerImpl.class);
 
-  static XmlConfiguredTransformerSaxonPedanticImpl using(TransformerImpl transformer) {
-    return new XmlConfiguredTransformerSaxonPedanticImpl(transformer);
+  static XmlTransformerSaxonPedanticImpl using(TransformerImpl transformer) {
+    return new XmlTransformerSaxonPedanticImpl(transformer);
   }
 
   private final TransformerImpl transformer;
 
-  private XmlConfiguredTransformerSaxonPedanticImpl(TransformerImpl transformer) {
+  private XmlTransformerSaxonPedanticImpl(TransformerImpl transformer) {
     this.transformer = checkNotNull(transformer);
     checkArgument(transformer.getErrorListener() instanceof XmlTransformErrorListener);
   }

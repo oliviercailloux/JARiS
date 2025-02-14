@@ -16,17 +16,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
-class XmlConfiguredTransformerImpl implements XmlConfiguredTransformer {
+class XmlTransformerImpl implements XmlTransformer {
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = LoggerFactory.getLogger(XmlConfiguredTransformerImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerImpl.class);
 
-  static XmlConfiguredTransformerImpl using(Transformer transformer) {
-    return new XmlConfiguredTransformerImpl(transformer);
+  static XmlTransformerImpl using(Transformer transformer) {
+    return new XmlTransformerImpl(transformer);
   }
 
   private final Transformer transformer;
 
-  private XmlConfiguredTransformerImpl(Transformer transformer) {
+  private XmlTransformerImpl(Transformer transformer) {
     this.transformer = checkNotNull(transformer);
     checkArgument(transformer.getErrorListener() instanceof XmlTransformErrorListener);
   }
