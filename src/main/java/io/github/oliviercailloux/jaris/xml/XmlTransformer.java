@@ -195,6 +195,17 @@ public class XmlTransformer {
   }
 
   /**
+   * Returns a sourced transformer that may be used to transform documents using the “identity”
+   * transform.
+   *
+   * @param outputProperties any properties to be used with the transformer.
+   * @return a configured transformer
+   */
+  public XmlConfiguredTransformer usingEmptyStylesheet(OutputProperties outputProperties) {
+    return usingStylesheetInternal(null, ImmutableMap.of(), outputProperties);
+  }
+
+  /**
    * Returns a sourced transformer that may be used to transform documents using the provided
    * stylesheet and a default output property {@link OutputProperties#INDENT}.
    * <p>
