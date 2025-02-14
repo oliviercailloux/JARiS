@@ -91,6 +91,7 @@ public class XmlTransformerFactory {
       throw new VerifyException("Unsupported value: " + value);
     }
   }
+  
   /**
    * See https://www.w3.org/TR/2021/REC-xslt20-20210330/#serialization
    */
@@ -251,8 +252,7 @@ public class XmlTransformerFactory {
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */
-  public XmlTransformer usingStylesheet(ByteSource stylesheet)
-      throws XmlException, IOException {
+  public XmlTransformer usingStylesheet(ByteSource stylesheet) throws XmlException, IOException {
     return usingStylesheet(stylesheet, ImmutableMap.of(), OutputProperties.indent());
   }
 
@@ -268,8 +268,7 @@ public class XmlTransformerFactory {
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */
-  public XmlTransformer usingStylesheet(CharSource stylesheet)
-      throws XmlException, IOException {
+  public XmlTransformer usingStylesheet(CharSource stylesheet) throws XmlException, IOException {
     return usingStylesheet(stylesheet, ImmutableMap.of(), OutputProperties.indent());
   }
 
@@ -302,8 +301,8 @@ public class XmlTransformerFactory {
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */
-  public XmlTransformer usingStylesheet(ByteSource stylesheet,
-      Map<XmlName, String> parameters) throws XmlException, IOException {
+  public XmlTransformer usingStylesheet(ByteSource stylesheet, Map<XmlName, String> parameters)
+      throws XmlException, IOException {
     return usingStylesheet(stylesheet, parameters, OutputProperties.indent());
   }
 
@@ -319,8 +318,8 @@ public class XmlTransformerFactory {
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */
-  public XmlTransformer usingStylesheet(CharSource stylesheet,
-      Map<XmlName, String> parameters) throws XmlException, IOException {
+  public XmlTransformer usingStylesheet(CharSource stylesheet, Map<XmlName, String> parameters)
+      throws XmlException, IOException {
     return usingStylesheet(stylesheet, parameters, OutputProperties.indent());
   }
 
@@ -341,9 +340,8 @@ public class XmlTransformerFactory {
     return usingStylesheet(stylesheet, parameters, OutputProperties.indent());
   }
 
-  public XmlTransformer usingStylesheet(CharSource stylesheet,
-      Map<XmlName, String> parameters, OutputProperties outputProperties)
-      throws XmlException, IOException {
+  public XmlTransformer usingStylesheet(CharSource stylesheet, Map<XmlName, String> parameters,
+      OutputProperties outputProperties) throws XmlException, IOException {
     checkNotNull(stylesheet);
     checkNotNull(parameters);
     checkArgument(!stylesheet.isEmpty());
@@ -352,9 +350,8 @@ public class XmlTransformerFactory {
     }
   }
 
-  public XmlTransformer usingStylesheet(ByteSource stylesheet,
-      Map<XmlName, String> parameters, OutputProperties outputProperties)
-      throws XmlException, IOException {
+  public XmlTransformer usingStylesheet(ByteSource stylesheet, Map<XmlName, String> parameters,
+      OutputProperties outputProperties) throws XmlException, IOException {
     checkNotNull(stylesheet);
     checkNotNull(parameters);
     checkArgument(!stylesheet.isEmpty());
@@ -383,8 +380,8 @@ public class XmlTransformerFactory {
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */
-  public XmlTransformer usingStylesheet(Source stylesheet,
-      Map<XmlName, String> parameters, OutputProperties outputProperties) throws XmlException {
+  public XmlTransformer usingStylesheet(Source stylesheet, Map<XmlName, String> parameters,
+      OutputProperties outputProperties) throws XmlException {
     checkNotNull(stylesheet);
     checkNotNull(parameters);
     checkArgument(!stylesheet.isEmpty());
@@ -396,8 +393,8 @@ public class XmlTransformerFactory {
    * @throws XmlException if there are errors when parsing the Source; wrapping a
    *         {@link TransformerConfigurationException}.
    */
-  private XmlTransformer usingStylesheetInternal(Source stylesheet,
-      Map<XmlName, String> parameters, OutputProperties outputProperties) throws XmlException {
+  private XmlTransformer usingStylesheetInternal(Source stylesheet, Map<XmlName, String> parameters,
+      OutputProperties outputProperties) throws XmlException {
     checkNotNull(parameters);
 
     final Transformer transformer;
