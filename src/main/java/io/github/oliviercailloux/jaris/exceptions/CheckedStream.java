@@ -675,7 +675,7 @@ public interface CheckedStream<T, X extends Exception> {
    * performed at whatever time and in whatever thread the library chooses. If the action accesses
    * shared state, it is responsible for providing the required synchronization.
    *
-   * @param action a <a href="package-summary.html#NonInterference"> non-interfering</a> action to
+   * @param action a <a href="package-summary.html#NonInterference">non-interfering</a> action to
    *        perform on the elements
    * @throws X if any functional interface operating on this stream throws a checked exception
    * @see Stream#forEach(Consumer)
