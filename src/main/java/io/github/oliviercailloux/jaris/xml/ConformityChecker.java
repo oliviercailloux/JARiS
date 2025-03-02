@@ -9,6 +9,7 @@ import com.google.common.io.CharSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.net.URI;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
@@ -50,6 +51,21 @@ public class ConformityChecker {
     try (Reader r = document.openStream()) {
       verifyValid(new StreamSource(r));
     }
+  }
+
+  /**
+   * Throws an exception iff the provided document is invalid.
+   *
+   * @param document the document to validate.
+   * @throws VerifyException iff the document is invalid, equivalently, iff a warning, error or
+   *         fatalError is encountered while validating the provided document
+   * @throws XmlException if the Source is an XML artifact that the implementation cannot validate
+   *         (for example, a processing instruction)
+   * @throws IOException if the validator is processing a javax.xml.transform.sax.SAXSource and the
+   *         underlying org.xml.sax.XMLReader throws an IOException.
+   */
+  public void verifyValid(URI document) throws VerifyException, XmlException, IOException {
+    verifyValid(new StreamSource(document.toString()));
   }
 
   /**

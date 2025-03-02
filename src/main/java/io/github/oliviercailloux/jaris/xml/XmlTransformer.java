@@ -15,6 +15,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import org.apache.xml.utils.URI;
 import org.w3c.dom.Document;
 
 /**
@@ -22,9 +23,84 @@ import org.w3c.dom.Document;
  */
 public interface XmlTransformer extends XmlToBytesTransformer {
 
-  public default Document sourceToDom(Source document) throws XmlException {
+  /**
+   * Transforms the provided document and returns the result as a string.
+   *
+   * @param document the document to transform
+   * @return the transformed content as a string
+   * @throws XmlException iff an error occurs when transforming the document. Wraps a
+   *         {@link TransformerException}.
+   */
+  public default String bytesToChars(ByteSource document) throws XmlException, IOException {
+    try (InputStream is = document.openBufferedStream()) {
+      return sourceToChars(new StreamSource(is));
+    }
+  }
+
+  public default Document bytesToDom(ByteSource document) throws XmlException, IOException {
     DOMResult result = new DOMResult();
-    sourceToResult(document, result);
+    try (InputStream is = document.openBufferedStream()) {
+      sourceToResult(new StreamSource(is), result);
+    }
+    return (Document) result.getNode();
+  }
+
+  public default void charsToChars(CharSource document, CharSink result)
+      throws XmlException, IOException {
+    try (Reader r = document.openBufferedStream(); Writer w = result.openBufferedStream()) {
+      sourceToResult(new StreamSource(r), new StreamResult(w));
+    }
+  }
+
+  /**
+   * Transforms the provided document and returns the result as a string.
+   *
+   * @param document the document to transform
+   * @return the transformed content as a string
+   * @throws XmlException iff an error occurs when transforming the document. Wraps a
+   *         {@link TransformerException}.
+   */
+  public default String charsToChars(CharSource document) throws XmlException, IOException {
+    try (Reader r = document.openBufferedStream()) {
+      return sourceToChars(new StreamSource(r));
+    }
+  }
+
+  public default Document charsToDom(CharSource document) throws XmlException, IOException {
+    DOMResult result = new DOMResult();
+    try (Reader r = document.openBufferedStream()) {
+      sourceToResult(new StreamSource(r), result);
+    }
+    return (Document) result.getNode();
+  }
+
+  /**
+   * Transforms the provided document and returns the result as a string.
+   *
+   * @param document the document to transform
+   * @return the transformed content as a string
+   * @throws XmlException iff an error occurs when transforming the document. Wraps a
+   *         {@link TransformerException}.
+   */
+  public default String sourceToChars(URI document) throws XmlException {
+    final StringWriter resultWriter = new StringWriter();
+    final StreamResult result = new StreamResult(resultWriter);
+
+    sourceToResult(new StreamSource(document.toString()), result);
+
+    return resultWriter.toString();
+  }
+
+  public default void sourceToChars(URI document, CharSink result)
+      throws XmlException, IOException {
+    try (Writer w = result.openBufferedStream()) {
+      sourceToResult(new StreamSource(document.toString()), new StreamResult(w));
+    }
+  }
+
+  public default Document sourceToDom(URI document) throws XmlException {
+    DOMResult result = new DOMResult();
+    sourceToResult(new StreamSource(document.toString()), result);
     return (Document) result.getNode();
   }
 
@@ -54,54 +130,9 @@ public interface XmlTransformer extends XmlToBytesTransformer {
     }
   }
 
-  public default Document bytesToDom(ByteSource document) throws XmlException, IOException {
+  public default Document sourceToDom(Source document) throws XmlException {
     DOMResult result = new DOMResult();
-    try (InputStream is = document.openBufferedStream()) {
-      sourceToResult(new StreamSource(is), result);
-    }
-    return (Document) result.getNode();
-  }
-
-  /**
-   * Transforms the provided document and returns the result as a string.
-   *
-   * @param document the document to transform
-   * @return the transformed content as a string
-   * @throws XmlException iff an error occurs when transforming the document. Wraps a
-   *         {@link TransformerException}.
-   */
-  public default String bytesToChars(ByteSource document) throws XmlException, IOException {
-    try (InputStream is = document.openBufferedStream()) {
-      return sourceToChars(new StreamSource(is));
-    }
-  }
-
-  public default void charsToChars(CharSource document, CharSink result)
-      throws XmlException, IOException {
-    try (Reader r = document.openBufferedStream(); Writer w = result.openBufferedStream()) {
-      sourceToResult(new StreamSource(r), new StreamResult(w));
-    }
-  }
-
-  /**
-   * Transforms the provided document and returns the result as a string.
-   *
-   * @param document the document to transform
-   * @return the transformed content as a string
-   * @throws XmlException iff an error occurs when transforming the document. Wraps a
-   *         {@link TransformerException}.
-   */
-  public default String charsToChars(CharSource document) throws XmlException, IOException {
-    try (Reader r = document.openBufferedStream()) {
-      return sourceToChars(new StreamSource(r));
-    }
-  }
-
-  public default Document charsToDom(CharSource document) throws XmlException, IOException {
-    DOMResult result = new DOMResult();
-    try (Reader r = document.openBufferedStream()) {
-      sourceToResult(new StreamSource(r), result);
-    }
+    sourceToResult(document, result);
     return (Document) result.getNode();
   }
 }

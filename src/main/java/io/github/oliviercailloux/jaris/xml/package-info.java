@@ -27,8 +27,9 @@
  * <a href="https://stackoverflow.com/q/69194590">SO</a>.
  * </p>
  * <p>
- * Exceptions are generally wrapped under XmlException, but IOExceptions that are not hidden by the
- * underlying APIs are thrown as-is, typically, when the user provides a ByteSource.
+ * Exceptions are generally wrapped under {@code XmlException}, but {@code IOExceptions} that are
+ * not hidden by the underlying APIs are thrown as-is, typically, when the user provides a
+ * {@code ByteSource}.
  * </p>
  */
 package io.github.oliviercailloux.jaris.xml;

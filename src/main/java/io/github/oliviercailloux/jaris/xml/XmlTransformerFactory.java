@@ -285,6 +285,7 @@ public class XmlTransformerFactory {
    *         {@link TransformerConfigurationException}.
    */
   public XmlTransformer usingStylesheet(URI stylesheet) throws XmlException {
+    URI.create("http://example.com");
     return usingStylesheet(new StreamSource(stylesheet.toString()), ImmutableMap.of(),
         OutputProperties.indent());
   }

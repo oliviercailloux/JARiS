@@ -3,8 +3,11 @@ package io.github.oliviercailloux.jaris.xml;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.io.ByteSource;
+import com.google.common.io.CharSource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+import java.net.URI;
 import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -94,6 +97,37 @@ public class SchemaHelper {
     this.factory = checkNotNull(tf);
   }
 
+  public Schema asSchema(ByteSource schemaSource) throws XmlException, IOException {
+    final Schema asSchema;
+    try (InputStream is = schemaSource.openStream()) {
+      asSchema = factory.newSchema(new StreamSource(is));
+    } catch (SAXException e) {
+      throw new XmlException("While parsing schema.", e);
+    }
+    return asSchema;
+  }
+
+  public Schema asSchema(CharSource schemaSource) throws XmlException, IOException {
+    final Schema asSchema;
+    try (Reader r = schemaSource.openBufferedStream()) {
+      asSchema = factory.newSchema(new StreamSource(r));
+    } catch (SAXException e) {
+      throw new XmlException("While parsing schema.", e);
+    }
+    return asSchema;
+  }
+
+  /**
+   * Produces the schema corresponding to the given source, or throws.
+   *
+   * @param schemaSource the source
+   * @return the corresponding schema
+   * @throws XmlException iff an error is produced while parsing the schema.
+   */
+  public Schema asSchema(URI schemaSource) throws XmlException {
+    return asSchema(new StreamSource(schemaSource.toString()));
+  }
+
   /**
    * Produces the schema corresponding to the given source, or throws.
    *
@@ -106,16 +140,6 @@ public class SchemaHelper {
     try {
       asSchema = factory.newSchema(schemaSource);
     } catch (SAXException e) {
-      throw new XmlException("While parsing schema.", e);
-    }
-    return asSchema;
-  }
-
-  public Schema asSchema(ByteSource schemaSource) throws XmlException {
-    final Schema asSchema;
-    try (InputStream is = schemaSource.openStream()) {
-      asSchema = factory.newSchema(new StreamSource(is));
-    } catch (IOException | SAXException e) {
       throw new XmlException("While parsing schema.", e);
     }
     return asSchema;
