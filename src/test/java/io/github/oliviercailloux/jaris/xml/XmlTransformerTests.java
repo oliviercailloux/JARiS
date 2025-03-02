@@ -85,7 +85,7 @@ class XmlTransformerTests {
       assertTrue(capturer.err().lines().count() > 100);
     }
 
-    /* The external Apache Xalan 2.7.2 implementation works. */
+    /* The external Apache Xalan implementation works. */
     {
       System.setProperty(XmlTransformerFactory.FACTORY_PROPERTY, XALAN_FACTORY);
       assertDoesNotThrow(() -> XmlTransformerFactory.usingFoundFactory().usingStylesheet(myStyle));

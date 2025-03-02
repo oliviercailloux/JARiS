@@ -223,7 +223,7 @@ public class JavaTransformerTests {
     final StreamResult result = new StreamResult(resultWriter);
     transformer.transform(sourceOneline, result);
     String expectedOnLeftMargin = expected.replaceAll("    ", "");
-    // * Seems to be a bug in XALAN. */
+    /* Seems to be a bug in XALAN. */
     String expectedBug =
         expectedOnLeftMargin.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
