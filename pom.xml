@@ -23,18 +23,8 @@
     <dependency>
       <groupId>org.relaxng</groupId>
       <artifactId>jing</artifactId>
-      <version>20220510</version>
+      <version>20241231</version>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>xml-apis</groupId>
-          <artifactId>xml-apis</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>xerces</groupId>
-          <artifactId>xercesImpl</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.google.jimfs</groupId>
