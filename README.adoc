@@ -9,10 +9,11 @@ image:http://www.javadoc.io/badge/{groupId}/{artifactId}.svg["Javadocs", link="h
 
 Various utilities that complement those found in https://guava.dev/[Guava].
 
-This library focuses on code and API quality, not on performance. Open an issue if this creates a problem for some of your use cases.
-I will make reasonable efforts to answer timely and fix bugs (or at least document them).
+This library focuses on code and API quality, not on performance. Please open an issue if this creates a problem for any of your use cases.
+I will make reasonable efforts to respond promptly and fix bugs (or at least document them).
 
-The API is _not_ stable. Write to me if you are interested in using this library and would like its API to be stable, or want more example code. The library also uses parts of the Guava API that are https://github.com/google/guava/wiki/UseGuavaInYourBuild#what-if-i-want-to-use-beta-apis-from-a-library-that-people-use-as-a-dependency[marked @Beta] (meaning it is not stable). I will keep the dependencies of this library up-to-date in order to work around any disagreement that this can cause. This means that you need to be committed to update your dependency on this library if Guava’s Beta API changes in order to ensure that you do not run into version conflicts.
+The API is _not_ stable. Please contact me if you are interested in using this library and wonder about stabilizing its API, or if you would like more example code.
+The library also uses parts of the Guava API that are https://github.com/google/guava/wiki/UseGuavaInYourBuild#what-if-i-want-to-use-beta-apis-from-a-library-that-people-use-as-a-dependency[marked @Beta] (meaning it is not stable). I will keep the dependencies of this library up-to-date in order to work around any disagreement that this can cause. This means that you need to be committed to update your dependency on this library if Guava’s Beta API changes in order to ensure that you do not run into version conflicts.
 
 The following sections list some of the utilities that this library provides (by package).
 
