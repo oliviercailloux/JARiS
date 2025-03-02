@@ -17,7 +17,7 @@ The API is _not_ stable. Write to me if you are interested in using this library
 The following sections list some of the utilities that this library provides (by package).
 
 == Compiler bug
-Bug about https://github.com/oliviercailloux/JARiS/compare/simplified...solved[inference] https://bugs.java.com/[reported] on the 17th of Jan.
+Bug about https://github.com/oliviercailloux/JARiS/compare/simplified...solved[inference] https://bugs.openjdk.org/browse/JDK-8325085[reported] on the 17th of Jan 2024.
 
 $ sudo update-alternatives --set java /usr/lib/jvm/java-19-openjdk-amd64/bin/java
 $ sudo update-alternatives --set javac /usr/lib/jvm/java-19-openjdk-amd64/bin/javac
