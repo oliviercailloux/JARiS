@@ -98,12 +98,6 @@ public interface XmlTransformer extends XmlToBytesTransformer {
     }
   }
 
-  public default Document sourceToDom(URI document) throws XmlException {
-    DOMResult result = new DOMResult();
-    sourceToResult(new StreamSource(document.toString()), result);
-    return (Document) result.getNode();
-  }
-
   /**
    * Transforms the provided document and returns the result as a string.
    *
@@ -128,6 +122,12 @@ public interface XmlTransformer extends XmlToBytesTransformer {
     try (Writer w = result.openBufferedStream()) {
       sourceToResult(document, new StreamResult(w));
     }
+  }
+
+  public default Document sourceToDom(URI document) throws XmlException {
+    DOMResult result = new DOMResult();
+    sourceToResult(new StreamSource(document.toString()), result);
+    return (Document) result.getNode();
   }
 
   public default Document sourceToDom(Source document) throws XmlException {
