@@ -39,10 +39,10 @@ public class RngCheckerTests {
     final SchemaFactory factory = new XMLSyntaxSchemaFactory();
     final SchemaHelper helper = SchemaHelper.schemaHelper(factory);
     final ByteSource schemaSource =
-        Resources.asByteSource(RngCheckerTests.class.getResource("docbook.rng"));
+        Resources.asByteSource(RngCheckerTests.class.getResource("DocBook/docbook.rng"));
     final Schema compiledSchema = helper.asSchema(schemaSource);
     final ByteSource documentSource =
-        Resources.asByteSource(RngCheckerTests.class.getResource("docbook simple article.xml"));
+        Resources.asByteSource(RngCheckerTests.class.getResource("DocBook/Simple.xml"));
     helper.conformityChecker(compiledSchema).verifyValid(documentSource);
   }
 
@@ -51,10 +51,10 @@ public class RngCheckerTests {
     final SchemaFactory factory = new XMLSyntaxSchemaFactory();
     final SchemaHelper helper = SchemaHelper.schemaHelper(factory);
     final ByteSource schemaSource =
-        Resources.asByteSource(RngCheckerTests.class.getResource("docbook.rng"));
+        Resources.asByteSource(RngCheckerTests.class.getResource("DocBook/docbook.rng"));
     final Schema compiledSchema = helper.asSchema(schemaSource);
     final ByteSource documentSource =
-        Resources.asByteSource(RngCheckerTests.class.getResource("docbook invalid.xml"));
+        Resources.asByteSource(RngCheckerTests.class.getResource("DocBook/Invalid.xml"));
     assertThrows(VerifyException.class,
         () -> helper.conformityChecker(compiledSchema).verifyValid(documentSource));
   }
@@ -64,10 +64,10 @@ public class RngCheckerTests {
     final SchemaFactory factory = new XMLSyntaxSchemaFactory();
     final SchemaHelper helper = SchemaHelper.schemaHelper(factory);
     final ByteSource schemaSource =
-        Resources.asByteSource(RngCheckerTests.class.getResource("docbook.rng"));
+        Resources.asByteSource(RngCheckerTests.class.getResource("DocBook/docbook.rng"));
     final Schema compiledSchema = helper.asSchema(schemaSource);
     final ByteSource documentSource =
-        Resources.asByteSource(RngCheckerTests.class.getResource("docbook howto.xml"));
+        Resources.asByteSource(RngCheckerTests.class.getResource("DocBook/Howto.xml"));
     helper.conformityChecker(compiledSchema).verifyValid(documentSource);
   }
 }

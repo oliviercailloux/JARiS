@@ -39,9 +39,9 @@ class XmlTransformerTests {
 
   @Test
   void testTransformSimple() throws Exception {
-    final CharSource style = charSource("short.xsl");
-    final CharSource input = charSource("short.xml");
-    final String expected = charSource("transformed.txt").read();
+    final CharSource style = charSource("Article/To text.xsl");
+    final CharSource input = charSource("Article/Two authors.xml");
+    final String expected = charSource("Article/Two authors.txt").read();
     assertEquals(expected,
         XmlTransformerFactory.pedanticTransformer(TransformerFactory.newDefaultInstance())
             .usingStylesheet(style).charsToChars(input));
@@ -117,7 +117,7 @@ class XmlTransformerTests {
 
   @Test
   void testTransformSimpleDocBook() throws Exception {
-    final CharSource docBook = charSource("docbook simple article.xml");
+    final CharSource docBook = charSource("DocBook/Simple.xml");
     // final CharSource myStyle =
     // charSource(new URL("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl"));
     final URI myStyle = new URI("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
@@ -141,8 +141,8 @@ class XmlTransformerTests {
 
   @Test
   void testTransformComplexDocBook() throws Exception {
-    final CharSource docBook = charSource("docbook howto.xml");
-    final CharSource myStyle = charSource("mystyle.xsl");
+    final CharSource docBook = charSource("DocBook/Howto.xml");
+    final CharSource myStyle = charSource("DocBook/mystyle.xsl");
 
     {
       System.setProperty(XmlTransformerFactory.FACTORY_PROPERTY, XALAN_FACTORY);
@@ -163,16 +163,16 @@ class XmlTransformerTests {
 
   @Test
   void testTransformInvalidXsl() throws Exception {
-    final CharSource style = charSource("short invalid.xsl");
-    final CharSource input = charSource("short.xml");
+    final CharSource style = charSource("Invalid.xsl");
+    final CharSource input = charSource("Article/One author.xml");
     assertThrows(XmlException.class, () -> XmlTransformerFactory.usingSystemDefaultFactory()
         .usingStylesheet(style).charsToChars(input));
   }
 
   @Test
   void testTransformInvalidXml() throws Exception {
-    final CharSource style = charSource("short.xsl");
-    final CharSource input = charSource("short invalid.xml");
+    final CharSource style = charSource("Article/To text.xsl");
+    final CharSource input = charSource("Invalid.xml");
     assertThrows(XmlException.class, () -> XmlTransformerFactory.usingSystemDefaultFactory()
         .usingStylesheet(style).charsToChars(input));
   }
@@ -182,9 +182,9 @@ class XmlTransformerTests {
   void testTransformMessaging(KnownFactory factory) throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final CharSource style = charSource("short messaging.xsl");
-    final CharSource input = charSource("short.xml");
-    final String expected = charSource("transformed.txt").read();
+    final CharSource style = charSource("Article/Messaging.xsl");
+    final CharSource input = charSource("Article/Two authors.xml");
+    final String expected = charSource("Article/Two authors.txt").read();
     assertEquals(expected, XmlTransformerFactory.usingFactory(factory.factory())
         .usingStylesheet(style).charsToChars(input));
     capturer.restore();
@@ -196,9 +196,9 @@ class XmlTransformerTests {
   void testTransformMessagingS() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final CharSource style = charSource("short messaging.xsl");
-    final CharSource input = charSource("short.xml");
-    final String expected = charSource("transformed.txt").read();
+    final CharSource style = charSource("Article/Messaging.xsl");
+    final CharSource input = charSource("Article/Two authors.xml");
+    final String expected = charSource("Article/Two authors.txt").read();
     assertEquals(expected, XmlTransformerFactory.usingFactory(KnownFactory.SAXON.factory())
         .usingStylesheet(style).charsToChars(input));
     capturer.restore();
@@ -210,9 +210,9 @@ class XmlTransformerTests {
   void testTransformMessagingPedanticWithJdkFailsToStop() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.captureErr();
-    final CharSource style = charSource("short messaging.xsl");
-    final CharSource input = charSource("short.xml");
-    final String expected = charSource("transformed.txt").read();
+    final CharSource style = charSource("Article/Messaging.xsl");
+    final CharSource input = charSource("Article/Two authors.xml");
+    final String expected = charSource("Article/Two authors.txt").read();
     assertEquals(expected, XmlTransformerFactory.pedanticTransformer(KnownFactory.JDK.factory())
         .usingStylesheet(style).charsToChars(input));
     capturer.restore();
@@ -223,8 +223,8 @@ class XmlTransformerTests {
   void testTransformMessagingPedanticX() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final CharSource style = charSource("short messaging.xsl");
-    final CharSource input = charSource("short.xml");
+    final CharSource style = charSource("Article/Messaging.xsl");
+    final CharSource input = charSource("Article/Two authors.xml");
     XmlException thrown = assertThrows(XmlException.class,
         () -> XmlTransformerFactory.pedanticTransformer(KnownFactory.XALAN.factory())
             .usingStylesheet(style).charsToChars(input));
@@ -241,8 +241,8 @@ class XmlTransformerTests {
   void testTransformMessagingPedanticSaxon() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final CharSource style = charSource("short messaging.xsl");
-    final CharSource input = charSource("short.xml");
+    final CharSource style = charSource("Article/Messaging.xsl");
+    final CharSource input = charSource("Article/Two authors.xml");
     RuntimeException thrown = assertThrows(RuntimeException.class,
         () -> XmlTransformerFactory.pedanticTransformer(KnownFactory.SAXON.factory())
             .usingStylesheet(style).charsToChars(input));
@@ -259,8 +259,8 @@ class XmlTransformerTests {
   void testTransformMessagingTerminate(KnownFactory factory) throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final CharSource style = charSource("short messaging terminate.xsl");
-    final CharSource input = charSource("short.xml");
+    final CharSource style = charSource("Article/Messaging terminate.xsl");
+    final CharSource input = charSource("Article/Two authors.xml");
     assertThrows(XmlException.class, () -> XmlTransformerFactory.usingFactory(factory.factory())
         .usingStylesheet(style).charsToChars(input));
     capturer.restore();
@@ -272,8 +272,8 @@ class XmlTransformerTests {
   void testTransformMessagingTerminateS() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final CharSource style = charSource("short messaging terminate.xsl");
-    final CharSource input = charSource("short.xml");
+    final CharSource style = charSource("Article/Messaging terminate.xsl");
+    final CharSource input = charSource("Article/Two authors.xml");
     assertThrows(XmlException.class, () -> XmlTransformerFactory
         .usingFactory(KnownFactory.SAXON.factory()).usingStylesheet(style).charsToChars(input));
     capturer.restore();
@@ -285,8 +285,8 @@ class XmlTransformerTests {
   void testTransformMessagingTerminatePedantic() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final CharSource style = charSource("short messaging terminate.xsl");
-    final CharSource input = charSource("short.xml");
+    final CharSource style = charSource("Article/Messaging terminate.xsl");
+    final CharSource input = charSource("Article/Two authors.xml");
     XmlException thrown = assertThrows(XmlException.class,
         () -> XmlTransformerFactory.pedanticTransformer(KnownFactory.JDK.factory())
             .usingStylesheet(style).charsToChars(input));
@@ -304,8 +304,8 @@ class XmlTransformerTests {
   void testTransformMessagingTerminatePedanticX() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final CharSource style = charSource("short messaging terminate.xsl");
-    final CharSource input = charSource("short.xml");
+    final CharSource style = charSource("Article/Messaging terminate.xsl");
+    final CharSource input = charSource("Article/Two authors.xml");
     XmlException thrown = assertThrows(XmlException.class,
         () -> XmlTransformerFactory.pedanticTransformer(KnownFactory.XALAN.factory())
             .usingStylesheet(style).charsToChars(input));
@@ -322,8 +322,8 @@ class XmlTransformerTests {
   void testTransformMessagingTerminatePedanticS() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-    final CharSource style = charSource("short messaging terminate.xsl");
-    final CharSource input = charSource("short.xml");
+    final CharSource style = charSource("Article/Messaging terminate.xsl");
+    final CharSource input = charSource("Article/Two authors.xml");
     XmlException thrown = assertThrows(XmlException.class,
         () -> XmlTransformerFactory.pedanticTransformer(KnownFactory.SAXON.factory())
             .usingStylesheet(style).charsToChars(input));
@@ -339,7 +339,7 @@ class XmlTransformerTests {
 
   @Test
   void testCopy() throws Exception {
-    final CharSource source = charSource("short namespace.xml");
+    final CharSource source = charSource("Article ns/Title two authors.xml");
     Document docCopy =
         XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet().charsToDom(source);
     assertEquals(source.read(), DomHelper.domHelper().toString(docCopy));
@@ -360,13 +360,13 @@ class XmlTransformerTests {
     Element newElement = docCopy.createElementNS(ARTICLE_NS_K, "k:Empty");
     root.insertBefore(newElement, title.getNextSibling());
 
-    final String expected = charSource("short namespace expanded.xml").read();
+    final String expected = charSource("Article ns/Title empty two authors.xml").read();
     assertEquals(expected, DomHelper.domHelper().toString(docCopy));
   }
 
   @Test
   void testPrettySaxon() throws Exception {
-    final CharSource source = charSource("short namespace.xml");
+    final CharSource source = charSource("Article ns/Title two authors.xml");
     final CharSource sourceOneline = charSource("short namespace oneline.xml");
 
     Document docCopy =
@@ -379,7 +379,7 @@ class XmlTransformerTests {
 
   @Test
   void testPretty() throws Exception {
-    final CharSource source = charSource("short namespace.xml");
+    final CharSource source = charSource("Article ns/Title two authors.xml");
     final CharSource sourceOneline = charSource("short namespace oneline.xml");
 
     Document docCopy =
@@ -394,7 +394,7 @@ class XmlTransformerTests {
 
   @Test
   void testNotPretty() throws Exception {
-    final CharSource source = charSource("short namespace.xml");
+    final CharSource source = charSource("Article ns/Title two authors.xml");
     final CharSource sourceOneline = charSource("short namespace oneline.xml");
 
     Document docCopy =
@@ -415,7 +415,7 @@ class XmlTransformerTests {
     Element title = doc.createElementNS(ARTICLE_NS_K, "k:Empty");
     doc.getDocumentElement().appendChild(title);
     final CharSource start =
-        charSource(Path.of(getClass().getResource("very short namespace.xml").toURI()));
+        charSource(Path.of(getClass().getResource("Article ns/Empty.xml").toURI()));
     String serialized = h.toString(doc);
     assertEquals(start.read(), serialized);
 
@@ -437,7 +437,7 @@ class XmlTransformerTests {
     root.insertBefore(newElement, titleCopy.getNextSibling());
 
     final String expected = Files
-        .readString(Path.of(getClass().getResource("very short namespace expanded.xml").toURI()));
+        .readString(Path.of(getClass().getResource("Article ns/Empties.xml").toURI()));
     assertEquals(expected, DomHelper.domHelper().toString(docCopy));
   }
 }

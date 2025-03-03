@@ -18,9 +18,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-public class DomHelperArticleTests {
+public class DomHelperArticleNsTests {
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = LoggerFactory.getLogger(DomHelperArticleTests.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DomHelperArticleNsTests.class);
 
   static final String ARTICLE_NS = "https://example.com/article";
   static final String ARTICLE_NS_K = "https://example.com/article/k";
@@ -33,8 +33,7 @@ public class DomHelperArticleTests {
         ARTICLE_NS_K);
     Element title = doc.createElementNS(ARTICLE_NS_K, "k:Empty");
     doc.getDocumentElement().appendChild(title);
-    final String expected =
-        Files.readString(Path.of(getClass().getResource("very short namespace.xml").toURI()));
+    final String expected = Resourcer.charSource("Article ns/Empty.xml").read();
     assertEquals(expected, h.toString(doc));
   }
 
@@ -45,15 +44,14 @@ public class DomHelperArticleTests {
     doc.getDocumentElement().setAttribute("xmlns:k", ARTICLE_NS_K);
     Element title = doc.createElementNS(ARTICLE_NS_K, "k:Empty");
     doc.getDocumentElement().appendChild(title);
-    final String expected =
-        Files.readString(Path.of(getClass().getResource("very short namespace.xml").toURI()));
+    final String expected = Resourcer.charSource("Article ns/Empty.xml").read();
     assertNotEquals(expected, h.toString(doc));
   }
 
   @Test
   void testNamespace() throws Exception {
     final String source =
-        Files.readString(Path.of(getClass().getResource("short namespace.xml").toURI()));
+    Resourcer.charSource("Article ns/Title two authors.xml").read();
     final Document articleDoc =
         DomHelper.domHelper().asDocument(new StreamSource(new StringReader(source)));
     final Element root = articleDoc.getDocumentElement();
@@ -79,7 +77,7 @@ public class DomHelperArticleTests {
     Element newElement = articleDoc.createElementNS(ARTICLE_NS_K, "k:Empty");
     root.insertBefore(newElement, title.getNextSibling());
     final String expected =
-        Files.readString(Path.of(getClass().getResource("short namespace expanded.xml").toURI()));
+    Resourcer.charSource("Article ns/Title empty two authors.xml").read();
     String expanded = DomHelper.domHelper().toString(articleDoc);
     assertEquals(expected, expanded);
   }

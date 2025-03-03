@@ -71,11 +71,11 @@ public class JavaTransformerTests {
 
     TransformerFactoryImpl factory = new net.sf.saxon.TransformerFactoryImpl();
     final StreamSource style =
-        new StreamSource(XmlTransformerTests.class.getResource("short messaging.xsl").toString());
+        new StreamSource(XmlTransformerTests.class.getResource("Article/Messaging.xsl").toString());
     final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short single.xml").toString());
+        new StreamSource(XmlTransformerTests.class.getResource("Article/One author.xml").toString());
     final String expected = Files.readString(
-        Path.of(XmlTransformerTests.class.getResource("transformed single.txt").toURI()));
+        Path.of(XmlTransformerTests.class.getResource("Article/One author.txt").toURI()));
     TransformerImpl transformer = (TransformerImpl) factory.newTransformer(style);
     ErrorListener listener = Mockito.mock(ErrorListener.class);
     /* https://saxonica.plan.io/issues/6685 */
@@ -110,11 +110,11 @@ public class JavaTransformerTests {
 
     TransformerFactoryImpl factory = new net.sf.saxon.TransformerFactoryImpl();
     final StreamSource style = new StreamSource(
-        XmlTransformerTests.class.getResource("short messaging terminate.xsl").toString());
+        XmlTransformerTests.class.getResource("Article/Messaging terminate.xsl").toString());
     final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short single.xml").toString());
+        new StreamSource(XmlTransformerTests.class.getResource("Article/One author.xml").toString());
     final String expected = Files.readString(
-        Path.of(XmlTransformerTests.class.getResource("transformed single.txt").toURI()));
+        Path.of(XmlTransformerTests.class.getResource("Article/One author.txt").toURI()));
     TransformerImpl transformer = (TransformerImpl) factory.newTransformer(style);
     ErrorListener listener = Mockito.mock(ErrorListener.class);
     @SuppressWarnings("unchecked")
@@ -154,11 +154,11 @@ public class JavaTransformerTests {
 
     TransformerFactory factory = KnownFactory.XALAN.factory();
     final StreamSource style =
-        new StreamSource(XmlTransformerTests.class.getResource("short messaging.xsl").toString());
+        new StreamSource(XmlTransformerTests.class.getResource("Article/Messaging.xsl").toString());
     final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("short single.xml").toString());
+        new StreamSource(XmlTransformerTests.class.getResource("Article/One author.xml").toString());
     final String expected = Files.readString(
-        Path.of(XmlTransformerTests.class.getResource("transformed single.txt").toURI()));
+        Path.of(XmlTransformerTests.class.getResource("Article/One author.txt").toURI()));
     Transformer transformer = factory.newTransformer(style);
     ErrorListener listener = Mockito.mock(ErrorListener.class);
     transformer.setErrorListener(listener);
@@ -213,7 +213,7 @@ public class JavaTransformerTests {
     final StreamSource sourceOneline = new StreamSource(
         XmlTransformerTests.class.getResource("short namespace oneline.xml").toString());
     final String expected = Files
-        .readString(Path.of(XmlTransformerTests.class.getResource("short namespace.xml").toURI()));
+        .readString(Path.of(XmlTransformerTests.class.getResource("Article ns/Title two authors.xml").toURI()));
     Transformer transformer = factory.newTransformer();
     transformer.setOutputProperty(OutputProperties.INDENT.localName(), "yes");
     ErrorListener listener = Mockito.mock(ErrorListener.class);
@@ -245,7 +245,7 @@ public class JavaTransformerTests {
     final StreamSource sourceOneline = new StreamSource(
         XmlTransformerTests.class.getResource("short namespace oneline.xml").toString());
     final String expected = Files
-        .readString(Path.of(XmlTransformerTests.class.getResource("short namespace.xml").toURI()));
+        .readString(Path.of(XmlTransformerTests.class.getResource("Article ns/Title two authors.xml").toURI()));
     Transformer transformer = factory.newTransformer();
     transformer.setOutputProperty(OutputProperties.INDENT.localName(), "yes");
     transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");

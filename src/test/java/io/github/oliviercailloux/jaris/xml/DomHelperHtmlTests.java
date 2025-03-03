@@ -39,7 +39,7 @@ class DomHelperHtmlTests {
   void testToStringDoc() throws Exception {
     initDoc();
     final String expected =
-        Files.readString(Path.of(getClass().getResource("simple.xhtml").toURI()));
+        Files.readString(Path.of(getClass().getResource("To sort/simple.xhtml").toURI()));
     assertEquals(expected, DomHelper.domHelper().toString(document));
   }
 
@@ -47,7 +47,7 @@ class DomHelperHtmlTests {
   void testToStringNode() throws Exception {
     initDoc();
     final String expected =
-        Files.readString(Path.of(getClass().getResource("partial.xml").toURI()));
+        Files.readString(Path.of(getClass().getResource("To sort/partial.xml").toURI()));
     assertEquals(expected, DomHelper.domHelper().toString(head));
   }
 
