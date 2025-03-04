@@ -53,11 +53,6 @@ public class DomHelper {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(DomHelper.class);
 
-  /**
-   * The <a href="https://infra.spec.whatwg.org/#html-namespace">HTML namespace</a> URI, defined as
-   * {@code http://www.w3.org/1999/xhtml}.
-   */
-  public static final URI HTML_NS_URI = URI.create("http://www.w3.org/1999/xhtml");
 
   /**
    * Initializes and returns the DOM helper service.
@@ -219,22 +214,28 @@ public class DomHelper {
   private LSSerializer ser;
 
   private LSParser deser;
-
-  private DomHelper(DOMImplementationLS implLs, DOMImplementation implXml) {
-    this.implLs = checkNotNull(implLs);
-    this.implXml = checkNotNull(implXml);
-    ser = null;
-    deser = null;
+  
+    private boolean withDeclaration;
+  
+    private DomHelper(DOMImplementationLS implLs, DOMImplementation implXml) {
+      this.implLs = checkNotNull(implLs);
+      this.implXml = checkNotNull(implXml);
+      ser = null;
+      deser = null;
+      withDeclaration = true;
+    }
+  
+    public void writeXmlDeclaration(@SuppressWarnings("hiding") boolean withDeclaration) {
+      this.withDeclaration = withDeclaration;
   }
 
   /**
    * Creates a new HTML DOM Document, containing only the HTML document element.
    *
-   * @return a new {@code Document} object with a document element having namespace
-   *         {@link #HTML_NS_URI} and name “{@code html}”.
+   * @return a new {@code Document} object with a document element having name “{@code html}”.
    */
   public Document html() {
-    return createDocument(new QName(HTML_NS_URI.toString(), "html"));
+    return createDocument(XmlName.localName("html").toQName());
   }
 
   /**
@@ -424,6 +425,7 @@ public class DomHelper {
   public String toString(Node node) {
     checkNotNull(node);
     lazyInitSer();
+    ser.getDomConfig().setParameter("xml-declaration", withDeclaration);
     final StringWriter writer = new StringWriter();
     final LSOutput output = implLs.createLSOutput();
     output.setEncoding(StandardCharsets.UTF_8.name());

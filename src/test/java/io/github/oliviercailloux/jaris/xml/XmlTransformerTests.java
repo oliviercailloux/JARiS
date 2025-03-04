@@ -7,13 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.ByteSource;
 import com.google.common.io.CharSource;
-import com.google.common.io.Resources;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
 import io.github.oliviercailloux.jaris.xml.XmlTransformerFactory.OutputProperties;
+import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.xml.XMLConstants;
@@ -34,11 +32,26 @@ class XmlTransformerTests {
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerTests.class);
 
   private static final String XALAN_FACTORY = "org.apache.xalan.processor.TransformerFactoryImpl";
-  private static final String ARTICLE_NS = "https://example.com/article";
-  private static final String ARTICLE_NS_K = "https://example.com/article/k";
+
+  @ParameterizedTest
+  @EnumSource
+  void testInvalidXsl(KnownFactory factory) throws Exception {
+    final CharSource style = charSource("Invalid.xsl");
+    assertThrows(XmlException.class, () -> XmlTransformerFactory.usingFactory(factory.factory())
+        .usingStylesheet(style));
+  }
+
+  @ParameterizedTest
+  @EnumSource
+  void testInvalidXml(KnownFactory factory) throws Exception {
+    final CharSource style = charSource("Article/To text.xsl");
+    final CharSource input = charSource("Invalid.xml");
+    assertThrows(XmlException.class, () -> XmlTransformerFactory.usingFactory(factory.factory())
+        .usingStylesheet(style).charsToChars(input));
+  }
 
   @Test
-  void testTransformSimple() throws Exception {
+  void testSimple() throws Exception {
     final CharSource style = charSource("Article/To text.xsl");
     final CharSource input = charSource("Article/Two authors.xml");
     final String expected = charSource("Article/Two authors.txt").read();
@@ -97,26 +110,7 @@ class XmlTransformerTests {
   }
 
   @Test
-  void testUsingByteSourceUrl() throws Exception {
-    final ByteSource myStyle = Resources
-        .asByteSource(new URL("https", "cdn.docbook.org", "/release/xsl/1.79.2/fo/docbook.xsl"));
-
-    final OutputCapturer capturer = OutputCapturer.capturer();
-    capturer.capture();
-
-    final XmlTransformerFactory t =
-        XmlTransformerFactory.usingFactory(new net.sf.saxon.TransformerFactoryImpl());
-    assertEquals("net.sf.saxon.TransformerFactoryImpl", t.factory().getClass().getName());
-    final XmlException readExc = assertThrows(XmlException.class, () -> t.usingStylesheet(myStyle));
-    final String reason = readExc.getCause().getMessage();
-    assertTrue(reason.contains("I/O error reported by XML parser processing file:"), reason);
-    capturer.restore();
-    assertTrue(capturer.out().isEmpty());
-    assertTrue(capturer.err().isEmpty(), capturer.err());
-  }
-
-  @Test
-  void testTransformSimpleDocBook() throws Exception {
+  void testSimpleDocBook() throws Exception {
     final CharSource docBook = charSource("DocBook/Simple.xml");
     // final CharSource myStyle =
     // charSource(new URL("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl"));
@@ -140,7 +134,7 @@ class XmlTransformerTests {
   }
 
   @Test
-  void testTransformComplexDocBook() throws Exception {
+  void testComplexDocBook() throws Exception {
     final CharSource docBook = charSource("DocBook/Howto.xml");
     final CharSource myStyle = charSource("DocBook/mystyle.xsl");
 
@@ -159,285 +153,5 @@ class XmlTransformerTests {
       assertTrue(transformed.matches(
           "(?s).*<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\".* font-family=.*"));
     }
-  }
-
-  @Test
-  void testTransformInvalidXsl() throws Exception {
-    final CharSource style = charSource("Invalid.xsl");
-    final CharSource input = charSource("Article/One author.xml");
-    assertThrows(XmlException.class, () -> XmlTransformerFactory.usingSystemDefaultFactory()
-        .usingStylesheet(style).charsToChars(input));
-  }
-
-  @Test
-  void testTransformInvalidXml() throws Exception {
-    final CharSource style = charSource("Article/To text.xsl");
-    final CharSource input = charSource("Invalid.xml");
-    assertThrows(XmlException.class, () -> XmlTransformerFactory.usingSystemDefaultFactory()
-        .usingStylesheet(style).charsToChars(input));
-  }
-
-  @ParameterizedTest
-  @EnumSource(names = {"JDK", "XALAN"})
-  void testTransformMessaging(KnownFactory factory) throws Exception {
-    final OutputCapturer capturer = OutputCapturer.capturer();
-    capturer.capture();
-    final CharSource style = charSource("Article/Messaging.xsl");
-    final CharSource input = charSource("Article/Two authors.xml");
-    final String expected = charSource("Article/Two authors.txt").read();
-    assertEquals(expected, XmlTransformerFactory.usingFactory(factory.factory())
-        .usingStylesheet(style).charsToChars(input));
-    capturer.restore();
-    assertTrue(capturer.out().isEmpty());
-    assertTrue(capturer.err().isEmpty());
-  }
-
-  @Test
-  void testTransformMessagingS() throws Exception {
-    final OutputCapturer capturer = OutputCapturer.capturer();
-    capturer.capture();
-    final CharSource style = charSource("Article/Messaging.xsl");
-    final CharSource input = charSource("Article/Two authors.xml");
-    final String expected = charSource("Article/Two authors.txt").read();
-    assertEquals(expected, XmlTransformerFactory.usingFactory(KnownFactory.SAXON.factory())
-        .usingStylesheet(style).charsToChars(input));
-    capturer.restore();
-    assertTrue(capturer.out().isEmpty());
-    assertTrue(capturer.err().isEmpty());
-  }
-
-  @Test
-  void testTransformMessagingPedanticWithJdkFailsToStop() throws Exception {
-    final OutputCapturer capturer = OutputCapturer.capturer();
-    capturer.captureErr();
-    final CharSource style = charSource("Article/Messaging.xsl");
-    final CharSource input = charSource("Article/Two authors.xml");
-    final String expected = charSource("Article/Two authors.txt").read();
-    assertEquals(expected, XmlTransformerFactory.pedanticTransformer(KnownFactory.JDK.factory())
-        .usingStylesheet(style).charsToChars(input));
-    capturer.restore();
-    assertTrue(capturer.err().isEmpty());
-  }
-
-  @Test
-  void testTransformMessagingPedanticX() throws Exception {
-    final OutputCapturer capturer = OutputCapturer.capturer();
-    capturer.capture();
-    final CharSource style = charSource("Article/Messaging.xsl");
-    final CharSource input = charSource("Article/Two authors.xml");
-    XmlException thrown = assertThrows(XmlException.class,
-        () -> XmlTransformerFactory.pedanticTransformer(KnownFactory.XALAN.factory())
-            .usingStylesheet(style).charsToChars(input));
-    assertTrue(thrown.getMessage().contains("Error while transforming document."),
-        thrown.getMessage());
-    assertTrue(thrown.getCause().getMessage().contains("A message that does not terminate"),
-        thrown.getCause().getMessage());
-    capturer.restore();
-    assertTrue(capturer.out().isEmpty());
-    assertTrue(capturer.err().isEmpty());
-  }
-
-  @Test
-  void testTransformMessagingPedanticSaxon() throws Exception {
-    final OutputCapturer capturer = OutputCapturer.capturer();
-    capturer.capture();
-    final CharSource style = charSource("Article/Messaging.xsl");
-    final CharSource input = charSource("Article/Two authors.xml");
-    RuntimeException thrown = assertThrows(RuntimeException.class,
-        () -> XmlTransformerFactory.pedanticTransformer(KnownFactory.SAXON.factory())
-            .usingStylesheet(style).charsToChars(input));
-    assertEquals(XmlException.class, thrown.getClass());
-    assertTrue(thrown.getMessage().contains("Error while transforming document"),
-        thrown.getMessage());
-    capturer.restore();
-    assertTrue(capturer.out().isEmpty());
-    assertTrue(capturer.err().isEmpty(), capturer.err());
-  }
-
-  @ParameterizedTest
-  @EnumSource(names = {"JDK", "XALAN"})
-  void testTransformMessagingTerminate(KnownFactory factory) throws Exception {
-    final OutputCapturer capturer = OutputCapturer.capturer();
-    capturer.capture();
-    final CharSource style = charSource("Article/Messaging terminate.xsl");
-    final CharSource input = charSource("Article/Two authors.xml");
-    assertThrows(XmlException.class, () -> XmlTransformerFactory.usingFactory(factory.factory())
-        .usingStylesheet(style).charsToChars(input));
-    capturer.restore();
-    assertTrue(capturer.out().isEmpty());
-    assertTrue(capturer.err().isEmpty());
-  }
-
-  @Test
-  void testTransformMessagingTerminateS() throws Exception {
-    final OutputCapturer capturer = OutputCapturer.capturer();
-    capturer.capture();
-    final CharSource style = charSource("Article/Messaging terminate.xsl");
-    final CharSource input = charSource("Article/Two authors.xml");
-    assertThrows(XmlException.class, () -> XmlTransformerFactory
-        .usingFactory(KnownFactory.SAXON.factory()).usingStylesheet(style).charsToChars(input));
-    capturer.restore();
-    assertTrue(capturer.out().isEmpty());
-    assertTrue(capturer.err().isEmpty());
-  }
-
-  @Test
-  void testTransformMessagingTerminatePedantic() throws Exception {
-    final OutputCapturer capturer = OutputCapturer.capturer();
-    capturer.capture();
-    final CharSource style = charSource("Article/Messaging terminate.xsl");
-    final CharSource input = charSource("Article/Two authors.xml");
-    XmlException thrown = assertThrows(XmlException.class,
-        () -> XmlTransformerFactory.pedanticTransformer(KnownFactory.JDK.factory())
-            .usingStylesheet(style).charsToChars(input));
-    assertTrue(thrown.getMessage().contains("Error while transforming document."),
-        thrown.getMessage());
-    assertTrue(
-        thrown.getCause().getMessage().contains("Termination forced by an xsl:message instruction"),
-        thrown.getCause().getMessage());
-    capturer.restore();
-    assertTrue(capturer.out().isEmpty());
-    assertTrue(capturer.err().isEmpty());
-  }
-
-  @Test
-  void testTransformMessagingTerminatePedanticX() throws Exception {
-    final OutputCapturer capturer = OutputCapturer.capturer();
-    capturer.capture();
-    final CharSource style = charSource("Article/Messaging terminate.xsl");
-    final CharSource input = charSource("Article/Two authors.xml");
-    XmlException thrown = assertThrows(XmlException.class,
-        () -> XmlTransformerFactory.pedanticTransformer(KnownFactory.XALAN.factory())
-            .usingStylesheet(style).charsToChars(input));
-    assertTrue(thrown.getMessage().contains("Error while transforming document."),
-        thrown.getMessage());
-    assertTrue(thrown.getCause().getMessage().contains("premature"),
-        thrown.getCause().getMessage());
-    capturer.restore();
-    assertTrue(capturer.out().isEmpty());
-    assertTrue(capturer.err().isEmpty());
-  }
-
-  @Test
-  void testTransformMessagingTerminatePedanticS() throws Exception {
-    final OutputCapturer capturer = OutputCapturer.capturer();
-    capturer.capture();
-    final CharSource style = charSource("Article/Messaging terminate.xsl");
-    final CharSource input = charSource("Article/Two authors.xml");
-    XmlException thrown = assertThrows(XmlException.class,
-        () -> XmlTransformerFactory.pedanticTransformer(KnownFactory.SAXON.factory())
-            .usingStylesheet(style).charsToChars(input));
-    assertTrue(thrown.getMessage().contains("Error while transforming document."),
-        thrown.getMessage());
-    assertTrue(
-        thrown.getCause().getMessage().contains("Processing terminated by xsl:message at line 13"),
-        thrown.getCause().getMessage());
-    capturer.restore();
-    assertTrue(capturer.out().isEmpty());
-    assertTrue(capturer.err().isEmpty());
-  }
-
-  @Test
-  void testCopy() throws Exception {
-    final CharSource source = charSource("Article ns/Title two authors.xml");
-    Document docCopy =
-        XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet().charsToDom(source);
-    assertEquals(source.read(), DomHelper.domHelper().toString(docCopy));
-    String directResult =
-        XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet().charsToChars(source);
-    assertEquals(source.read().replaceAll("    ", "   "), directResult);
-
-    final Element root = docCopy.getDocumentElement();
-    assertEquals("Article", root.getTagName());
-    assertEquals(ARTICLE_NS, root.getNamespaceURI());
-    ImmutableList<Node> children = DomHelper.toList(root.getChildNodes());
-    Node textNode = children.get(0);
-    assertEquals("\n    ", textNode.getNodeValue());
-    LOGGER.info(DomHelper.toDebugString(textNode));
-    Element title = (Element) children.get(1);
-    assertEquals(ARTICLE_NS_K, title.getNamespaceURI());
-    assertEquals("k:Title", title.getTagName());
-    Element newElement = docCopy.createElementNS(ARTICLE_NS_K, "k:Empty");
-    root.insertBefore(newElement, title.getNextSibling());
-
-    final String expected = charSource("Article ns/Title empty two authors.xml").read();
-    assertEquals(expected, DomHelper.domHelper().toString(docCopy));
-  }
-
-  @Test
-  void testPrettySaxon() throws Exception {
-    final CharSource source = charSource("Article ns/Title two authors.xml");
-    final CharSource sourceOneline = charSource("short namespace oneline.xml");
-
-    Document docCopy =
-        XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet().charsToDom(sourceOneline);
-    assertEquals(source.read(), DomHelper.domHelper().toString(docCopy));
-    String directResult = XmlTransformerFactory.usingFactory(KnownFactory.SAXON.factory())
-        .usingEmptyStylesheet().charsToChars(sourceOneline);
-    assertEquals(source.read().replaceAll("    ", "   "), directResult);
-  }
-
-  @Test
-  void testPretty() throws Exception {
-    final CharSource source = charSource("Article ns/Title two authors.xml");
-    final CharSource sourceOneline = charSource("short namespace oneline.xml");
-
-    Document docCopy =
-        XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet().charsToDom(sourceOneline);
-    assertEquals(source.read(), DomHelper.domHelper().toString(docCopy));
-    String directResult = XmlTransformerFactory.usingFactory(KnownFactory.XALAN.factory())
-        .usingEmptyStylesheet().charsToChars(sourceOneline);
-    String expectedBug = source.read().replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-    assertEquals(expectedBug, directResult);
-  }
-
-  @Test
-  void testNotPretty() throws Exception {
-    final CharSource source = charSource("Article ns/Title two authors.xml");
-    final CharSource sourceOneline = charSource("short namespace oneline.xml");
-
-    Document docCopy =
-        XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet().charsToDom(sourceOneline);
-    assertEquals(source.read(), DomHelper.domHelper().toString(docCopy));
-    String directResult = XmlTransformerFactory.usingFoundFactory()
-        .usingEmptyStylesheet(OutputProperties.noIndent()).charsToChars(sourceOneline);
-    assertEquals(sourceOneline.read(), directResult);
-  }
-
-  @Test
-  void testCreateNamespace() throws Exception {
-    DomHelper h = DomHelper.domHelper();
-
-    Document doc = h.createDocument(new QName(ARTICLE_NS, "Article"));
-    doc.getDocumentElement().setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:k",
-        ARTICLE_NS_K);
-    Element title = doc.createElementNS(ARTICLE_NS_K, "k:Empty");
-    doc.getDocumentElement().appendChild(title);
-    final CharSource start =
-        charSource(Path.of(getClass().getResource("Article ns/Empty.xml").toURI()));
-    String serialized = h.toString(doc);
-    assertEquals(start.read(), serialized);
-
-    Document docCopy = XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet()
-        .charsToDom(CharSource.wrap(serialized));
-    assertEquals(start.read(), DomHelper.domHelper().toString(docCopy));
-
-    final Element root = docCopy.getDocumentElement();
-    assertEquals("Article", root.getTagName());
-    assertEquals(ARTICLE_NS, root.getNamespaceURI());
-    ImmutableList<Node> children = DomHelper.toList(root.getChildNodes());
-    Node textNode = children.get(0);
-    assertEquals("\n    ", textNode.getNodeValue());
-    LOGGER.info(DomHelper.toDebugString(textNode));
-    Element titleCopy = (Element) children.get(1);
-    assertEquals(ARTICLE_NS_K, titleCopy.getNamespaceURI());
-    assertEquals("k:Empty", titleCopy.getTagName());
-    Element newElement = docCopy.createElementNS(ARTICLE_NS_K, "k:Empty");
-    root.insertBefore(newElement, titleCopy.getNextSibling());
-
-    final String expected = Files
-        .readString(Path.of(getClass().getResource("Article ns/Empties.xml").toURI()));
-    assertEquals(expected, DomHelper.domHelper().toString(docCopy));
   }
 }

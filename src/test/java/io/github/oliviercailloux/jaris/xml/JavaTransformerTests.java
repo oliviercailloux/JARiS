@@ -43,28 +43,6 @@ public class JavaTransformerTests {
   }
 
   @Test
-  public void testSaxonSpits() throws Exception {
-    final OutputCapturer capturer = OutputCapturer.capturer();
-    capturer.capture();
-
-    // https://saxonica.plan.io/boards/3/topics/9906
-    TransformerFactoryImpl factory = new TransformerFactoryImpl();
-    final StreamSource style = new StreamSource();
-    style.setPublicId(
-        new URL("https", "cdn.docbook.org", "/release/xsl/1.79.2/fo/docbook.xsl").toString());
-    final TransformerConfigurationException readExc =
-        assertThrows(TransformerConfigurationException.class, () -> factory.newTransformer(style));
-    assertEquals(
-        "net.sf.saxon.s9api.SaxonApiException: I/O error reported by XML parser processing null",
-        readExc.getMessage());
-
-    capturer.restore();
-    assertTrue(capturer.out().isEmpty(), capturer.out());
-    assertTrue(capturer.err().contains("I/O error reported by XML parser processing null"),
-        capturer.err());
-  }
-
-  @Test
   public void testSaxonMessageNonTerminating() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
@@ -223,11 +201,7 @@ public class JavaTransformerTests {
     final StreamResult result = new StreamResult(resultWriter);
     transformer.transform(sourceOneline, result);
     String expectedOnLeftMargin = expected.replaceAll("    ", "");
-    /* Seems to be a bug in XALAN. */
-    String expectedBug =
-        expectedOnLeftMargin.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-    assertEquals(expectedBug, resultWriter.toString());
+    assertEquals(expectedOnLeftMargin, XmlDeclarationCorrector.terminateXmlDeclaration(resultWriter.toString()));
 
     capturer.restore();
     assertTrue(capturer.out().isEmpty(), capturer.out());
@@ -255,9 +229,7 @@ public class JavaTransformerTests {
     final StringWriter resultWriter = new StringWriter();
     final StreamResult result = new StreamResult(resultWriter);
     transformer.transform(sourceOneline, result);
-    String expectedBug = expected.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-    assertEquals(expectedBug, resultWriter.toString());
+    assertEquals(expected, XmlDeclarationCorrector.terminateXmlDeclaration(resultWriter.toString()));
 
     capturer.restore();
     assertTrue(capturer.out().isEmpty(), capturer.out());

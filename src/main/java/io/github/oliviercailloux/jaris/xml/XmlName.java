@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.net.URI;
 import java.util.Optional;
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
 /**
@@ -46,7 +47,11 @@ public record XmlName (Optional<URI> namespace, String localName) {
   }
 
   public QName toQName() {
-    return new QName(namespace.map(Object::toString).orElse(null), localName);
+    return withPrefix(XMLConstants.DEFAULT_NS_PREFIX);
+  }
+
+  public QName withPrefix(String prefix) {
+    return new QName(namespace.map(Object::toString).orElse(null), localName, prefix);
   }
 
   /**
