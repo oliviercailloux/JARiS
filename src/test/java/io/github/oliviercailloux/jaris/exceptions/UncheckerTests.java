@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.oliviercailloux.jaris.throwing.TSupplier;
 import java.sql.SQLException;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
@@ -52,7 +53,8 @@ class UncheckerTests {
   void testSupplierDoesNotThrow() {
     final Unchecker<SQLException, IllegalStateException> unchecker =
         Unchecker.wrappingWith(IllegalStateException::new);
-    assertEquals(4, unchecker.getUsing(UncheckerTests::supplierNotThrowing));
+    TSupplier<Integer, SQLException> supplier = UncheckerTests::supplierNotThrowing;
+    assertEquals(4, unchecker.getUsing(supplier));
   }
 
   @Test

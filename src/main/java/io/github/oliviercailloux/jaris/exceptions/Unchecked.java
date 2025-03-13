@@ -12,7 +12,7 @@ public interface Unchecked<X extends Exception, Y extends Exception> {
    * @param runnable the runnable to call
    * @throws Y if the runnable throws a checked exception, or an unchecked exception of type Y
    */
-  public void call(TRunnable<X> runnable) throws Y;
+  public void call(TRunnable<? extends X> runnable) throws Y;
 
   /**
    * Attempts to get and return a result from the given supplier; if the supplier throws a checked
@@ -24,5 +24,5 @@ public interface Unchecked<X extends Exception, Y extends Exception> {
    * @return the result obtained from the supplier
    * @throws Y if the supplier throws a checked exception, or an unchecked exception of type Y
    */
-  public <T> T getUsing(TSupplier<T, ? extends X> supplier) throws Y;
+  public <T> T getUsing(TSupplier<? extends T, ? extends X> supplier) throws Y;
 }

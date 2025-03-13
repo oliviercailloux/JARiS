@@ -15,7 +15,7 @@ class UncheckedImpl<X extends Exception, Y extends Exception> implements Uncheck
   }
 
   @Override
-  public void call(TRunnable<X> runnable) throws Y {
+  public void call(TRunnable<? extends X> runnable) throws Y {
     try {
       runnable.run();
     } catch (RuntimeException e) {
@@ -28,7 +28,7 @@ class UncheckedImpl<X extends Exception, Y extends Exception> implements Uncheck
   }
 
   @Override
-  public <T> T getUsing(TSupplier<T, ? extends X> supplier) throws Y {
+  public <T> T getUsing(TSupplier<? extends T, ? extends X> supplier) throws Y {
     try {
       return supplier.get();
     } catch (RuntimeException e) {
