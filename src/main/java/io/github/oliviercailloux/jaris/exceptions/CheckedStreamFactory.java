@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 public class CheckedStreamFactory<X extends Exception> {
-  static <X extends Exception> CheckedStreamFactory<X> instance() {
+  public static <X extends Exception> CheckedStreamFactory<X> instance() {
     return new CheckedStreamFactory<>();
   }
 
