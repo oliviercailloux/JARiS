@@ -93,7 +93,7 @@ class CheckedStreamTests {
   @Test
   void testSpecify() throws IOException {
     // CheckedStream<Integer, IOException> distinct = CheckedStream.<Integer, IOException>wrapping(ImmutableList.of(1, 2, 1, 4).stream()).filter(CheckedStreamTests::oneOrFalse).distinct();
-    CheckedStream<Integer, IOException> distinct = CheckedStream.<IOException>specify().wrapping(ImmutableList.of(1, 2, 1, 4).stream()).filter(CheckedStreamTests::oneOrFalse).distinct();
+    CheckedStream<Integer, IOException> distinct = CheckedStream.wrapping(ImmutableList.of(1, 2, 1, 4).stream()).<IOException>specify().filter(CheckedStreamTests::oneOrFalse).distinct();
     assertEquals(ImmutableList.of(1), distinct.collect(ImmutableList.toImmutableList()));
   }
 

@@ -71,6 +71,14 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   }
 
   @Override
+  public <Y extends X> CheckedStream<T, Y> specify() {
+    checkState(pure, "This stream is not pure.");
+    @SuppressWarnings("unchecked")
+    final CheckedStream<T, Y> casted = (CheckedStream<T, Y>) this;
+    return casted;
+  }
+
+  @Override
   public CheckedStreamImpl<T, X> distinct() {
     return new CheckedStreamImpl<>(delegate.distinct(), pure);
   }
