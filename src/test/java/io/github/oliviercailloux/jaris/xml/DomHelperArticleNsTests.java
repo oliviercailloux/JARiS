@@ -50,8 +50,7 @@ public class DomHelperArticleNsTests {
 
   @Test
   void testNamespace() throws Exception {
-    final String source =
-    Resourcer.charSource("Article ns/Title two authors.xml").read();
+    final String source = Resourcer.charSource("Article ns/Title two authors.xml").read();
     final Document articleDoc =
         DomHelper.domHelper().asDocument(new StreamSource(new StringReader(source)));
     final Element root = articleDoc.getDocumentElement();
@@ -76,8 +75,7 @@ public class DomHelperArticleNsTests {
 
     Element newElement = articleDoc.createElementNS(ARTICLE_NS_K, "k:Empty");
     root.insertBefore(newElement, title.getNextSibling());
-    final String expected =
-    Resourcer.charSource("Article ns/Title empty two authors.xml").read();
+    final String expected = Resourcer.charSource("Article ns/Title empty two authors.xml").read();
     String expanded = DomHelper.domHelper().toString(articleDoc);
     assertEquals(expected, expanded);
   }

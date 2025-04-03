@@ -53,7 +53,6 @@ public class DomHelper {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(DomHelper.class);
 
-
   /**
    * Initializes and returns the DOM helper service.
    * <p>
@@ -214,19 +213,19 @@ public class DomHelper {
   private LSSerializer ser;
 
   private LSParser deser;
-  
-    private boolean withDeclaration;
-  
-    private DomHelper(DOMImplementationLS implLs, DOMImplementation implXml) {
-      this.implLs = checkNotNull(implLs);
-      this.implXml = checkNotNull(implXml);
-      ser = null;
-      deser = null;
-      withDeclaration = true;
-    }
-  
-    public void writeXmlDeclaration(@SuppressWarnings("hiding") boolean withDeclaration) {
-      this.withDeclaration = withDeclaration;
+
+  private boolean withDeclaration;
+
+  private DomHelper(DOMImplementationLS implLs, DOMImplementation implXml) {
+    this.implLs = checkNotNull(implLs);
+    this.implXml = checkNotNull(implXml);
+    ser = null;
+    deser = null;
+    withDeclaration = true;
+  }
+
+  public void writeXmlDeclaration(@SuppressWarnings("hiding") boolean withDeclaration) {
+    this.withDeclaration = withDeclaration;
   }
 
   /**

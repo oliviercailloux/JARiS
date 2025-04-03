@@ -1,7 +1,6 @@
 package io.github.oliviercailloux.jaris.xml;
 
 import static io.github.oliviercailloux.jaris.xml.Resourcer.charSource;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -125,9 +124,8 @@ public class XmlTransformerCaptureTests {
     capturer.capture();
     final CharSource style = charSource("Article/Messaging terminate.xsl");
     final CharSource input = charSource("Article/Two authors.xml");
-    XmlException thrown = assertThrows(XmlException.class,
-        () -> XmlTransformerFactory.pedanticTransformer(factory.factory())
-            .usingStylesheet(style).charsToChars(input));
+    XmlException thrown = assertThrows(XmlException.class, () -> XmlTransformerFactory
+        .pedanticTransformer(factory.factory()).usingStylesheet(style).charsToChars(input));
     assertTrue(thrown.getMessage().contains("Error while transforming document."),
         thrown.getMessage());
     String contained = switch (factory) {
@@ -135,9 +133,7 @@ public class XmlTransformerCaptureTests {
       case XALAN -> "premature";
       case SAXON -> "Processing terminated by xsl:message at line 13";
     };
-    assertTrue(
-        thrown.getCause().getMessage().contains(contained),
-        thrown.getCause().getMessage());
+    assertTrue(thrown.getCause().getMessage().contains(contained), thrown.getCause().getMessage());
     capturer.restore();
     assertTrue(capturer.out().isEmpty());
     assertTrue(capturer.err().isEmpty());

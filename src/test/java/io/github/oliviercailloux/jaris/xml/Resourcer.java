@@ -26,7 +26,8 @@ public class Resourcer {
   }
 
   public static String titleTwoAuthorsOneLine() throws IOException {
-    String textOneLine = charSource("Article ns/Title two authors.xml").read().replaceAll("(?m)^\\h+", "").replaceAll("\n", "");
+    String textOneLine = charSource("Article ns/Title two authors.xml").read()
+        .replaceAll("(?m)^\\h+", "").replaceAll("\n", "");
     assertTrue(textOneLine.contains("</k:Title><Authors><Author>Mr. Foo"), textOneLine);
     return textOneLine;
   }

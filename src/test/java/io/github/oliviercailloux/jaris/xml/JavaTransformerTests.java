@@ -50,8 +50,8 @@ public class JavaTransformerTests {
     TransformerFactoryImpl factory = new net.sf.saxon.TransformerFactoryImpl();
     final StreamSource style =
         new StreamSource(XmlTransformerTests.class.getResource("Article/Messaging.xsl").toString());
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("Article/One author.xml").toString());
+    final StreamSource input = new StreamSource(
+        XmlTransformerTests.class.getResource("Article/One author.xml").toString());
     final String expected = Files.readString(
         Path.of(XmlTransformerTests.class.getResource("Article/One author.txt").toURI()));
     TransformerImpl transformer = (TransformerImpl) factory.newTransformer(style);
@@ -89,8 +89,8 @@ public class JavaTransformerTests {
     TransformerFactoryImpl factory = new net.sf.saxon.TransformerFactoryImpl();
     final StreamSource style = new StreamSource(
         XmlTransformerTests.class.getResource("Article/Messaging terminate.xsl").toString());
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("Article/One author.xml").toString());
+    final StreamSource input = new StreamSource(
+        XmlTransformerTests.class.getResource("Article/One author.xml").toString());
     final String expected = Files.readString(
         Path.of(XmlTransformerTests.class.getResource("Article/One author.txt").toURI()));
     TransformerImpl transformer = (TransformerImpl) factory.newTransformer(style);
@@ -133,8 +133,8 @@ public class JavaTransformerTests {
     TransformerFactory factory = KnownFactory.XALAN.factory();
     final StreamSource style =
         new StreamSource(XmlTransformerTests.class.getResource("Article/Messaging.xsl").toString());
-    final StreamSource input =
-        new StreamSource(XmlTransformerTests.class.getResource("Article/One author.xml").toString());
+    final StreamSource input = new StreamSource(
+        XmlTransformerTests.class.getResource("Article/One author.xml").toString());
     final String expected = Files.readString(
         Path.of(XmlTransformerTests.class.getResource("Article/One author.txt").toURI()));
     Transformer transformer = factory.newTransformer(style);
