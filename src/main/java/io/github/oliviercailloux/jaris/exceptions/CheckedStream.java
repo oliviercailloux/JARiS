@@ -59,6 +59,10 @@ import java.util.stream.Stream;
  */
 public interface CheckedStream<T, X extends Exception> {
 
+  // public static <X extends Exception> CheckedStreamFactory<X> specify() {
+  //   return CheckedStreamFactory.instance();
+  // }
+
   /**
    * Returns a checked stream wrapping the given stream.
    * <p>
@@ -117,6 +121,8 @@ public interface CheckedStream<T, X extends Exception> {
     return CheckedStreamImpl.generate(generator);
   }
 
+  public <Y extends X> CheckedStream<T, Y> specify();
+  
   /**
    * Returns a checked stream consisting of the distinct elements (according to
    * {@link Object#equals(Object)}) of this stream.

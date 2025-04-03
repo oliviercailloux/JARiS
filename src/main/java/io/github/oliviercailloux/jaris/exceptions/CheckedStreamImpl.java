@@ -1,6 +1,7 @@
 package io.github.oliviercailloux.jaris.exceptions;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableList;
 import io.github.oliviercailloux.jaris.throwing.TBiConsumer;
@@ -50,42 +51,54 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
       Unchecker.wrappingWith(InternalException::new);
 
   public static <T, X extends Exception> CheckedStreamImpl<T, X> wrapping(Stream<T> delegate) {
-    return new CheckedStreamImpl<>(delegate);
+    return new CheckedStreamImpl<>(delegate, true);
   }
 
   public static <T, X extends Exception> CheckedStreamImpl<T, X>
       generate(TSupplier<? extends T, ? extends X> generator) {
     final Supplier<? extends T> wrapped = UNCHECKER.wrapSupplier(generator);
-    return new CheckedStreamImpl<>(Stream.generate(wrapped));
+    return new CheckedStreamImpl<>(Stream.generate(wrapped), false);
   }
 
+  /** If throws an InternalException, its underlying cause is an X. */
   private final Stream<T> delegate;
+  /** If pure, the delegate does not throw InternalException types. */
+  private boolean pure;
 
-  private CheckedStreamImpl(Stream<T> delegate) {
+  private CheckedStreamImpl(Stream<T> delegate, boolean pure) {
     this.delegate = checkNotNull(delegate);
+    this.pure = pure;
+  }
+
+  @Override
+  public <Y extends X> CheckedStream<T, Y> specify() {
+    checkState(pure, "This stream is not pure.");
+    @SuppressWarnings("unchecked")
+    final CheckedStream<T, Y> casted = (CheckedStream<T, Y>) this;
+    return casted;
   }
 
   @Override
   public CheckedStreamImpl<T, X> distinct() {
-    return new CheckedStreamImpl<>(delegate.distinct());
+    return new CheckedStreamImpl<>(delegate.distinct(), pure);
   }
 
   @Override
   public CheckedStreamImpl<T, X> dropWhile(TPredicate<? super T, ? extends X> predicate) {
     final Predicate<? super T> wrapped = UNCHECKER.wrapPredicate(predicate);
-    return new CheckedStreamImpl<>(delegate.dropWhile(wrapped));
+    return new CheckedStreamImpl<>(delegate.dropWhile(wrapped), false);
   }
 
   @Override
   public CheckedStreamImpl<T, X> takeWhile(TPredicate<? super T, ? extends X> predicate) {
     final Predicate<? super T> wrapped = UNCHECKER.wrapPredicate(predicate);
-    return new CheckedStreamImpl<>(delegate.takeWhile(wrapped));
+    return new CheckedStreamImpl<>(delegate.takeWhile(wrapped), false);
   }
 
   @Override
   public CheckedStreamImpl<T, X> filter(TPredicate<? super T, ? extends X> predicate) {
     final Predicate<? super T> wrapped = UNCHECKER.wrapPredicate(predicate);
-    return new CheckedStreamImpl<>(delegate.filter(wrapped));
+    return new CheckedStreamImpl<>(delegate.filter(wrapped), false);
   }
 
   @Override
@@ -93,34 +106,34 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
       flatMap(TFunction<? super T, ? extends Stream<? extends R>, ? extends X> mapper) {
     final Function<? super T, ? extends Stream<? extends R>> wrapped =
         UNCHECKER.wrapFunction(mapper);
-    return new CheckedStreamImpl<>(delegate.flatMap(wrapped));
+    return new CheckedStreamImpl<>(delegate.flatMap(wrapped), false);
   }
 
   @Override
   public CheckedStreamImpl<T, X> limit(long maxSize) {
-    return new CheckedStreamImpl<>(delegate.limit(maxSize));
+    return new CheckedStreamImpl<>(delegate.limit(maxSize), pure);
   }
 
   @Override
   public <R> CheckedStreamImpl<R, X> map(TFunction<? super T, ? extends R, ? extends X> mapper) {
     final Function<? super T, ? extends R> wrapped = UNCHECKER.wrapFunction(mapper);
-    return new CheckedStreamImpl<>(delegate.map(wrapped));
+    return new CheckedStreamImpl<>(delegate.map(wrapped), false);
   }
 
   @Override
   public CheckedStreamImpl<T, X> skip(long n) {
-    return new CheckedStreamImpl<>(delegate.skip(n));
+    return new CheckedStreamImpl<>(delegate.skip(n), pure);
   }
 
   @Override
   public CheckedStreamImpl<T, X> sorted() {
-    return new CheckedStreamImpl<>(delegate.sorted());
+    return new CheckedStreamImpl<>(delegate.sorted(), pure);
   }
 
   @Override
   public CheckedStreamImpl<T, X> sorted(TComparator<? super T, ? extends X> comparator) {
     final Comparator<? super T> wrapped = UNCHECKER.wrapComparator(comparator);
-    return new CheckedStreamImpl<>(delegate.sorted(wrapped));
+    return new CheckedStreamImpl<>(delegate.sorted(wrapped), false);
   }
 
   @Override
@@ -262,7 +275,7 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
   public CheckedStreamImpl<T, X> peek(TConsumer<? super T, ? extends X> action) throws X {
     final Consumer<? super T> wrapped = UNCHECKER.wrapConsumer(action);
     try {
-      return new CheckedStreamImpl<>(delegate.peek(wrapped));
+      return new CheckedStreamImpl<>(delegate.peek(wrapped), false);
     } catch (InternalException e) {
       final Exception cause = e.getCause();
       @SuppressWarnings("unchecked")
