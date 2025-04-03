@@ -109,4 +109,4 @@ String transformed = XmlTransformerFactory.usingFactory(KnownFactory.XALAN).usin
 
 == Nu validator
 I have some hopes of using the power of Nu validator to help with validation of HTML files (attempted https://github.com/oliviercailloux/JARiS/commit/a8bfc3d303d268ae844e95b99b0a63005f557050[here]), but this feature is currently blocked by https://github.com/validator/validator/issues/1504[this issue]. 
-Please give a thumbs up on that issue if this seems of interest.
+Please thumb that issue up if this seems of interest.
