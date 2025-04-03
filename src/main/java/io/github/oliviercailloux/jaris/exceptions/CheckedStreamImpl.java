@@ -59,6 +59,7 @@ class CheckedStreamImpl<T, X extends Exception> implements CheckedStream<T, X> {
     return new CheckedStreamImpl<>(Stream.generate(wrapped));
   }
 
+  /** If throws an InternalException, its underlying cause is an X. */
   private final Stream<T> delegate;
 
   private CheckedStreamImpl(Stream<T> delegate) {
