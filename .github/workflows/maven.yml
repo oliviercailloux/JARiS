@@ -8,17 +8,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v4
         with:
           java-version: 17
-      - name: Cache
-        uses: actions/cache@v2
-        with:
-          key: maven-cache-${{ hashFiles('**/pom.xml') }}
-          restore-keys: maven-cache
-          path: ~/.m2/repository
+          distribution: 'temurin'
+          cache: maven
       - name: Maven
         run: mvn -B verify
 
