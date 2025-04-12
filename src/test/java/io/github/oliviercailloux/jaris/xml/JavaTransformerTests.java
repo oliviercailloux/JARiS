@@ -6,15 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
-import io.github.oliviercailloux.jaris.xml.XmlTransformerFactory.OutputProperties;
 import java.io.StringWriter;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;

@@ -6,16 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
-import io.github.oliviercailloux.jaris.xml.XmlTransformerFactory.OutputProperties;
-import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
 import javax.xml.transform.TransformerFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,9 +17,6 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junitpioneer.jupiter.RestoreSystemProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 class XmlTransformerTests {
   @SuppressWarnings("unused")
