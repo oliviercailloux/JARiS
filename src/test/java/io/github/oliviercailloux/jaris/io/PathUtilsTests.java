@@ -1,13 +1,18 @@
 package io.github.oliviercailloux.jaris.io;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.MoreCollectors;
 import com.google.common.io.MoreFiles;
 import com.google.common.jimfs.Jimfs;
 import java.net.URI;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystem;
@@ -75,6 +80,32 @@ public class PathUtilsTests {
       assertEquals("cafebabe", Integer.toHexString(
           ByteBuffer.wrap(MoreFiles.asByteSource(p1.delegate()).slice(0, 4).read()).getInt()));
     }
+  }
+
+  @Test
+  public void testListClasspath() throws Exception {
+    URL cat = getClass().getResource("/io/github/oliviercailloux/docbook/catalog.xml");
+    assertNotNull(cat);
+    URI uri = cat.toURI();
+
+    CloseablePathFactory dot =
+        PathUtils.fromResource(getClass(), "/io/github/oliviercailloux/docbook/");
+    try (CloseablePath dotPath = dot.path()) {
+      assertNotNull(dotPath);
+      ImmutableSet<Path> content =
+          Files.list(dotPath.delegate()).collect(ImmutableSet.toImmutableSet());
+      ImmutableSet<URI> uris =
+          content.stream().map(Path::toUri).collect(ImmutableSet.toImmutableSet());
+          assertTrue(uris.stream().anyMatch(u -> u.toString().endsWith("catalog.xml")));
+          URI foundCatalog = uris.stream()
+              .filter(u -> u.toString().endsWith("catalog.xml")).collect(MoreCollectors.onlyElement());
+          LOGGER.info("Uris that end with: {}.", foundCatalog);
+              LOGGER.info("Uri: {}.", uri);
+              assertNotEquals(foundCatalog, uri);
+              assertTrue(foundCatalog.toString().startsWith("jar:file:///"));
+              assertTrue(uri.toString().startsWith("jar:file:/"));
+        }
+    assertThrows(FileSystemNotFoundException.class, () -> Path.of(uri));
   }
 
   @Test
