@@ -7,8 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
+import io.github.oliviercailloux.jaris.xml.XmlTransformerFactory.OutputProperties;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
@@ -18,10 +20,10 @@ import javax.xml.catalog.CatalogFeatures.Feature;
 import javax.xml.catalog.CatalogManager;
 import javax.xml.catalog.CatalogResolver;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junitpioneer.jupiter.RestoreSystemProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,10 +85,20 @@ class XmlTransformerTests {
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookStyleOthers(KnownFactory factory) throws Exception {
-    final URI myStyle =
-        Path.of("/usr/share/xml/docbook/stylesheet/docbook-xsl-ns/fo/docbook.xsl").toUri();
+    URL docbookCatalog = getClass().getResource("/io/github/oliviercailloux/docbook/catalog.xml");
+    Catalog catalog = CatalogManager
+        .catalog(CatalogFeatures.builder().with(Feature.RESOLVE, "continue").build(), docbookCatalog.toURI());
+    CatalogResolver resolver = CatalogManager.catalogResolver(catalog);
+    Source source =
+        resolver.resolve("http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl", "unused base");
+    TransformerFactory s = factory.factory();
+    s.setURIResolver(resolver);
+    XmlTransformerFactory f = XmlTransformerFactory.usingFactory(s);
+
+    // final URI myStyle =
+    //     Path.of("/usr/share/xml/docbook/stylesheet/docbook-xsl-ns/fo/docbook.xsl").toUri();
     assertDoesNotThrow(
-        () -> XmlTransformerFactory.usingFactory(factory.factory()).usingStylesheet(myStyle));
+        () -> f.usingStylesheet(source, ImmutableMap.of(), OutputProperties.indent()));
   }
 
   @ParameterizedTest
