@@ -91,7 +91,7 @@ public class XmlTransformerFactory {
       throw new VerifyException("Unsupported value: " + value);
     }
   }
-  
+
   /**
    * See https://www.w3.org/TR/2021/REC-xslt20-20210330/#serialization
    */
