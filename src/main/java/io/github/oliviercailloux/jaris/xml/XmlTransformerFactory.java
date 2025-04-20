@@ -56,8 +56,6 @@ public class XmlTransformerFactory {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerFactory.class);
 
-  public static final String FACTORY_PROPERTY = "javax.xml.transform.TransformerFactory";
-
   public static class OutputPropertyValue {
     private final Object value;
 
@@ -172,6 +170,7 @@ public class XmlTransformerFactory {
    * @param factory the factory to use.
    * @return a transformer instance.
    */
+  @Deprecated
   public static XmlTransformerFactory pedanticTransformer(TransformerFactory factory) {
     return generalTransformer(factory, XmlTransformErrorListener.EVERYTHING_GRAVE_ERROR_LISTENER);
   }
