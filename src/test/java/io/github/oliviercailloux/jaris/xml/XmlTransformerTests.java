@@ -3,13 +3,21 @@ package io.github.oliviercailloux.jaris.xml;
 import static io.github.oliviercailloux.jaris.xml.Resourcer.charSource;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.Path;
+import javax.xml.catalog.Catalog;
+import javax.xml.catalog.CatalogFeatures;
+import javax.xml.catalog.CatalogFeatures.Feature;
+import javax.xml.catalog.CatalogManager;
+import javax.xml.catalog.CatalogResolver;
+import javax.xml.transform.Source;
 import javax.xml.transform.TransformerFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,8 +29,6 @@ import org.slf4j.LoggerFactory;
 class XmlTransformerTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerTests.class);
-
-  private static final String XALAN_FACTORY = "org.apache.xalan.processor.TransformerFactoryImpl";
 
   @ParameterizedTest
   @EnumSource
@@ -72,7 +78,7 @@ class XmlTransformerTests {
       final OutputCapturer capturer = OutputCapturer.capturer();
       capturer.capture();
 
-      final XmlTransformerFactory t = XmlTransformerFactory.usingSystemDefaultFactory();
+      final XmlTransformerFactory t = XmlTransformerFactory.usingFactory(KnownFactory.JDK.factory());
       assertEquals("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl",
           t.factory().getClass().getName());
       final XmlException xalanExc =
@@ -91,8 +97,7 @@ class XmlTransformerTests {
 
     /* The external Apache Xalan implementation works. */
     {
-      System.setProperty(XmlTransformerFactory.FACTORY_PROPERTY, XALAN_FACTORY);
-      assertDoesNotThrow(() -> XmlTransformerFactory.usingFoundFactory().usingStylesheet(myStyle));
+      assertDoesNotThrow(() -> XmlTransformerFactory.usingFactory(KnownFactory.XALAN.factory()).usingStylesheet(myStyle));
     }
     {
       assertDoesNotThrow(() -> XmlTransformerFactory
@@ -108,15 +113,14 @@ class XmlTransformerTests {
     final URI myStyle = new URI("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
 
     {
-      System.setProperty(XmlTransformerFactory.FACTORY_PROPERTY, XALAN_FACTORY);
       final String transformed =
-          XmlTransformerFactory.usingFoundFactory().usingStylesheet(myStyle).charsToChars(docBook);
+          XmlTransformerFactory.usingFactory(KnownFactory.XALAN.factory()).usingStylesheet(myStyle).charsToChars(docBook);
       assertTrue(transformed
           .contains("<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\" font-family="));
     }
     {
       final String transformed =
-          XmlTransformerFactory.usingFactory(new net.sf.saxon.TransformerFactoryImpl())
+          XmlTransformerFactory.usingFactory(KnownFactory.SAXON.factory())
               .usingStylesheet(myStyle).charsToChars(docBook);
       LOGGER.debug("Transformed docbook howto: {}.", transformed);
       assertTrue(transformed.matches(
@@ -130,15 +134,14 @@ class XmlTransformerTests {
     final CharSource myStyle = charSource("DocBook/mystyle.xsl");
 
     {
-      System.setProperty(XmlTransformerFactory.FACTORY_PROPERTY, XALAN_FACTORY);
       final String transformed =
-          XmlTransformerFactory.usingFoundFactory().usingStylesheet(myStyle).charsToChars(docBook);
+          XmlTransformerFactory.usingFactory(KnownFactory.XALAN.factory()).usingStylesheet(myStyle).charsToChars(docBook);
       assertTrue(transformed
           .contains("<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\" font-family="));
     }
     {
       final String transformed =
-          XmlTransformerFactory.usingFactory(new net.sf.saxon.TransformerFactoryImpl())
+          XmlTransformerFactory.usingFactory(KnownFactory.SAXON.factory())
               .usingStylesheet(myStyle).charsToChars(docBook);
       LOGGER.debug("Transformed docbook howto: {}.", transformed);
       assertTrue(transformed.matches(
