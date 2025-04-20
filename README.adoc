@@ -17,6 +17,11 @@ The library also uses parts of the Guava API that are https://github.com/google/
 
 The following sections list some of the utilities that this library provides (by package).
 
+== Catalog stuff
+Complex example: https://stackoverflow.com/questions/8412798/how-to-load-xmlcatalog-from-classpath-resources-inside-a-jar-reliably
+Obtain CatalogResolver: https://docs.oracle.com/en/java/javase/22/docs/api/java.xml/javax/xml/catalog/class-use/CatalogResolver.html
+Then use it as URIResolver: https://docs.oracle.com/en/java/javase/22/docs/api/java.xml/javax/xml/transform/class-use/URIResolver.html
+
 == Credentials
 https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/credentials/CredentialsReader.html[`CredentialsReader`] permits to read user’s credentials (authentication information) from the system properties, then if not found there, from the environment, then if not found there, from a file.
 
