@@ -91,7 +91,7 @@ class XmlTransformerTests {
 
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
-  void testDocBookSimpleXalan(KnownFactory factory) throws Exception {
+  void testDocBookSimple(KnownFactory factory) throws Exception {
     final CharSource docBook = charSource("DocBook/Simple.xml");
     final URI myStyle = new URI("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
 
