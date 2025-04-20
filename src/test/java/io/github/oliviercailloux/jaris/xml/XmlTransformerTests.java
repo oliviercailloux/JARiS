@@ -53,7 +53,7 @@ class XmlTransformerTests {
     final CharSource input = charSource("Article/Two authors.xml");
     final String expected = charSource("Article/Two authors.txt").read();
     assertEquals(expected,
-        XmlTransformerFactory.pedanticTransformer(TransformerFactory.newDefaultInstance())
+        XmlTransformerFactory.usingFactory(KnownFactory.JDK.factory()).pedantic()
             .usingStylesheet(style).charsToChars(input));
   }
 

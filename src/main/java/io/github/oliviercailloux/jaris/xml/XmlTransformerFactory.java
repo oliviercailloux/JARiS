@@ -215,6 +215,17 @@ public class XmlTransformerFactory {
     this.errorListener = errorListener;
   }
 
+  /**
+   * Returns a transformer factory that creates transformers which throw exceptions upon
+   * encountering information events, including messages, even if specified as non-terminating.
+   * 
+   * @return a pedantic transformer factory
+   */
+  public XmlTransformerFactory pedantic() {
+    return new XmlTransformerFactory(factory,
+        XmlTransformErrorListener.EVERYTHING_GRAVE_ERROR_LISTENER);
+  }
+
   TransformerFactory factory() {
     return factory;
   }

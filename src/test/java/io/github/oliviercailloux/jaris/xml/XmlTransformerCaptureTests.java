@@ -62,7 +62,7 @@ public class XmlTransformerCaptureTests {
     final CharSource style = charSource("Article/Messaging.xsl");
     final CharSource input = charSource("Article/Two authors.xml");
     final String expected = charSource("Article/Two authors.txt").read();
-    assertEquals(expected, XmlTransformerFactory.pedanticTransformer(KnownFactory.JDK.factory())
+    assertEquals(expected, XmlTransformerFactory.usingFactory(KnownFactory.JDK.factory()).pedantic()
         .usingStylesheet(style).charsToChars(input));
     capturer.restore();
     assertTrue(capturer.err().isEmpty());
@@ -75,7 +75,7 @@ public class XmlTransformerCaptureTests {
     final CharSource style = charSource("Article/Messaging.xsl");
     final CharSource input = charSource("Article/Two authors.xml");
     XmlException thrown = assertThrows(XmlException.class,
-        () -> XmlTransformerFactory.pedanticTransformer(KnownFactory.XALAN.factory())
+        () -> XmlTransformerFactory.usingFactory(KnownFactory.XALAN.factory()).pedantic()
             .usingStylesheet(style).charsToChars(input));
     assertTrue(thrown.getMessage().contains("Error while transforming document."),
         thrown.getMessage());
@@ -93,7 +93,7 @@ public class XmlTransformerCaptureTests {
     final CharSource style = charSource("Article/Messaging.xsl");
     final CharSource input = charSource("Article/Two authors.xml");
     XmlException thrown = assertThrows(XmlException.class,
-        () -> XmlTransformerFactory.pedanticTransformer(KnownFactory.SAXON.factory())
+        () -> XmlTransformerFactory.usingFactory(KnownFactory.SAXON.factory()).pedantic()
             .usingStylesheet(style).charsToChars(input));
     assertTrue(thrown.getMessage().contains("Error while transforming document"),
         thrown.getMessage());
@@ -125,7 +125,7 @@ public class XmlTransformerCaptureTests {
     final CharSource style = charSource("Article/Messaging terminate.xsl");
     final CharSource input = charSource("Article/Two authors.xml");
     XmlException thrown = assertThrows(XmlException.class, () -> XmlTransformerFactory
-        .pedanticTransformer(factory.factory()).usingStylesheet(style).charsToChars(input));
+        .usingFactory(factory.factory()).pedantic().usingStylesheet(style).charsToChars(input));
     assertTrue(thrown.getMessage().contains("Error while transforming document."),
         thrown.getMessage());
     String contained = switch (factory) {
