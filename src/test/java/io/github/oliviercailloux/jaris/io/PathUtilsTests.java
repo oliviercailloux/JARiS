@@ -96,15 +96,11 @@ public class PathUtilsTests {
           Files.list(dotPath.delegate()).collect(ImmutableSet.toImmutableSet());
       ImmutableSet<URI> uris =
           content.stream().map(Path::toUri).collect(ImmutableSet.toImmutableSet());
-          assertTrue(uris.stream().anyMatch(u -> u.toString().endsWith("catalog.xml")));
-          URI foundCatalog = uris.stream()
-              .filter(u -> u.toString().endsWith("catalog.xml")).collect(MoreCollectors.onlyElement());
-          LOGGER.info("Uris that end with: {}.", foundCatalog);
-              LOGGER.info("Uri: {}.", uri);
-              assertNotEquals(foundCatalog, uri);
-              assertTrue(foundCatalog.toString().startsWith("jar:file:///"));
-              assertTrue(uri.toString().startsWith("jar:file:/"));
-        }
+      assertTrue(uris.stream().anyMatch(u -> u.toString().endsWith("catalog.xml")));
+      URI foundCatalog = uris.stream().filter(u -> u.toString().endsWith("catalog.xml"))
+          .collect(MoreCollectors.onlyElement());
+      assertEquals(foundCatalog.toString().replace("jar:file:///", "jar:file:/"), uri.toString());
+    }
     assertThrows(FileSystemNotFoundException.class, () -> Path.of(uri));
   }
 
