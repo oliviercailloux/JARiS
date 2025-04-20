@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
@@ -446,7 +447,7 @@ public class DomHelper {
     // As a DOMSource is not a StreamSource, I ignore how to (and perhaps cannot) use the LS API.
     // So, this should probably be moved to XmlTransformer.
     DOMResult result = new DOMResult();
-    XmlTransformerFactory.usingFoundFactory().usingEmptyStylesheet()
+    XmlTransformerFactory.usingFactory(TransformerFactory.newDefaultInstance()).usingEmptyStylesheet()
         .sourceToResult(new DOMSource(doc), result);
     Document d = (Document) result.getNode();
     return d;

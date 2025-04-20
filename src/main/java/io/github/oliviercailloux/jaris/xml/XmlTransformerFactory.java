@@ -151,37 +151,12 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Provides a transformer instance using the TransformerFactory builtin system-default
-   * implementation, thus, equivalent to the one obtained with
-   * {@link TransformerFactory#newDefaultInstance}.
-   *
-   * @return a transformer instance.
-   */
-  public static XmlTransformerFactory usingSystemDefaultFactory() {
-    final TransformerFactory factory = TransformerFactory.newDefaultInstance();
-    return usingFactory(factory);
-  }
-
-  /**
-   * Provides a transformer instance using the TransformerFactory found using the JAXP Lookup
-   * Mechanism, thus, equivalent to the one obtained with {@link TransformerFactory#newInstance()}.
-   * <p>
-   * The system property that determines which Factory implementation to create is
-   * {@link #FACTORY_PROPERTY}.
-   * </p>
-   *
-   * @return a transformer instance.
-   */
-  public static XmlTransformerFactory usingFoundFactory() {
-    final TransformerFactory factory = TransformerFactory.newInstance();
-    return usingFactory(factory);
-  }
-
-  /**
    * Provides a transformer instance using the provided factory.
    *
    * @param factory the factory to use.
    * @return a transformer instance.
+   * @see TransformerFactory#newInstance
+   * @see TransformerFactory#newDefaultInstance
    */
   public static XmlTransformerFactory usingFactory(TransformerFactory factory) {
     return generalTransformer(factory, XmlTransformErrorListener.WARNING_NOT_GRAVE_ERROR_LISTENER);
