@@ -381,7 +381,8 @@ public class XmlTransformerFactory {
   private XmlTransformer usingStylesheetInternal(Source stylesheet, Map<XmlName, String> parameters,
       OutputProperties outputProperties) throws XmlException {
     checkNotNull(parameters);
-
+    checkNotNull(outputProperties);
+    
     final Transformer transformer;
     LOGGER.debug("Obtaining transformer from stylesheet {}.", stylesheet);
     /*
