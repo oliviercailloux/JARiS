@@ -374,7 +374,7 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * @param stylesheet may be null or empty
+   * @param stylesheet may be null or empty, resolved already
    * @throws XmlException if there are errors when parsing the Source; wrapping a
    *         {@link TransformerConfigurationException}.
    */
