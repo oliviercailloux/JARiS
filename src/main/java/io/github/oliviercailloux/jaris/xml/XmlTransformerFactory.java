@@ -232,7 +232,7 @@ public class XmlTransformerFactory {
    * Equivalent to {@link #usingStylesheet(ByteSource, Map)} with an empty map of parameters.
    * </p>
    *
-   * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
+   * @param stylesheet the stylesheet that indicates the transform to perform.
    * @return a configured transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
@@ -248,7 +248,7 @@ public class XmlTransformerFactory {
    * Equivalent to {@link #usingStylesheet(CharSource, Map)} with an empty map of parameters.
    * </p>
    *
-   * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
+   * @param stylesheet the stylesheet that indicates the transform to perform.
    * @return a configured transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
@@ -264,7 +264,7 @@ public class XmlTransformerFactory {
    * Equivalent to {@link #usingStylesheet(ByteSource, Map)} with an empty map of parameters.
    * </p>
    *
-   * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
+   * @param stylesheet the stylesheet that indicates the transform to perform.
    * @return a configured transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
@@ -279,7 +279,7 @@ public class XmlTransformerFactory {
    * stylesheet parameterized with the given parameters and using a default “indented” output
    * property.
    *
-   * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
+   * @param stylesheet the stylesheet that indicates the transform to perform.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,
    *        null keys or values not allowed.
    * @return a configured transformer
@@ -296,7 +296,7 @@ public class XmlTransformerFactory {
    * stylesheet parameterized with the given parameters and using a default “indented” output
    * property.
    *
-   * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
+   * @param stylesheet the stylesheet that indicates the transform to perform.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,
    *        null keys or values not allowed.
    * @return a configured transformer
@@ -313,7 +313,7 @@ public class XmlTransformerFactory {
    * stylesheet parameterized with the given parameters and using a default “indented” output
    * property.
    *
-   * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
+   * @param stylesheet the stylesheet that indicates the transform to perform.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,
    *        null keys or values not allowed.
    * @return a configured transformer
@@ -329,7 +329,6 @@ public class XmlTransformerFactory {
       OutputProperties outputProperties) throws XmlException, IOException {
     checkNotNull(stylesheet);
     checkNotNull(parameters);
-    checkArgument(!stylesheet.isEmpty());
     try (Reader r = stylesheet.openStream()) {
       return usingStylesheetInternal(new StreamSource(r), parameters, outputProperties);
     }
@@ -339,7 +338,6 @@ public class XmlTransformerFactory {
       OutputProperties outputProperties) throws XmlException, IOException {
     checkNotNull(stylesheet);
     checkNotNull(parameters);
-    checkArgument(!stylesheet.isEmpty());
     try (InputStream is = stylesheet.openStream()) {
       return usingStylesheetInternal(new StreamSource(is), parameters, outputProperties);
     }
@@ -357,7 +355,7 @@ public class XmlTransformerFactory {
    * Returns a configured transformer that may be used to transform documents using the provided
    * stylesheet parameterized with the given parameters.
    *
-   * @param stylesheet the stylesheet that indicates the transform to perform, not empty.
+   * @param stylesheet the stylesheet that indicates the transform to perform.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,
    *        null keys or values not allowed.
    * @param outputProperties any properties to be used with the transformer.
@@ -369,7 +367,6 @@ public class XmlTransformerFactory {
       OutputProperties outputProperties) throws XmlException {
     checkNotNull(stylesheet);
     checkNotNull(parameters);
-    checkArgument(!stylesheet.isEmpty());
     return usingStylesheetInternal(stylesheet, parameters, outputProperties);
   }
 
