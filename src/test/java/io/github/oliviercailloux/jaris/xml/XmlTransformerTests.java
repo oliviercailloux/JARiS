@@ -29,7 +29,7 @@ import org.junitpioneer.jupiter.SetSystemProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** A denier proxy does not work because it needs to be unset after each set. System properties as well seem to have lasting effect. */
+@SetSystemProperty(key = "https.proxyHost", value = "invalid.invalid")
 class XmlTransformerTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerTests.class);
@@ -106,7 +106,6 @@ class XmlTransformerTests {
     assertTrue(capturer.err().lines().count() > 100);
   }
 
-  @SetSystemProperty(key = "https.proxyHost", value = "invalid.invalid")
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookStyleOthers(KnownFactory factory) throws Exception {
@@ -118,7 +117,6 @@ class XmlTransformerTests {
     assertDoesNotThrow(() -> f.usingStylesheet(myStyle));
   }
 
-  @SetSystemProperty(key = "https.proxyHost", value = "invalid.invalid")
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testMissInternet(KnownFactory factory) throws Exception {
@@ -130,7 +128,6 @@ class XmlTransformerTests {
     assertEquals(java.net.UnknownHostException.class, connExc.getClass());
   }
 
-  @SetSystemProperty(key = "https.proxyHost", value = "invalid.invalid")
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookSimple(KnownFactory factory) throws Exception {
@@ -144,15 +141,13 @@ class XmlTransformerTests {
         .matches("(?s).*<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\".* font-family=.*"));
   }
 
-  @ClearSystemProperty(key = "https.proxyHost")
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookComplex(KnownFactory factory) throws Exception {
-    assertNull(System.getProperty("https.proxyHost"));
     final CharSource myStyle = charSource("DocBook/mystyle.xsl");
     final CharSource docBook = charSource("DocBook/Howto.xml");
 
-    final String transformed = XmlTransformerFactory.usingFactory(factory.factory())
+    final String transformed = XmlTransformerFactory.usingFactory(withDocBookResolver(factory))
         .usingStylesheet(myStyle).charsToChars(docBook);
     LOGGER.debug("Transformed docbook howto: {}.", transformed);
     assertTrue(transformed
