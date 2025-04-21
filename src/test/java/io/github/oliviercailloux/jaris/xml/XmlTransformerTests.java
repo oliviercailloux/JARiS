@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.base.Throwables;
 import com.google.common.base.VerifyException;
 import com.google.common.io.CharSource;
+import io.github.oliviercailloux.docbook.DocBookCatalog;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -33,27 +34,6 @@ import org.slf4j.LoggerFactory;
 class XmlTransformerTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerTests.class);
-
-  private static TransformerFactory withDocBookResolver(KnownFactory factory) {
-    URL docBookCatalog = XmlTransformerTests.class.getResource("/io/github/oliviercailloux/docbook/catalog.xml");
-    URI docBookCatalogUri;
-    try {
-      docBookCatalogUri = docBookCatalog.toURI();
-    } catch (URISyntaxException e) {
-      throw new VerifyException(e);
-    }
-    Catalog catalog = CatalogManager.catalog(
-        CatalogFeatures.builder().with(Feature.RESOLVE, "continue").build(), docBookCatalogUri);
-    CatalogResolver resolver = CatalogManager.catalogResolver(catalog);
-    TransformerFactory s;
-    try {
-      s = factory.factory();
-    } catch (ClassNotFoundException e) {
-      throw new VerifyException(e);
-    }
-    s.setURIResolver(resolver);
-    return s;
-  }
 
   @ParameterizedTest
   @EnumSource
@@ -110,11 +90,10 @@ class XmlTransformerTests {
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookStyleOthers(KnownFactory factory) throws Exception {
     final URI myStyle =
-        URI.create("http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl");
-    // TODO get 1.79… resolver?
-    XmlTransformerFactory f = XmlTransformerFactory.usingFactory(withDocBookResolver(factory));
-
-    assertDoesNotThrow(() -> f.usingStylesheet(myStyle));
+        URI.create("http://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
+    TransformerFactory underlying = factory.factory();
+    underlying.setURIResolver(DocBookCatalog.RESOLVER);
+    assertDoesNotThrow(() -> XmlTransformerFactory.usingFactory(underlying).usingStylesheet(myStyle));
   }
 
   @ParameterizedTest
@@ -132,10 +111,12 @@ class XmlTransformerTests {
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookSimple(KnownFactory factory) throws Exception {
     final URI myStyle =
-        URI.create("http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl");
+        URI.create("http://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
     final CharSource docBook = charSource("DocBook/Simple.xml");
 
-    final String transformed = XmlTransformerFactory.usingFactory(withDocBookResolver(factory))
+    TransformerFactory underlying = factory.factory();
+    underlying.setURIResolver(DocBookCatalog.RESOLVER);
+    final String transformed = XmlTransformerFactory.usingFactory(underlying)
         .usingStylesheet(myStyle).charsToChars(docBook);
     assertTrue(transformed
         .matches("(?s).*<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\".* font-family=.*"));
@@ -147,7 +128,9 @@ class XmlTransformerTests {
     final CharSource myStyle = charSource("DocBook/mystyle.xsl");
     final CharSource docBook = charSource("DocBook/Howto.xml");
 
-    final String transformed = XmlTransformerFactory.usingFactory(withDocBookResolver(factory))
+    TransformerFactory underlying = factory.factory();
+    underlying.setURIResolver(DocBookCatalog.RESOLVER);
+    final String transformed = XmlTransformerFactory.usingFactory(underlying)
         .usingStylesheet(myStyle).charsToChars(docBook);
     LOGGER.debug("Transformed docbook howto: {}.", transformed);
     assertTrue(transformed

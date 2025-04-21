@@ -4,7 +4,7 @@
 	xmlns:fo="http://www.w3.org/1999/XSL/Format" version="1.0">
 	<!-- See https://github.com/docbook/xslt10-stylesheets/compare/release/1.79.1...release/1.79.2?diff=split&w=#diff-1e8dd53dd377fd3fca8f95fcbd1b891d2b762537f3c14aaeab02d54a8fb7a740. -->
 	<xsl:import
-		href="http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl" />
+		href="http://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl" />
 	<xsl:param name="toc.section.depth" select="3" />
 	<xsl:param name="paper.type" select="'A4'" />
 	<xsl:param name="fop1.extensions" select="1" />
