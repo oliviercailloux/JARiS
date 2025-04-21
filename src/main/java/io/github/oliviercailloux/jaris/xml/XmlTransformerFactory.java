@@ -1,25 +1,29 @@
 package io.github.oliviercailloux.jaris.xml;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Verify.verify;
+import static com.google.common.base.Verify.verifyNotNull;
 
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
 import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.collections.CollectionUtils;
+import io.github.oliviercailloux.jaris.exceptions.Unchecker;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.URI;
 import java.util.Map;
+import java.util.Optional;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.URIResolver;
 import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.TransformerFactoryImpl;
 import net.sf.saxon.jaxp.IdentityTransformer;
@@ -270,8 +274,7 @@ public class XmlTransformerFactory {
    *         {@link TransformerConfigurationException}.
    */
   public XmlTransformer usingStylesheet(URI stylesheet) throws XmlException {
-    return usingStylesheet(new StreamSource(stylesheet.toString()), ImmutableMap.of(),
-        OutputProperties.indent());
+    return usingStylesheet(stylesheet, ImmutableMap.of(), OutputProperties.indent());
   }
 
   /**
@@ -343,12 +346,41 @@ public class XmlTransformerFactory {
     }
   }
 
+  /**
+   * 
+   * @param stylesheet will be resolved using the factory resolver and an empty base if a resolver
+   *        exists; if the resolver exists and returns null, that is an error; if it throws an
+   *        exception, it is thrown wrapped into an xmlexception. If no resolver exists, the given
+   *        stylesheet URI is considered a system id.
+   * @param parameters
+   * @param outputProperties
+   * @return
+   * @throws XmlException
+   */
   public XmlTransformer usingStylesheet(URI stylesheet, Map<XmlName, String> parameters,
       OutputProperties outputProperties) throws XmlException {
     checkNotNull(stylesheet);
     checkNotNull(parameters);
-    return usingStylesheetInternal(new StreamSource(stylesheet.toString()), parameters,
-        outputProperties);
+    String stylesheetStr = stylesheet.toString();
+    Source source;
+    URIResolver resolver = factory.getURIResolver();
+    if (resolver == null) {
+      source = new StreamSource(stylesheetStr);
+    } else {
+      final Source resolvedSource;
+      try {
+        resolvedSource = resolver.resolve(stylesheetStr, "");
+      } catch (TransformerException e) {
+        throw new XmlException("Error resolving stylesheet URI.", e);
+      }
+      if (resolvedSource == null) {
+        throw new XmlException(
+            "URI resolver returned null for stylesheet URI " + stylesheetStr + ".");
+      }
+      source = resolvedSource;
+    }
+    verifyNotNull(source);
+    return usingStylesheetInternal(source, parameters, outputProperties);
   }
 
   /**
