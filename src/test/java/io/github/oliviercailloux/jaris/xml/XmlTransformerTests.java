@@ -3,10 +3,10 @@ package io.github.oliviercailloux.jaris.xml;
 import static io.github.oliviercailloux.jaris.xml.Resourcer.charSource;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
@@ -20,10 +20,13 @@ import javax.xml.catalog.CatalogFeatures.Feature;
 import javax.xml.catalog.CatalogManager;
 import javax.xml.catalog.CatalogResolver;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junitpioneer.jupiter.SetSystemProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,9 +85,42 @@ class XmlTransformerTests {
     assertTrue(capturer.err().lines().count() > 100);
   }
 
+  @SetSystemProperty(key = "https.proxyHost", value = "invalid.invalid")
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookStyleOthers(KnownFactory factory) throws Exception {
+    // TODO method to get docbook catalog resolver
+    // get 1.79… resolver?
+    URL docBookCatalog = getClass().getResource("/io/github/oliviercailloux/docbook/catalog.xml");
+    Catalog catalog = CatalogManager
+        .catalog(CatalogFeatures.builder().with(Feature.RESOLVE, "continue").build(), docBookCatalog.toURI());
+    CatalogResolver resolver = CatalogManager.catalogResolver(catalog);
+    Source source =
+        resolver.resolve("http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl", "unused base");
+    TransformerFactory s = factory.factory();
+    s.setURIResolver(resolver);
+    XmlTransformerFactory f = XmlTransformerFactory.usingFactory(s);
+
+    assertDoesNotThrow(
+        () -> f.usingStylesheet(source, ImmutableMap.of(), OutputProperties.indent()));
+  }
+
+  @SetSystemProperty(key = "https.proxyHost", value = "invalid.invalid")
+  @ParameterizedTest
+  @EnumSource(names = {"XALAN", "SAXON"})
+  void testMissInternet(KnownFactory factory) throws Exception {
+    final URI myStyle = new URI("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
+
+    XmlException exc = assertThrows(XmlException.class,
+        () -> XmlTransformerFactory.usingFactory(factory.factory()).usingStylesheet(myStyle));
+    Throwable connExc = Throwables.getRootCause(exc);
+    assertEquals(java.net.UnknownHostException.class, connExc.getClass());
+  }
+
+  @SetSystemProperty(key = "https.proxyHost", value = "invalid.invalid")
+  @ParameterizedTest
+  @EnumSource(names = {"XALAN", "SAXON"})
+  void testDocBookSimpleFromCp(KnownFactory factory) throws Exception {
     URL docbookCatalog = getClass().getResource("/io/github/oliviercailloux/docbook/catalog.xml");
     Catalog catalog = CatalogManager
         .catalog(CatalogFeatures.builder().with(Feature.RESOLVE, "continue").build(), docbookCatalog.toURI());
@@ -95,10 +131,12 @@ class XmlTransformerTests {
     s.setURIResolver(resolver);
     XmlTransformerFactory f = XmlTransformerFactory.usingFactory(s);
 
-    // final URI myStyle =
-    //     Path.of("/usr/share/xml/docbook/stylesheet/docbook-xsl-ns/fo/docbook.xsl").toUri();
-    assertDoesNotThrow(
-        () -> f.usingStylesheet(source, ImmutableMap.of(), OutputProperties.indent()));
+    final CharSource docBook = charSource("DocBook/Simple.xml");
+
+    final String transformed = f
+        .usingStylesheet(source, ImmutableMap.of(), OutputProperties.indent()).charsToChars(docBook);
+    assertTrue(transformed
+        .matches("(?s).*<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\".* font-family=.*"));
   }
 
   @ParameterizedTest
