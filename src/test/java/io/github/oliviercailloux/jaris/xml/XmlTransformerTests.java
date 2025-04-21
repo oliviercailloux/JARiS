@@ -3,23 +3,18 @@ package io.github.oliviercailloux.jaris.xml;
 import static io.github.oliviercailloux.jaris.xml.Resourcer.charSource;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.base.Throwables;
 import com.google.common.base.VerifyException;
-import com.google.common.collect.ImmutableList;
 import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.List;
 import javax.xml.catalog.Catalog;
 import javax.xml.catalog.CatalogFeatures;
 import javax.xml.catalog.CatalogFeatures.Feature;
@@ -29,10 +24,12 @@ import javax.xml.transform.TransformerFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junitpioneer.jupiter.ClearSystemProperty;
 import org.junitpioneer.jupiter.SetSystemProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** A denier proxy does not work because it needs to be unset after each set. System properties as well seem to have lasting effect. */
 class XmlTransformerTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerTests.class);
@@ -56,18 +53,6 @@ class XmlTransformerTests {
     }
     s.setURIResolver(resolver);
     return s;
-  }
-
-  private static class DenierProxy extends ProxySelector {
-    @Override
-    public List<Proxy> select(URI uri) {
-      return ImmutableList.of(new Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved("invalid.invalid", 1080)));
-    }
-
-    @Override
-    public void connectFailed(URI uri, java.net.SocketAddress sa, IOException ioe) {
-      //do nothing
-    }
   }
 
   @ParameterizedTest
@@ -125,7 +110,6 @@ class XmlTransformerTests {
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookStyleOthers(KnownFactory factory) throws Exception {
-    ProxySelector.setDefault(new DenierProxy());
     final URI myStyle =
         URI.create("http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl");
     // TODO get 1.79… resolver?
@@ -146,9 +130,12 @@ class XmlTransformerTests {
     assertEquals(java.net.UnknownHostException.class, connExc.getClass());
   }
 
+  @SetSystemProperty(key = "https.proxyHost", value = "invalid.invalid")
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookSimple(KnownFactory factory) throws Exception {
+    final URI myStyle =
+        URI.create("http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl");
     final CharSource docBook = charSource("DocBook/Simple.xml");
 
     final String transformed = XmlTransformerFactory.usingFactory(withDocBookResolver(factory))
@@ -157,11 +144,13 @@ class XmlTransformerTests {
         .matches("(?s).*<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\".* font-family=.*"));
   }
 
+  @ClearSystemProperty(key = "https.proxyHost")
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookComplex(KnownFactory factory) throws Exception {
-    final CharSource docBook = charSource("DocBook/Howto.xml");
+    assertNull(System.getProperty("https.proxyHost"));
     final CharSource myStyle = charSource("DocBook/mystyle.xsl");
+    final CharSource docBook = charSource("DocBook/Howto.xml");
 
     final String transformed = XmlTransformerFactory.usingFactory(factory.factory())
         .usingStylesheet(myStyle).charsToChars(docBook);
