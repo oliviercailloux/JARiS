@@ -33,8 +33,7 @@ import org.junitpioneer.jupiter.SetSystemProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-  // @SetSystemProperty(key = "https.proxyHost", value = "invalid.invalid")
-  class XmlTransformerTests {
+class XmlTransformerTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerTests.class);
 
@@ -139,7 +138,6 @@ import org.slf4j.LoggerFactory;
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testMissInternet(KnownFactory factory) throws Exception {
-    ProxySelector.setDefault(new DenierProxy());
     final URI myStyle = new URI("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
 
     XmlException exc = assertThrows(XmlException.class,
@@ -151,9 +149,6 @@ import org.slf4j.LoggerFactory;
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookSimple(KnownFactory factory) throws Exception {
-    ProxySelector.setDefault(new DenierProxy());
-    final URI myStyle =
-        URI.create("http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl");
     final CharSource docBook = charSource("DocBook/Simple.xml");
 
     final String transformed = XmlTransformerFactory.usingFactory(withDocBookResolver(factory))
@@ -165,7 +160,6 @@ import org.slf4j.LoggerFactory;
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookComplex(KnownFactory factory) throws Exception {
-    ProxySelector.setDefault(null);
     final CharSource docBook = charSource("DocBook/Howto.xml");
     final CharSource myStyle = charSource("DocBook/mystyle.xsl");
 
