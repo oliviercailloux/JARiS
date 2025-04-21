@@ -7,21 +7,24 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.base.VerifyException;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
-import io.github.oliviercailloux.jaris.xml.XmlTransformerFactory.OutputProperties;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.ProxySelector;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.List;
 import javax.xml.catalog.Catalog;
 import javax.xml.catalog.CatalogFeatures;
 import javax.xml.catalog.CatalogFeatures.Feature;
 import javax.xml.catalog.CatalogManager;
 import javax.xml.catalog.CatalogResolver;
-import javax.xml.transform.Source;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,6 +36,39 @@ import org.slf4j.LoggerFactory;
 class XmlTransformerTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerTests.class);
+
+  private static TransformerFactory withDocBookResolver(KnownFactory factory) {
+    URL docBookCatalog = XmlTransformerTests.class.getResource("/io/github/oliviercailloux/docbook/catalog.xml");
+    URI docBookCatalogUri;
+    try {
+      docBookCatalogUri = docBookCatalog.toURI();
+    } catch (URISyntaxException e) {
+      throw new VerifyException(e);
+    }
+    Catalog catalog = CatalogManager.catalog(
+        CatalogFeatures.builder().with(Feature.RESOLVE, "continue").build(), docBookCatalogUri);
+    CatalogResolver resolver = CatalogManager.catalogResolver(catalog);
+    TransformerFactory s;
+    try {
+      s = factory.factory();
+    } catch (ClassNotFoundException e) {
+      throw new VerifyException(e);
+    }
+    s.setURIResolver(resolver);
+    return s;
+  }
+
+  private static class DenierProxy extends ProxySelector {
+    @Override
+    public List<Proxy> select(URI uri) {
+      return ImmutableList.of(new Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved("invalid.invalid", 1080)));
+    }
+
+    @Override
+    public void connectFailed(URI uri, java.net.SocketAddress sa, IOException ioe) {
+      //do nothing
+    }
+  }
 
   @ParameterizedTest
   @EnumSource
@@ -89,20 +125,13 @@ class XmlTransformerTests {
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookStyleOthers(KnownFactory factory) throws Exception {
-    // TODO method to get docbook catalog resolver
-    // get 1.79… resolver?
-    URL docBookCatalog = getClass().getResource("/io/github/oliviercailloux/docbook/catalog.xml");
-    Catalog catalog = CatalogManager
-        .catalog(CatalogFeatures.builder().with(Feature.RESOLVE, "continue").build(), docBookCatalog.toURI());
-    CatalogResolver resolver = CatalogManager.catalogResolver(catalog);
-    Source source =
-        resolver.resolve("http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl", "unused base");
-    TransformerFactory s = factory.factory();
-    s.setURIResolver(resolver);
-    XmlTransformerFactory f = XmlTransformerFactory.usingFactory(s);
+    ProxySelector.setDefault(new DenierProxy());
+    final URI myStyle =
+        URI.create("http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl");
+    // TODO get 1.79… resolver?
+    XmlTransformerFactory f = XmlTransformerFactory.usingFactory(withDocBookResolver(factory));
 
-    assertDoesNotThrow(
-        () -> f.usingStylesheet(source, ImmutableMap.of(), OutputProperties.indent()));
+    assertDoesNotThrow(() -> f.usingStylesheet(myStyle));
   }
 
   @SetSystemProperty(key = "https.proxyHost", value = "invalid.invalid")
@@ -117,35 +146,12 @@ class XmlTransformerTests {
     assertEquals(java.net.UnknownHostException.class, connExc.getClass());
   }
 
-  @SetSystemProperty(key = "https.proxyHost", value = "invalid.invalid")
-  @ParameterizedTest
-  @EnumSource(names = {"XALAN", "SAXON"})
-  void testDocBookSimpleFromCp(KnownFactory factory) throws Exception {
-    URL docbookCatalog = getClass().getResource("/io/github/oliviercailloux/docbook/catalog.xml");
-    Catalog catalog = CatalogManager
-        .catalog(CatalogFeatures.builder().with(Feature.RESOLVE, "continue").build(), docbookCatalog.toURI());
-    CatalogResolver resolver = CatalogManager.catalogResolver(catalog);
-    Source source =
-        resolver.resolve("http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl", "unused base");
-    TransformerFactory s = factory.factory();
-    s.setURIResolver(resolver);
-    XmlTransformerFactory f = XmlTransformerFactory.usingFactory(s);
-
-    final CharSource docBook = charSource("DocBook/Simple.xml");
-
-    final String transformed = f
-        .usingStylesheet(source, ImmutableMap.of(), OutputProperties.indent()).charsToChars(docBook);
-    assertTrue(transformed
-        .matches("(?s).*<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\".* font-family=.*"));
-  }
-
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookSimple(KnownFactory factory) throws Exception {
     final CharSource docBook = charSource("DocBook/Simple.xml");
-    final URI myStyle = new URI("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
 
-    final String transformed = XmlTransformerFactory.usingFactory(factory.factory())
+    final String transformed = XmlTransformerFactory.usingFactory(withDocBookResolver(factory))
         .usingStylesheet(myStyle).charsToChars(docBook);
     assertTrue(transformed
         .matches("(?s).*<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\".* font-family=.*"));
