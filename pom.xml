@@ -62,7 +62,7 @@
     <dependency>
       <groupId>io.github.oliviercailloux</groupId>
       <artifactId>docbook</artifactId>
-      <version>0.0.2-SNAPSHOT</version>
+      <version>0.0.2</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
