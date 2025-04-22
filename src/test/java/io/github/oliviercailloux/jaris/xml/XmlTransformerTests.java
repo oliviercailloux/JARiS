@@ -3,29 +3,19 @@ package io.github.oliviercailloux.jaris.xml;
 import static io.github.oliviercailloux.jaris.xml.Resourcer.charSource;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.base.Throwables;
-import com.google.common.base.VerifyException;
 import com.google.common.io.CharSource;
-import io.github.oliviercailloux.docbook.DocBookCatalog;
+import io.github.oliviercailloux.docbook.DocBookResources;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Path;
-import javax.xml.catalog.Catalog;
-import javax.xml.catalog.CatalogFeatures;
-import javax.xml.catalog.CatalogFeatures.Feature;
-import javax.xml.catalog.CatalogManager;
-import javax.xml.catalog.CatalogResolver;
 import javax.xml.transform.TransformerFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junitpioneer.jupiter.ClearSystemProperty;
 import org.junitpioneer.jupiter.SetSystemProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +82,7 @@ class XmlTransformerTests {
     final URI myStyle =
         URI.create("http://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
     TransformerFactory underlying = factory.factory();
-    underlying.setURIResolver(DocBookCatalog.RESOLVER);
+    underlying.setURIResolver(DocBookResources.RESOLVER);
     assertDoesNotThrow(() -> XmlTransformerFactory.usingFactory(underlying).usingStylesheet(myStyle));
   }
 
@@ -115,7 +105,7 @@ class XmlTransformerTests {
     final CharSource docBook = charSource("DocBook/Simple.xml");
 
     TransformerFactory underlying = factory.factory();
-    underlying.setURIResolver(DocBookCatalog.RESOLVER);
+    underlying.setURIResolver(DocBookResources.RESOLVER);
     final String transformed = XmlTransformerFactory.usingFactory(underlying)
         .usingStylesheet(myStyle).charsToChars(docBook);
     assertTrue(transformed
@@ -129,7 +119,7 @@ class XmlTransformerTests {
     final CharSource docBook = charSource("DocBook/Howto.xml");
 
     TransformerFactory underlying = factory.factory();
-    underlying.setURIResolver(DocBookCatalog.RESOLVER);
+    underlying.setURIResolver(DocBookResources.RESOLVER);
     final String transformed = XmlTransformerFactory.usingFactory(underlying)
         .usingStylesheet(myStyle).charsToChars(docBook);
     LOGGER.debug("Transformed docbook howto: {}.", transformed);
