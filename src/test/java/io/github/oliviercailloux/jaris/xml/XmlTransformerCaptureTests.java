@@ -6,37 +6,31 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.io.ByteSource;
 import com.google.common.io.CharSource;
-import com.google.common.io.Resources;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
-import java.net.URL;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class XmlTransformerCaptureTests {
+@SuppressWarnings("unused")
+private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerCaptureTests.class);
 
-  /**
-   * DocBook XSLT 1 is incompatible with Saxon, so, expectedly, this produces tons of errors (see
-   * Publish project for the gory details).
-   */
-  @Test
-  void testUsingByteSourceUrl() throws Exception {
-    final ByteSource myStyle = Resources
-        .asByteSource(new URL("https", "cdn.docbook.org", "/release/xsl/1.79.2/fo/docbook.xsl"));
-
+  @ParameterizedTest
+  @EnumSource
+  void testMissingImport(KnownFactory factory) throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
-
+    final CharSource style = charSource("/io/github/oliviercailloux/docbook/fo/docbook.xsl");
     final XmlTransformerFactory t =
-        XmlTransformerFactory.usingFactory(new net.sf.saxon.TransformerFactoryImpl());
-    assertEquals("net.sf.saxon.TransformerFactoryImpl", t.factory().getClass().getName());
-    final XmlException readExc = assertThrows(XmlException.class, () -> t.usingStylesheet(myStyle));
+        XmlTransformerFactory.usingFactory(factory.factory());
+    final XmlException readExc = assertThrows(XmlException.class, () -> t.usingStylesheet(style));
     final String reason = readExc.getCause().getMessage();
-    assertTrue(reason.contains("I/O error reported by XML parser processing file:"), reason);
+    assertTrue(reason.contains("ptc.xsl") || reason.contains("VERSION.xsl"), reason);
     capturer.restore();
-    assertTrue(capturer.out().isEmpty());
+    assertTrue(capturer.out().isEmpty(), capturer.out());
     assertTrue(capturer.err().isEmpty(), capturer.err());
   }
 
@@ -69,7 +63,7 @@ public class XmlTransformerCaptureTests {
   }
 
   @Test
-  void testTransformMessagingPedanticX() throws Exception {
+  void testTransformMessagingPedanticXalan() throws Exception {
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
     final CharSource style = charSource("Article/Messaging.xsl");
