@@ -7,6 +7,8 @@ import com.google.common.base.VerifyException;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
 import com.thaiopensource.relaxng.jaxp.XMLSyntaxSchemaFactory;
+import io.github.oliviercailloux.docbook.DocBookResources;
+import io.github.oliviercailloux.jaris.io.PathUtils;
 import javax.xml.XMLConstants;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -38,8 +40,7 @@ public class RngCheckerTests {
   public void testDocbookSimple() throws Exception {
     final SchemaFactory factory = new XMLSyntaxSchemaFactory();
     final SchemaHelper helper = SchemaHelper.schemaHelper(factory);
-    final ByteSource schemaSource =
-        Resources.asByteSource(RngCheckerTests.class.getResource("DocBook/docbook.rng"));
+    final ByteSource schemaSource = PathUtils.fromUri(DocBookResources.RNG_5_1_URI).asByteSource();
     final Schema compiledSchema = helper.asSchema(schemaSource);
     final ByteSource documentSource =
         Resources.asByteSource(RngCheckerTests.class.getResource("DocBook/Simple.xml"));
@@ -50,8 +51,7 @@ public class RngCheckerTests {
   public void testDocbookInvalid() throws Exception {
     final SchemaFactory factory = new XMLSyntaxSchemaFactory();
     final SchemaHelper helper = SchemaHelper.schemaHelper(factory);
-    final ByteSource schemaSource =
-        Resources.asByteSource(RngCheckerTests.class.getResource("DocBook/docbook.rng"));
+    final ByteSource schemaSource = PathUtils.fromUri(DocBookResources.RNG_5_1_URI).asByteSource();
     final Schema compiledSchema = helper.asSchema(schemaSource);
     final ByteSource documentSource =
         Resources.asByteSource(RngCheckerTests.class.getResource("DocBook/Invalid.xml"));
@@ -63,8 +63,7 @@ public class RngCheckerTests {
   public void testDocbookComplex() throws Exception {
     final SchemaFactory factory = new XMLSyntaxSchemaFactory();
     final SchemaHelper helper = SchemaHelper.schemaHelper(factory);
-    final ByteSource schemaSource =
-        Resources.asByteSource(RngCheckerTests.class.getResource("DocBook/docbook.rng"));
+    final ByteSource schemaSource = PathUtils.fromUri(DocBookResources.RNG_5_1_URI).asByteSource();
     final Schema compiledSchema = helper.asSchema(schemaSource);
     final ByteSource documentSource =
         Resources.asByteSource(RngCheckerTests.class.getResource("DocBook/Howto.xml"));
