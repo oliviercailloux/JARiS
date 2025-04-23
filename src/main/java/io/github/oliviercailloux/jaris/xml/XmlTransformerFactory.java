@@ -164,21 +164,6 @@ public class XmlTransformerFactory {
     return generalTransformer(factory, XmlTransformErrorListener.WARNING_NOT_GRAVE_ERROR_LISTENER);
   }
 
-  /**
-   * Provides a transformer instance using the provided factory.
-   * <p>
-   * The returned transformer throws exceptions upon encountering information events, including
-   * messages, even if specified as non-terminating.
-   * </p>
-   *
-   * @param factory the factory to use.
-   * @return a transformer instance.
-   */
-  @Deprecated
-  public static XmlTransformerFactory pedanticTransformer(TransformerFactory factory) {
-    return generalTransformer(factory, XmlTransformErrorListener.EVERYTHING_GRAVE_ERROR_LISTENER);
-  }
-
   private static XmlTransformerFactory generalTransformer(TransformerFactory factory,
       XmlTransformErrorListener errorListener) {
     LOGGER.debug("Creating our transformer using factory {}.", factory);
