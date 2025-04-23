@@ -112,4 +112,6 @@ I have some hopes of using the power of Nu validator to help with validation of 
 Please thumb that issue up if this seems of interest.
 
 == TODO
-Document whether can use a https://datatracker.ietf.org/doc/html/rfc3151[publicid URN] as stylesheet, or consider accepting a String (public identifiers used in XML catalogs are often in FPI format, such as -//OASIS//DTD DocBook XML V4.1.2//EN).
+- Document whether can use a https://datatracker.ietf.org/doc/html/rfc3151[publicid URN] as stylesheet, or consider accepting a String (public identifiers used in XML catalogs are often in FPI format, such as -//OASIS//DTD DocBook XML V4.1.2//EN).
+- Change XmlTransformerFactory so that we can request one with given properties our so and add it to its state (permits: factory.withOutput(…).usingStylesheet(…)). Rename usingStylesheet to compile?
+
