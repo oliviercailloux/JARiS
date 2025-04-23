@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
  * severity <em>error</em> or <em>fatal</em>.
  * </p>
  * <p>
- * The {@link #usingSystemDefaultFactory() system default factory} sometimes spits errors to the
+ * The {@link KnownFactory#JDK system default factory} sometimes spits errors to the
  * console, which escapes the mechanism described here above, due to
  * <a href="https://stackoverflow.com/a/21209904/">a bug</a> in the JDK.
  * </p>
