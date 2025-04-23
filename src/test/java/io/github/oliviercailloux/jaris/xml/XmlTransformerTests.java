@@ -79,11 +79,9 @@ class XmlTransformerTests {
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookStyleOthers(KnownFactory factory) throws Exception {
-    final URI myStyle =
-        URI.create("http://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
     TransformerFactory underlying = factory.factory();
     underlying.setURIResolver(DocBookResources.RESOLVER);
-    assertDoesNotThrow(() -> XmlTransformerFactory.usingFactory(underlying).usingStylesheet(myStyle));
+    assertDoesNotThrow(() -> XmlTransformerFactory.usingFactory(underlying).usingStylesheet(DocBookResources.XSLT_1_FO_URI));
   }
 
   @ParameterizedTest
@@ -100,14 +98,12 @@ class XmlTransformerTests {
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   void testDocBookSimple(KnownFactory factory) throws Exception {
-    final URI myStyle =
-        URI.create("http://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
     final CharSource docBook = charSource("DocBook/Simple.xml");
 
     TransformerFactory underlying = factory.factory();
     underlying.setURIResolver(DocBookResources.RESOLVER);
     final String transformed = XmlTransformerFactory.usingFactory(underlying)
-        .usingStylesheet(myStyle).charsToChars(docBook);
+        .usingStylesheet(DocBookResources.XSLT_1_FO_URI).charsToChars(docBook);
     assertTrue(transformed
         .matches("(?s).*<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\".* font-family=.*"));
   }
