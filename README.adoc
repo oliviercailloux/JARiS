@@ -110,3 +110,6 @@ String transformed = XmlTransformerFactory.usingFactory(KnownFactory.XALAN).usin
 == Nu validator
 I have some hopes of using the power of Nu validator to help with validation of HTML files (attempted https://github.com/oliviercailloux/JARiS/commit/a8bfc3d303d268ae844e95b99b0a63005f557050[here]), but this feature is currently blocked by https://github.com/validator/validator/issues/1504[this issue]. 
 Please thumb that issue up if this seems of interest.
+
+== TODO
+Document whether can use a https://datatracker.ietf.org/doc/html/rfc3151[publicid URN] as stylesheet, or consider accepting a String (public identifiers used in XML catalogs are often in FPI format, such as -//OASIS//DTD DocBook XML V4.1.2//EN).

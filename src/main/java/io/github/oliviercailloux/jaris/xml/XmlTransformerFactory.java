@@ -347,8 +347,6 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * TODO considering that the argument could be a public id, it should accept a String. when XML Catalogs map public identifiers, these are most often in the FPI format, such as -//OASIS//DTD DocBook XML V4.1.2//EN. Could also consider https://datatracker.ietf.org/doc/html/rfc3151 to consider only URIs.
-   * 
    * @param stylesheet will be resolved using the factory resolver and an empty base if a resolver
    *        exists; if the resolver exists and returns null, that is an error; if it throws an
    *        exception, it is thrown wrapped into an xmlexception. If no resolver exists, the given
