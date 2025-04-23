@@ -43,13 +43,13 @@ public class ConformityChecker {
 
   public void verifyValid(ByteSource document) throws VerifyException, XmlException, IOException {
     try (InputStream is = document.openStream()) {
-      verifyValid(new StreamSource(is));
+      verifyValidStream(new StreamSource(is));
     }
   }
 
   public void verifyValid(CharSource document) throws VerifyException, XmlException, IOException {
     try (Reader r = document.openStream()) {
-      verifyValid(new StreamSource(r));
+      verifyValidStream(new StreamSource(r));
     }
   }
 
@@ -61,11 +61,17 @@ public class ConformityChecker {
    *         fatalError is encountered while validating the provided document
    * @throws XmlException if the Source is an XML artifact that the implementation cannot validate
    *         (for example, a processing instruction)
-   * @throws IOException if the validator is processing a javax.xml.transform.sax.SAXSource and the
-   *         underlying org.xml.sax.XMLReader throws an IOException.
    */
-  public void verifyValid(URI document) throws VerifyException, XmlException, IOException {
-    verifyValid(new StreamSource(document.toString()));
+  public void verifyValid(URI document) throws VerifyException, XmlException {
+    verifyValidStream(new StreamSource(document.toString()));
+  }
+
+  private void verifyValidStream(StreamSource document) throws VerifyException, XmlException {
+    try {
+      verifyValid(document);
+    } catch (IOException e) {
+      throw new VerifyException(e);
+    }
   }
 
   /**
@@ -80,7 +86,6 @@ public class ConformityChecker {
    *         underlying org.xml.sax.XMLReader throws an IOException.
    */
   public void verifyValid(Source document) throws VerifyException, XmlException, IOException {
-    checkState(schema != null, "Schema not set.");
     final javax.xml.validation.Validator validator = schema.newValidator();
     try {
       validator.validate(document);
