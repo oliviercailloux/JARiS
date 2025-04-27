@@ -314,7 +314,11 @@ public class DomHelper {
     // ser.getDomConfig().setParameter("ignore-unknown-character-denormalizations", true);
     ser.getDomConfig().setParameter("format-pretty-print", true);
     /* See https://bugs.openjdk.org/browse/JDK-8259502 */
-    ser.getDomConfig().setParameter("http://www.oracle.com/xml/jaxp/properties/isStandalone", true);
+    if (ser.getDomConfig().canSetParameter("http://www.oracle.com/xml/jaxp/properties/isStandalone",
+        true)) {
+      ser.getDomConfig().setParameter("http://www.oracle.com/xml/jaxp/properties/isStandalone",
+          true);
+    }
   }
 
   private void lazyInitDeser() {
@@ -447,8 +451,8 @@ public class DomHelper {
     // As a DOMSource is not a StreamSource, I ignore how to (and perhaps cannot) use the LS API.
     // So, this should probably be moved to XmlTransformer.
     DOMResult result = new DOMResult();
-    XmlTransformerFactory.usingFactory(TransformerFactory.newDefaultInstance()).usingEmptyStylesheet()
-        .sourceToResult(new DOMSource(doc), result);
+    XmlTransformerFactory.usingFactory(TransformerFactory.newDefaultInstance())
+        .usingEmptyStylesheet().sourceToResult(new DOMSource(doc), result);
     Document d = (Document) result.getNode();
     return d;
   }
