@@ -2,6 +2,7 @@ package io.github.oliviercailloux.jaris.xml;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.io.ByteSource;
 import com.google.common.io.CharSource;
 import com.google.common.io.MoreFiles;
 import com.google.common.io.Resources;
@@ -12,9 +13,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 public class Resourcer {
+  public static ByteSource byteSource(String resourceName) {
+    return PathUtils.fromResource(Resourcer.class, resourceName).asByteSource();
+  }
+
   public static CharSource charSource(String resourceName) {
-    return PathUtils.fromResource(Resourcer.class, resourceName).asByteSource()
-        .asCharSource(StandardCharsets.UTF_8);
+    return byteSource(resourceName).asCharSource(StandardCharsets.UTF_8);
   }
 
   public static CharSource charSource(URL source) {
