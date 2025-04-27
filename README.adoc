@@ -68,7 +68,7 @@ Use directly `Unchecker.link:https://www.javadoc.io/doc/io.github.oliviercaillou
 == GraphUtils
 A few static methods to create graphs from other structures such as a set of root nodes and a successor function, and to obtain a set of the nodes of a graph that iterates following a topological sort (thanks to https://github.com/jrtom/jung/pull/174[jbduncan]).
 
-== Xml
+== XML
 A few helper classes to deal with XML, using the DOM (Document Object Model), XSLT, or schema based validation. See the https://www.javadoc.io/doc/io.github.oliviercailloux/jaris/latest/io/github/oliviercailloux/jaris/xml/package-summary.html[package documentation].
 
 === DomHelper
@@ -107,7 +107,27 @@ URI docBookStylesheet = URI.create("https://cdn.docbook.org/release/xsl/1.79.2/f
 String transformed = XmlTransformerFactory.usingFactory(KnownFactory.XALAN).usingStylesheet(docBookStylesheet).sourceToChars(docBook);
 ----
 
-== Nu validator
+== HTML
+The `DomHelper` class does not support HTML files. For example, it cannot parse https://github.com/oliviercailloux/JARiS/blob/main/src/test/resources/io/github/oliviercailloux/jaris/xml/Html/Simple.html[this file] because it is not valid XML (`meta` is not closed), even though it is valid HTML.
+
+=== Xerces-J
+Note that Apache Xerces-J https://xerces.apache.org/xerces2-j/dom.html[implements DOM Level 1 HTML] (https://lists.apache.org/list?j-users@xerces.apache.org:2012-5:html[related discussion]).
+Thus, I suppose that it should support https://www.w3.org/TR/DOM-Level-1/level-one-core.html[bootstrapping].
+Also, I suppose that it lacks (some?) support for https://www.w3.org/TR/2000/CR-DOM-Level-2-20000510/introduction.html#ID-E7C30824[DOM Level 2 HTML], which seems to add support for https://www.w3.org/TR/2000/CR-DOM-Level-2-20000510/html.html[CSS] (and perhaps other aspects?).
+Version 2.12.2 was https://lists.apache.org/list?j-users@xerces.apache.org:2022-1:html[released] in 2022.
+These questions about https://stackoverflow.com/questions/29041855/how-can-i-build-an-html-org-w3c-dom-document/[parsing HTML] and about https://stackoverflow.com/questions/11677572/dealing-with-xerces-hell-in-java-maven[Maven] provide more details (the first post does not look entirely correct to me but these news were sufficiently discouraging to me that I gave up about Xerces-J for now).
+
+Aurélien Pupier https://issues.apache.org/jira/browse/XERCESJ-1735[published] a “basic” version (meaning, without xml schema 1.1) in early 2022.
+He opened another https://issues.apache.org/jira/browse/XERCESJ-1736[issue] about publishing “xercesImpl 2.12.2 xml schema 1.1 to Maven Central” but stopped there.
+Related https://lists.apache.org/thread/wkg4qo0smrnq2q4oj64w083338m2543c[discussion] (nov 2023).
+
+VS Code https://github.com/redhat-developer/vscode-xml/issues/222[discusses] using Xerces-J for its 1.1 schema support.
+https://github.com/eclipse-lemminx/lemminx/pull/515#issuecomment-1823025390[talks about Xerces-J and Maven].
+
+
+mrglavas (Michael Glavassevich), the PMC chair for Apache Xerces, https://github.com/redhat-developer/vscode-xml/issues/222#issuecomment-2176265779[mentions]: “Xerces' relationship with Maven is complicated. Maven has never been part of Xerces release process. Xerces is built with Ant and the developers never took an interest in anything about Maven. Other people from the Apache community have been responsible for uploading releases. So there has been a distribution (https://xerces.apache.org/mirrors.cgi#binary) of Xerces with XSD 1.1 support for many years, it is stable and complete, but it's possible no one ever publishes that to a Maven repository, perhaps because whomever has been publishing Xerces to Maven doesn't use it. I always challenged people asking for this stuff to get involved in the project and become committers. When they don't volunteer after making that request, nothing happens.” 
+
+=== Nu validator
 I have some hopes of using the power of Nu validator to help with validation of HTML files (attempted https://github.com/oliviercailloux/JARiS/commit/a8bfc3d303d268ae844e95b99b0a63005f557050[here]), but this feature is currently blocked by https://github.com/validator/validator/issues/1504[this issue]. 
 Please thumb that issue up if this seems of interest.
 
