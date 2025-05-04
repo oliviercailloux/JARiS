@@ -16,10 +16,16 @@ import java.io.InputStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.xml.sax.SAXParseException;
 
 public class DomHelperHtmlTests {
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = LoggerFactory.getLogger(DomHelperHtmlTests.class);
+  
   @Test
   public void testSimpleDomHelper() throws Exception {
     CharSource simple = charSource("Html/Simple.html");
@@ -49,7 +55,9 @@ public class DomHelperHtmlTests {
   @Test
   public void testNoHtmlFeature() throws Exception {
     final DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
-    assertFalse(registry.getDOMImplementation("Core").hasFeature("HTML", "1.0"));
+    DOMImplementation impl = registry.getDOMImplementation("Core");
+    assertEquals(org.apache.xerces.dom.CoreDOMImplementationImpl.class, impl.getClass());
+    assertFalse(impl.hasFeature("HTML", "1.0"));
     /* https://www.w3.org/TR/2003/REC-DOM-Level-2-HTML-20030109/html.html#ID-1176245063 */
     assertFalse(registry.getDOMImplementation("Core").hasFeature("HTML", "2.0"));
     assertFalse(registry.getDOMImplementation("XML").hasFeature("HTML", "2.0"));
