@@ -54,5 +54,6 @@ public class DomHelperHtmlTests {
     assertFalse(registry.getDOMImplementation("Core").hasFeature("HTML", "2.0"));
     assertFalse(registry.getDOMImplementation("XML").hasFeature("HTML", "2.0"));
     assertNull(registry.getDOMImplementation("HTML"));
+    assertNull(registry.getDOMImplementation("HTML 1.0"));
   }
 }
