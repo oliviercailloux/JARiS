@@ -62,20 +62,6 @@ public class DomHelperHtmlTests {
   }
 
   @Test
-  public void testDirectDocBuilder() throws Exception {
-    ByteSource simple = byteSource("Html/Simple.html");
-    DOMParser parser = new DOMParser();
-    try (InputStream is = simple.openStream()) {
-      SAXParseException e =
-          assertThrows(SAXParseException.class, () -> parser.parse(new InputSource(is)));
-      String message = Throwables.getRootCause(e).getMessage();
-      assertTrue(message.contains("/meta"), message);
-    }
-    // URL input = Resources.getResource(Resourcer.class, "Html/Simple.html");
-    // parser.parse(input.toString());
-  }
-
-  @Test
   public void testNoHtmlFeature() throws Exception {
     final DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
     assertFalse(registry.getDOMImplementation("Core").hasFeature("HTML", "1.0"));
@@ -83,23 +69,5 @@ public class DomHelperHtmlTests {
     assertFalse(registry.getDOMImplementation("Core").hasFeature("HTML", "2.0"));
     assertFalse(registry.getDOMImplementation("XML").hasFeature("HTML", "2.0"));
     assertNull(registry.getDOMImplementation("HTML"));
-  }
-
-  @Test
-  public void testCreateNotProperHtml() throws Exception {
-    HTMLDOMImplementation d = HTMLDOMImplementationImpl.getHTMLDOMImplementation();
-    assertNotNull(d);
-    HTMLDocument doc = d.createHTMLDocument("Ze title");
-    String ser = DomHelper.domHelper().toString(doc);
-    // Files.writeString(Path.of("zetitle.html"), ser);
-    assertFalse(ser.contains("DOCTYPE"));
-  }
-
-  @SuppressWarnings("deprecation")
-  @Test
-  public void testSaxIncomplete() throws Exception {
-    SAXParserFactory factory = SAXParserFactory.newInstance();
-    SAXParser saxParser = factory.newSAXParser();
-    saxParser.getParser().setDocumentHandler(new HTMLBuilder());
   }
 }

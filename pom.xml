@@ -60,12 +60,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>xerces</groupId>
-      <artifactId>xercesImpl</artifactId>
-      <version>2.12.2</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>io.github.oliviercailloux</groupId>
       <artifactId>docbook</artifactId>
       <version>0.0.3</version>
