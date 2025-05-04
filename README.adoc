@@ -111,9 +111,11 @@ String transformed = XmlTransformerFactory.usingFactory(KnownFactory.XALAN).usin
 The `DomHelper` class does not support HTML files. For example, it cannot parse https://github.com/oliviercailloux/JARiS/blob/main/src/test/resources/io/github/oliviercailloux/jaris/xml/Html/Simple.html[this file] because it is not valid XML (`meta` is not closed), even though it is valid HTML.
 
 === Xerces-J
-Note that Apache Xerces-J https://xerces.apache.org/xerces2-j/dom.html[implements DOM Level 1 HTML] (https://lists.apache.org/list?j-users@xerces.apache.org:2012-5:html[related discussion]).
-Thus, I suppose that it should support https://www.w3.org/TR/DOM-Level-1/level-one-core.html[bootstrapping].
+Note that Apache Xerces-J implements https://xerces.apache.org/xerces2-j/dom3.html[DOM Level 3] and https://xerces.apache.org/xerces2-j/dom.html[DOM Level 1 HTML] (https://lists.apache.org/thread/rflbm50vv9jwsbf5tys2mskxcqmo4z2q[related discussion]).
+Thus, I suppose that it should support https://docs.oracle.com/en/java/javase/22/docs/api/java.xml/org/w3c/dom/bootstrap/DOMImplementationRegistry.html[bootstrapping] and using https://www.w3.org/TR/DOM-Level-1/level-one-core.html#ID-BBACDC08[DOMImplementation#hasFeature("HTML", "1.0")].
+https://xml.apache.org/xalan-j/faq.html#faq-N100EF[This] provides details that could be investigated.
 Also, I suppose that it lacks (some?) support for https://www.w3.org/TR/2000/CR-DOM-Level-2-20000510/introduction.html#ID-E7C30824[DOM Level 2 HTML], which seems to add support for https://www.w3.org/TR/2000/CR-DOM-Level-2-20000510/html.html[CSS] (and perhaps other aspects?).
+
 Version 2.12.2 was https://lists.apache.org/list?j-users@xerces.apache.org:2022-1:html[released] in 2022.
 These questions about https://stackoverflow.com/questions/29041855/how-can-i-build-an-html-org-w3c-dom-document/[parsing HTML] and about https://stackoverflow.com/questions/11677572/dealing-with-xerces-hell-in-java-maven[Maven] provide more details (the first post does not look entirely correct to me but these news were sufficiently discouraging to me that I gave up about Xerces-J for now).
 
