@@ -11,7 +11,6 @@ import com.google.common.io.CharSource;
 import io.github.oliviercailloux.docbook.DocBookResources;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
 import java.net.URI;
-import java.nio.file.Path;
 import javax.xml.transform.TransformerFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -54,22 +53,15 @@ class XmlTransformerTests {
 
   @Test
   void testDocBookStyleTooComplexForJdk() throws Exception {
-    /*
-     * Much faster (obtains transformer from stylesheet in 4 sec instead of 17 sec), but depends on
-     * what is installed locally.
-     */
-    final URI myStyle =
-        Path.of("/usr/share/xml/docbook/stylesheet/docbook-xsl-ns/fo/docbook.xsl").toUri();
-
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
 
-    final XmlTransformerFactory t = XmlTransformerFactory.usingFactory(KnownFactory.JDK.factory());
-    assertEquals("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl",
-        t.factory().getClass().getName());
-    final XmlException xalanExc =
-        assertThrows(XmlException.class, () -> t.usingStylesheet(myStyle));
-    final String reason = xalanExc.getCause().getMessage();
+    TransformerFactory underlying = KnownFactory.JDK.factory();
+    underlying.setURIResolver(DocBookResources.RESOLVER);
+    final XmlTransformerFactory t = XmlTransformerFactory.usingFactory(underlying);
+    final XmlException e =
+        assertThrows(XmlException.class, () -> t.usingStylesheet(DocBookResources.XSLT_1_FO_URI));
+    final String reason = e.getCause().getMessage();
     assertTrue(reason.contains("JAXP0801003"), reason);
     capturer.restore();
     assertTrue(capturer.out().isEmpty());
@@ -89,8 +81,9 @@ class XmlTransformerTests {
   void testMissInternet(KnownFactory factory) throws Exception {
     final URI myStyle = new URI("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
 
+    final XmlTransformerFactory t = XmlTransformerFactory.usingFactory(factory.factory());
     XmlException exc = assertThrows(XmlException.class,
-        () -> XmlTransformerFactory.usingFactory(factory.factory()).usingStylesheet(myStyle));
+        () -> t.usingStylesheet(myStyle));
     Throwable connExc = Throwables.getRootCause(exc);
     assertEquals(java.net.UnknownHostException.class, connExc.getClass());
   }
