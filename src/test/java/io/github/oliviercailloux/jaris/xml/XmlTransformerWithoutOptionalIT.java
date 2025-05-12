@@ -13,7 +13,12 @@ import org.junit.jupiter.params.provider.EnumSource;
 public class XmlTransformerWithoutOptionalIT {
   @Test
   public void testHasFactory() throws Exception {
-    assertDoesNotThrow(() -> XmlTransformerFactory.usingFactory(KnownFactory.JDK.factory()));
+    final CharSource style = charSource("Article/To text.xsl");
+    final CharSource input = charSource("Article/Two authors.xml");
+    final String expected = charSource("Article/Two authors.txt").read();
+    XmlTransformerFactory f = XmlTransformerFactory.usingFactory(KnownFactory.JDK.factory());
+    assertEquals(expected, f.pedantic()
+        .usingStylesheet(style).charsToChars(input));
   }
   
   @ParameterizedTest
