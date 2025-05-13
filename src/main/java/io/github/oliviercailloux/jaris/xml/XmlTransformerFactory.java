@@ -8,14 +8,14 @@ import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
 import com.google.common.io.CharSource;
+import com.google.common.io.Resources;
 import io.github.oliviercailloux.jaris.collections.CollectionUtils;
-import io.github.oliviercailloux.jaris.exceptions.Unchecker;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.Optional;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
@@ -51,14 +51,18 @@ import org.slf4j.LoggerFactory;
  * severity <em>error</em> or <em>fatal</em>.
  * </p>
  * <p>
- * The {@link KnownFactory#JDK system default factory} sometimes spits errors to the
- * console, which escapes the mechanism described here above, due to
+ * The {@link KnownFactory#JDK system default factory} sometimes spits errors to the console, which
+ * escapes the mechanism described here above, due to
  * <a href="https://stackoverflow.com/a/21209904/">a bug</a> in the JDK.
  * </p>
  */
 public class XmlTransformerFactory {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerFactory.class);
+
+  public static final CharSource STRIP_WHITESPACE_STYLESHEET = Resources.asCharSource(
+      Resources.getResource(XmlTransformerFactory.class, "Strip whitespace.xsl"),
+      StandardCharsets.UTF_8);
 
   public static class OutputPropertyValue {
     private final Object value;
@@ -395,7 +399,7 @@ public class XmlTransformerFactory {
       OutputProperties outputProperties) throws XmlException {
     checkNotNull(parameters);
     checkNotNull(outputProperties);
-    
+
     final Transformer transformer;
     LOGGER.debug("Obtaining transformer from stylesheet {}.", stylesheet);
     /*
