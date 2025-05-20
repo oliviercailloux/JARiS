@@ -128,10 +128,11 @@ VS Code https://github.com/redhat-developer/vscode-xml/issues/222[discusses] usi
 https://github.com/eclipse-lemminx/lemminx/pull/515#issuecomment-1823025390[talks about Xerces-J and Maven].
 
 mrglavas (Michael Glavassevich), the PMC chair for Apache Xerces, https://github.com/redhat-developer/vscode-xml/issues/222#issuecomment-2176265779[mentions]: “Xerces' relationship with Maven is complicated. Maven has never been part of Xerces release process. Xerces is built with Ant and the developers never took an interest in anything about Maven. Other people from the Apache community have been responsible for uploading releases. So there has been a distribution (https://xerces.apache.org/mirrors.cgi#binary) of Xerces with XSD 1.1 support for many years, it is stable and complete, but it's possible no one ever publishes that to a Maven repository, perhaps because whomever has been publishing Xerces to Maven doesn't use it. I always challenged people asking for this stuff to get involved in the project and become committers. When they don't volunteer after making that request, nothing happens.” 
+https://github.com/apache/xerces-j/pull/8#issuecomment-2737435938[Also]: “when folks want something (specifically thinking about all those requests from the community about Xerces and Maven) and are asked to volunteer they don't step up”.
 
 === Nu validator
 I have some hopes of using the power of Nu validator to help with validation of HTML files (attempted https://github.com/oliviercailloux/JARiS/commit/a8bfc3d303d268ae844e95b99b0a63005f557050[here]), but this feature is currently blocked by https://github.com/validator/validator/issues/1504[this issue]. 
-Please thumb that issue up if this seems of interest.
+Please consider thumbing it up.
 
 == TODO
 - Document whether can use a https://datatracker.ietf.org/doc/html/rfc3151[publicid URN] as stylesheet, or consider accepting a String (public identifiers used in XML catalogs are often in FPI format, such as -//OASIS//DTD DocBook XML V4.1.2//EN).
