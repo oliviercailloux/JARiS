@@ -9,6 +9,7 @@ import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
+import com.google.common.graph.ElementOrder;
 import com.google.common.graph.EndpointPair;
 import com.google.common.graph.Graph;
 import com.google.common.graph.GraphBuilder;
@@ -46,6 +47,10 @@ public class GraphUtils {
    * {@link PredecessorsFunction#predecessors(Object) predecessors} method).
    * <p>
    * The returned graph allows self loops.
+   * <p>
+   * The edges ordering in the returned graph follows the order given by the successors and
+   * predecessors functions if there is no overlap (no node that is returned both as a successor of
+   * another node and as a predecessor of another node).
    *
    * @param <E> the type of nodes contained in the returned graph.
    * @param <F> the type of nodes used as roots and in the successors and predecessors functions.
@@ -64,7 +69,8 @@ public class GraphUtils {
     final Queue<F> toConsider = new LinkedList<>(roots);
     final Set<F> seen = new HashSet<>(roots);
 
-    final MutableGraph<E> mutableGraph = GraphBuilder.directed().allowsSelfLoops(true).build();
+    final MutableGraph<E> mutableGraph = GraphBuilder.directed().allowsSelfLoops(true)
+        .incidentEdgeOrder(ElementOrder.stable()).build();
     while (!toConsider.isEmpty()) {
       final F current = toConsider.remove();
       Verify.verify(current != null);
