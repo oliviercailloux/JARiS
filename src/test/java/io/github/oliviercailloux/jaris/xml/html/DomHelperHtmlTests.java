@@ -13,21 +13,24 @@ import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.xml.DomHelper;
 import io.github.oliviercailloux.jaris.xml.XmlException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.xml.sax.SAXParseException;
 
 public class DomHelperHtmlTests {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(DomHelperHtmlTests.class);
-  
+
   @Test
-  public void testSimpleDomHelper() throws Exception {
+  public void testDomHelperFails() throws Exception {
     CharSource simple = charSource("Html/Simple.html");
     DomHelper h = DomHelper.domHelper();
     XmlException e = assertThrows(XmlException.class, () -> h.asDocument(simple));
@@ -36,7 +39,7 @@ public class DomHelperHtmlTests {
   }
 
   @Test
-  public void testSimpleDocBuilder() throws Exception {
+  public void testDocBuilderFails() throws Exception {
     ByteSource simple = byteSource("Html/Simple.html");
     final DocumentBuilder builderNs = DocumentBuilderFactory.newNSInstance().newDocumentBuilder();
     try (InputStream is = simple.openStream()) {
