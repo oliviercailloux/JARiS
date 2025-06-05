@@ -48,6 +48,13 @@ import java.util.function.Supplier;
 public class Unchecker<X extends Exception, Y extends RuntimeException>
     extends UncheckedImpl<X, Y> {
   /**
+   * An object that accepts functional interfaces that throw anything; and that
+   * will throw {@link VerifyException} instances instead.
+   */
+  public static final Unchecker<Exception, VerifyException> VERIFIER =
+      Unchecker.wrappingWith(VerifyException::new);
+      
+  /**
    * An object that accepts functional interfaces that throw {@link IOException} instances; and that
    * will throw {@link UncheckedIOException} instances instead.
    */
