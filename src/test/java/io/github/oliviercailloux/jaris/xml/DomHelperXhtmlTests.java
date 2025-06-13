@@ -39,7 +39,7 @@ class DomHelperXhtmlTests {
   }
 
   private void initDoc() {
-    document = DomHelper.domHelper().createDocument(new QName(HTML_NS_URI.toString(), "html"));
+    document = DomHelper.domHelper().createDocument(XmlName.expandedName(HTML_NS_URI, "html").toQName());
     html = document.getDocumentElement();
     html.setAttribute("xml:lang", "en");
     head = document.createElementNS(HTML_NS_URI.toString(), "head");
