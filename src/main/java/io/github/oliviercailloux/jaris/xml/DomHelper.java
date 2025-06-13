@@ -67,6 +67,14 @@ public class DomHelper {
    *         feature.
    */
   public static DomHelper domHelper() throws XmlException {
+    return usingBuilderInternal(null);
+  }
+
+  public static DomHelper usingBuilder(DocumentBuilder builder) throws XmlException {
+    return usingBuilderInternal(checkNotNull(builder));
+  }
+
+  private static DomHelper usingBuilderInternal(DocumentBuilder builder) throws XmlException {
     final DOMImplementationRegistry registry;
     try {
       registry = DOMImplementationRegistry.newInstance();
@@ -86,7 +94,7 @@ public class DomHelper {
           "Registry '%s' did not yield any DOM implementation providing the XML feature.",
           registry.toString()));
     }
-    return new DomHelper(implLs, implXml);
+    return new DomHelper(implLs, implXml, builder);
   }
 
   private static InputSource toInputSource(StreamSource document) {
@@ -209,19 +217,27 @@ public class DomHelper {
 
   private static final DomHelper.ThrowingDomErrorHandler THROWING_DOM_ERROR_HANDLER =
       new ThrowingDomErrorHandler();
+  /** Used by default to lazily create ser and deser. */
   private final DOMImplementationLS implLs;
-  private final DOMImplementation implXml;
+  /** Used for toString. */
   private LSSerializer ser;
-
+  /** Used for asDocument. */
   private LSParser deser;
+  /** Used for asDocument, overrides deser. */
+  private final DocumentBuilder builder;
+
+  /** Used for createDocument. */
+  private final DOMImplementation implXml;
 
   private boolean withDeclaration;
 
-  private DomHelper(DOMImplementationLS implLs, DOMImplementation implXml) {
+  private DomHelper(DOMImplementationLS implLs, DOMImplementation implXml,
+      DocumentBuilder builder) {
     this.implLs = checkNotNull(implLs);
     this.implXml = checkNotNull(implXml);
     ser = null;
     deser = null;
+    this.builder = builder;
     withDeclaration = true;
   }
 
@@ -340,13 +356,22 @@ public class DomHelper {
    * @return a document
    * @throws XmlException iff loading the XML document failed.
    */
-  public Document asDocument(StreamSource input) throws XmlException {
-    lazyInitDeser();
+  public Document asDocument(StreamSource input) throws XmlException, IOException {
     final Document doc;
-    try {
-      doc = deser.parse(toLsInput(input));
-    } catch (LSException e) {
-      throw new XmlException("Unable to parse the provided document.", e);
+    if (builder != null) {
+      builder.setErrorHandler(THROWING_DOM_ERROR_HANDLER);
+      try {
+        doc = builder.parse(toInputSource(input));
+      } catch (SAXException e) {
+        throw new XmlException("Unable to parse the provided document.", e);
+      }
+    } else {
+      lazyInitDeser();
+      try {
+        doc = deser.parse(toLsInput(input));
+      } catch (LSException e) {
+        throw new XmlException("Unable to parse the provided document.", e);
+      }
     }
 
     return doc;

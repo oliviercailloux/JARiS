@@ -79,6 +79,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>nu.validator</groupId>
+      <artifactId>htmlparser</artifactId>
+      <version>1.4.16</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>io.github.oliviercailloux</groupId>
       <artifactId>docbook</artifactId>
       <version>0.0.3</version>
