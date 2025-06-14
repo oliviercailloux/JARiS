@@ -23,7 +23,6 @@ public class XercesSerializationTests {
     final DOMImplementationLS implLs = (DOMImplementationLS) registry.getDOMImplementation("LS");
     LSSerializer ser = implLs.createLSSerializer();
     ser.getDomConfig().setParameter("format-pretty-print", true);
-    ser.getDomConfig().setParameter("xml-declaration", true);
     final StringWriter writer = new StringWriter();
     final LSOutput output = implLs.createLSOutput();
     output.setEncoding(StandardCharsets.UTF_8.name());
