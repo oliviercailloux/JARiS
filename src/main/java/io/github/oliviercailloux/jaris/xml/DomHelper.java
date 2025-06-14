@@ -129,6 +129,44 @@ public class DomHelper {
     return inputSource;
   }
 
+  @SuppressWarnings("unused")
+  private static DOMImplementation createDocumentImplementationUsingDocumentBuilderFactory()
+      throws ParserConfigurationException {
+    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newNSInstance();
+    final DocumentBuilder builder = dbf.newDocumentBuilder();
+    return builder.getDOMImplementation();
+  }
+
+  /**
+   * I favor the DOM LS parser to the DocumentBuilder: DOM LS is a W3C standard (see
+   * <a href="https://stackoverflow.com/a/38153986">SO</a>) and I need an LS serializer anyway.
+   */
+  @SuppressWarnings("unused")
+  private static Document asDocumentUsingBuilder(StreamSource input)
+      throws ParserConfigurationException, SAXException, IOException {
+    final DocumentBuilderFactory factory = DocumentBuilderFactory.newNSInstance();
+    final DocumentBuilder builder = factory.newDocumentBuilder();
+
+    final Document doc = builder.parse(toInputSource(input));
+
+    final Element docE = doc.getDocumentElement();
+    LOGGER.debug("Main tag name: {}.", docE.getTagName());
+
+    return doc;
+  }
+
+  @SuppressWarnings("unused")
+  private static Document cloneDocument(Document doc) {
+    // Thanks to https://stackoverflow.com/questions/5226852/cloning-dom-document-object .
+    // As a DOMSource is not a StreamSource, I ignore how to (and perhaps cannot) use the LS API.
+    // So, this should probably be moved to XmlTransformer.
+    DOMResult result = new DOMResult();
+    XmlTransformerFactory.usingFactory(TransformerFactory.newDefaultInstance())
+        .usingEmptyStylesheet().sourceToResult(new DOMSource(doc), result);
+    Document d = (Document) result.getNode();
+    return d;
+  }
+
   private static class NodeListWrapper extends AbstractList<Node> implements RandomAccess {
     private final NodeList delegate;
 
@@ -359,7 +397,7 @@ public class DomHelper {
   public Document asDocument(StreamSource input) throws XmlException, IOException {
     final Document doc;
     if (builder != null) {
-      builder.setErrorHandler(THROWING_DOM_ERROR_HANDLER);
+      builder.setErrorHandler(SaxErrorHandlers.THROWING_ERROR_HANDLER);
       try {
         doc = builder.parse(toInputSource(input));
       } catch (SAXException e) {
@@ -419,32 +457,6 @@ public class DomHelper {
     return doc;
   }
 
-  @SuppressWarnings("unused")
-  private DOMImplementation createDocumentImplementationUsingDocumentBuilderFactory()
-      throws ParserConfigurationException {
-    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newNSInstance();
-    final DocumentBuilder builder = dbf.newDocumentBuilder();
-    return builder.getDOMImplementation();
-  }
-
-  /**
-   * I favor the DOM LS parser to the DocumentBuilder: DOM LS is a W3C standard (see
-   * <a href="https://stackoverflow.com/a/38153986">SO</a>) and I need an LS serializer anyway.
-   */
-  @SuppressWarnings("unused")
-  private Document asDocumentUsingBuilder(StreamSource input)
-      throws ParserConfigurationException, SAXException, IOException {
-    final DocumentBuilderFactory factory = DocumentBuilderFactory.newNSInstance();
-    final DocumentBuilder builder = factory.newDocumentBuilder();
-
-    final Document doc = builder.parse(toInputSource(input));
-
-    final Element docE = doc.getDocumentElement();
-    LOGGER.debug("Main tag name: {}.", docE.getTagName());
-
-    return doc;
-  }
-
   /**
    * Returns a pretty-printed textual representation of the node.
    *
@@ -468,17 +480,5 @@ public class DomHelper {
     }
     verify(res, "Write failed");
     return writer.toString();
-  }
-
-  @SuppressWarnings("unused")
-  private Document cloneDocument(Document doc) {
-    // Thanks to https://stackoverflow.com/questions/5226852/cloning-dom-document-object .
-    // As a DOMSource is not a StreamSource, I ignore how to (and perhaps cannot) use the LS API.
-    // So, this should probably be moved to XmlTransformer.
-    DOMResult result = new DOMResult();
-    XmlTransformerFactory.usingFactory(TransformerFactory.newDefaultInstance())
-        .usingEmptyStylesheet().sourceToResult(new DOMSource(doc), result);
-    Document d = (Document) result.getNode();
-    return d;
   }
 }

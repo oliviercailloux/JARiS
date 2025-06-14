@@ -15,9 +15,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 /**
  * <p>
@@ -50,47 +48,11 @@ public class SchemaHelper {
    * @return a schema helper instance.
    */
   public static SchemaHelper schemaHelper(SchemaFactory factory) {
-    factory.setErrorHandler(SchemaHelper.THROWING_ERROR_HANDLER);
+    factory.setErrorHandler(SaxErrorHandlers.THROWING_ERROR_HANDLER);
     LOGGER.info("Using factory {}.", factory);
     return new SchemaHelper(factory);
   }
 
-  private static final class LoggingOrThrowingErrorHandler implements ErrorHandler {
-    @Override
-    public void warning(SAXParseException exception) {
-      LOGGER.debug("Warning while processing.", exception);
-    }
-
-    @Override
-    public void fatalError(SAXParseException exception) throws SAXParseException {
-      throw exception;
-    }
-
-    @Override
-    public void error(SAXParseException exception) throws SAXParseException {
-      throw exception;
-    }
-  }
-
-  private static final class ThrowingErrorHandler implements ErrorHandler {
-    @Override
-    public void warning(SAXParseException exception) throws SAXParseException {
-      throw exception;
-    }
-
-    @Override
-    public void fatalError(SAXParseException exception) throws SAXParseException {
-      throw exception;
-    }
-
-    @Override
-    public void error(SAXParseException exception) throws SAXParseException {
-      throw exception;
-    }
-  }
-
-  static final ErrorHandler LOGGING_OR_THROWING_ERROR_HANDLER = new LoggingOrThrowingErrorHandler();
-  private static final ErrorHandler THROWING_ERROR_HANDLER = new ThrowingErrorHandler();
   private final SchemaFactory factory;
 
   private SchemaHelper(SchemaFactory tf) {
