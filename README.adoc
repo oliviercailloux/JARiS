@@ -200,9 +200,6 @@ The following (non-Xerces-specific) appears to work for me:
 https://jsoup.org/
 Right parsing approach but no W3C DOM
 
-=== Nu
-To be done
-
 === XmlTransformer
 If you want HTML output, you'll need to specify <xsl:output method="html"/> in your stylesheet, says Claude. To be checked.
 
