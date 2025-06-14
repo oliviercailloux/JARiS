@@ -41,7 +41,7 @@ class DomHelperXhtmlTests {
   private void initDoc() {
     document = DomHelper.domHelper().createDocument(XmlName.expandedName(HTML_NS_URI, "html").toQName());
     html = document.getDocumentElement();
-    html.setAttribute("xml:lang", "en");
+    html.setAttribute("lang", "en");
     head = document.createElementNS(HTML_NS_URI.toString(), "head");
     html.appendChild(head);
     final Element meta = document.createElementNS(HTML_NS_URI.toString(), "meta");

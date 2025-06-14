@@ -5,7 +5,6 @@ import static io.github.oliviercailloux.jaris.xml.Resourcer.charSource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -14,30 +13,18 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
 import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.xml.DomHelper;
+import io.github.oliviercailloux.jaris.xml.Resourcer;
 import io.github.oliviercailloux.jaris.xml.XmlException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import nu.validator.htmlparser.dom.HtmlDocumentBuilder;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.DOMImplementationList;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.bootstrap.DOMImplementationRegistry;
-import org.w3c.dom.html.HTMLDOMImplementation;
-import org.w3c.dom.html.HTMLDocument;
-import org.w3c.dom.ls.LSException;
-import org.w3c.dom.ls.LSInput;
-import org.w3c.dom.ls.LSParser;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXParseException;
 
 public class DomHelperHtmlTests {
@@ -68,6 +55,27 @@ public class DomHelperHtmlTests {
       String message = Throwables.getRootCause(e).getMessage();
       assertTrue(message.contains("/meta"), message);
     }
+  }
+
+  @Test
+  public void testHtmlSimple() throws Exception {
+    DomHelper h = DomHelper.usingBuilder(new HtmlDocumentBuilder());
+    Document doc = h.asDocument(byteSource("Html/Simple.html"));
+    String str = h.toString(doc);
+    // Files.writeString(Path.of("Simple.xhtml"), h.toString(doc));
+    String expected = Resourcer.charSource("Xhtml/Simple.xhtml").read();
+    assertEquals(expected, str);
+  }
+
+  @Test
+  public void testHtml() throws Exception {
+    DomHelper h = DomHelper.usingBuilder(new HtmlDocumentBuilder());
+    Document doc = h.asDocument(byteSource("Html/Html is not Xml.html"));
+    String str = h.toString(doc);
+    assertTrue(str.contains("<?xml"));
+    assertFalse(str.contains("DOCTYPE"));
+    assertTrue(str.contains("</p>"));
+    assertTrue(str.contains("<br/>"));
   }
 
   @Test
@@ -119,10 +127,7 @@ public class DomHelperHtmlTests {
       doc = builder.parse(is);
     }
     String str = DomHelper.domHelper().toString(doc);
-    assertTrue(str.contains("<?xml"));
-    assertFalse(str.contains("DOCTYPE"));
-    assertTrue(str.contains("<html xmlns=\"http://www.w3.org/1999/xhtml"));
-    assertTrue(str.contains("<meta content=\"text/html; charset=utf-8\" http-equiv=\"Content-type\"/>"));
-    Files.writeString(Path.of("Simple.xhtml"), DomHelper.domHelper().toString(doc));
+    String expected = Resourcer.charSource("Xhtml/Simple.xhtml").read();
+    assertEquals(expected, str);
   }
 }

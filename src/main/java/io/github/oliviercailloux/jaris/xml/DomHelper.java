@@ -423,16 +423,24 @@ public class DomHelper {
    * @throws XmlException iff loading the XML document failed.
    */
   public Document asDocument(ByteSource input) throws XmlException, IOException {
-    lazyInitDeser();
     final Document doc;
-    final LSInput lsInput = implLs.createLSInput();
-    try (InputStream stream = input.openStream()) {
-      lsInput.setByteStream(stream);
-      doc = deser.parse(lsInput);
-    } catch (LSException e) {
-      throw new XmlException("Unable to parse the provided document.", e);
+    if (builder != null) {
+      builder.setErrorHandler(SaxErrorHandlers.THROWING_ERROR_HANDLER);
+      try (InputStream is = input.openStream()) {
+        doc = builder.parse(is);
+      } catch (SAXException e) {
+        throw new XmlException("Unable to parse the provided document.", e);
+      }
+    } else {
+      lazyInitDeser();
+      final LSInput lsInput = implLs.createLSInput();
+      try (InputStream stream = input.openStream()) {
+        lsInput.setByteStream(stream);
+        doc = deser.parse(lsInput);
+      } catch (LSException e) {
+        throw new XmlException("Unable to parse the provided document.", e);
+      }
     }
-
     return doc;
   }
 
@@ -444,6 +452,10 @@ public class DomHelper {
    * @throws XmlException iff loading the XML document failed.
    */
   public Document asDocument(CharSource input) throws XmlException, IOException {
+    if (builder != null) {
+      return asDocument(input.asByteSource(StandardCharsets.UTF_8));
+    }
+    
     lazyInitDeser();
     final Document doc;
     final LSInput lsInput = implLs.createLSInput();
@@ -453,7 +465,6 @@ public class DomHelper {
     } catch (LSException e) {
       throw new XmlException("Unable to parse the provided document.", e);
     }
-
     return doc;
   }
 
