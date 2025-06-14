@@ -37,9 +37,9 @@ import org.slf4j.LoggerFactory;
  * the schema or during transformation: information and problem.
  * </p>
  * <p>
- * An instance is either <em>normal</em> or {@link #pedanticTransformer <em>pedantic</em>}. If it is
- * normal, it logs information events and throws exceptions for problem events. If it is pedantic,
- * it throws exceptions for both information and problem events.
+ * An instance is either <em>normal</em> or {@link #pedantic <em>pedantic</em>}. If it is normal, it
+ * logs information events and throws exceptions for problem events. If it is pedantic, it throws
+ * exceptions for both information and problem events.
  * </p>
  * 
  * <p>
@@ -185,7 +185,7 @@ public class XmlTransformerFactory {
   /**
    * Returns a transformer factory that creates transformers which throw exceptions upon
    * encountering information events, including messages, even if specified as non-terminating.
-   * 
+   *
    * @return a pedantic transformer factory
    */
   public XmlTransformerFactory pedantic() {
@@ -198,35 +198,35 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a configured transformer that may be used to transform documents using the “identity”
+   * Returns a transformer that may be used to transform documents using the “identity”
    * transform and a default “indented” output property.
    *
-   * @return a configured transformer
+   * @return a transformer
    */
   public XmlTransformer usingEmptyStylesheet() {
     return usingStylesheetInternal(null, ImmutableMap.of(), OutputProperties.indent());
   }
 
   /**
-   * Returns a configured transformer that may be used to transform documents using the “identity”
+   * Returns a transformer that may be used to transform documents using the “identity”
    * transform.
    *
    * @param outputProperties any properties to be used with the transformer.
-   * @return a configured transformer
+   * @return a transformer
    */
   public XmlTransformer usingEmptyStylesheet(OutputProperties outputProperties) {
     return usingStylesheetInternal(null, ImmutableMap.of(), outputProperties);
   }
 
   /**
-   * Returns a configured transformer that may be used to transform documents using the provided
+   * Returns a transformer that may be used to transform documents using the provided
    * stylesheet and a default “indented” output property.
    * <p>
    * Equivalent to {@link #usingStylesheet(ByteSource, Map)} with an empty map of parameters.
    * </p>
    *
    * @param stylesheet the stylesheet that indicates the transform to perform.
-   * @return a configured transformer
+   * @return a transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */
@@ -235,14 +235,14 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a configured transformer that may be used to transform documents using the provided
+   * Returns a transformer that may be used to transform documents using the provided
    * stylesheet and a default “indented” output property.
    * <p>
    * Equivalent to {@link #usingStylesheet(CharSource, Map)} with an empty map of parameters.
    * </p>
    *
    * @param stylesheet the stylesheet that indicates the transform to perform.
-   * @return a configured transformer
+   * @return a transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */
@@ -251,14 +251,14 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a configured transformer that may be used to transform documents using the provided
+   * Returns a transformer that may be used to transform documents using the provided
    * stylesheet and a default “indented” output property.
    * <p>
    * Equivalent to {@link #usingStylesheet(ByteSource, Map)} with an empty map of parameters.
    * </p>
    *
    * @param stylesheet the stylesheet that indicates the transform to perform.
-   * @return a configured transformer
+   * @return a transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */
@@ -267,14 +267,14 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a configured transformer that may be used to transform documents using the provided
+   * Returns a transformer that may be used to transform documents using the provided
    * stylesheet parameterized with the given parameters and using a default “indented” output
    * property.
    *
    * @param stylesheet the stylesheet that indicates the transform to perform.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,
    *        null keys or values not allowed.
-   * @return a configured transformer
+   * @return a transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */
@@ -284,14 +284,14 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a configured transformer that may be used to transform documents using the provided
+   * Returns a transformer that may be used to transform documents using the provided
    * stylesheet parameterized with the given parameters and using a default “indented” output
    * property.
    *
    * @param stylesheet the stylesheet that indicates the transform to perform.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,
    *        null keys or values not allowed.
-   * @return a configured transformer
+   * @return a transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */
@@ -301,14 +301,14 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a configured transformer that may be used to transform documents using the provided
+   * Returns a transformer that may be used to transform documents using the provided
    * stylesheet parameterized with the given parameters and using a default “indented” output
    * property.
    *
    * @param stylesheet the stylesheet that indicates the transform to perform.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,
    *        null keys or values not allowed.
-   * @return a configured transformer
+   * @return a transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */
@@ -342,7 +342,7 @@ public class XmlTransformerFactory {
    *        stylesheet URI is considered a system id.
    * @param parameters
    * @param outputProperties
-   * @return
+   * @return a transformer
    * @throws XmlException
    */
   public XmlTransformer usingStylesheet(URI stylesheet, Map<XmlName, String> parameters,
@@ -372,14 +372,14 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a configured transformer that may be used to transform documents using the provided
+   * Returns a transformer that may be used to transform documents using the provided
    * stylesheet parameterized with the given parameters.
    *
    * @param stylesheet the stylesheet that indicates the transform to perform.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,
    *        null keys or values not allowed.
    * @param outputProperties any properties to be used with the transformer.
-   * @return a configured transformer
+   * @return a transformer
    * @throws XmlException iff an error occurs when parsing the stylesheet. Wraps a
    *         {@link TransformerConfigurationException}.
    */

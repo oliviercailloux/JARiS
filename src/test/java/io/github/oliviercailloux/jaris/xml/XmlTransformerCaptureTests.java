@@ -15,8 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class XmlTransformerCaptureTests {
-@SuppressWarnings("unused")
-private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerCaptureTests.class);
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerCaptureTests.class);
 
   @ParameterizedTest
   @EnumSource
@@ -24,8 +24,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerCaptu
     final OutputCapturer capturer = OutputCapturer.capturer();
     capturer.capture();
     final CharSource style = charSource("/io/github/oliviercailloux/docbook/fo/docbook.xsl");
-    final XmlTransformerFactory t =
-        XmlTransformerFactory.usingFactory(factory.factory());
+    final XmlTransformerFactory t = XmlTransformerFactory.usingFactory(factory.factory());
     final XmlException readExc = assertThrows(XmlException.class, () -> t.usingStylesheet(style));
     final String reason = readExc.getCause().getMessage();
     assertTrue(reason.contains("ptc.xsl") || reason.contains("VERSION.xsl"), reason);

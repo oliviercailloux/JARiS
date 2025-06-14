@@ -16,12 +16,16 @@ public class DomRegistryCreationTests {
     final DOMImplementationList implLss = registry.getDOMImplementationList("LS");
     assertEquals(4, implLss.getLength());
     final DOMImplementation implLs0 = implLss.item(0);
-    assertEquals("com.sun.org.apache.xerces.internal.dom.CoreDOMImplementationImpl", implLs0.getClass().getName());
+    assertEquals("com.sun.org.apache.xerces.internal.dom.CoreDOMImplementationImpl",
+        implLs0.getClass().getName());
     final DOMImplementation implLs1 = implLss.item(1);
-    assertEquals("com.sun.org.apache.xerces.internal.dom.DOMImplementationImpl", implLs1.getClass().getName());
+    assertEquals("com.sun.org.apache.xerces.internal.dom.DOMImplementationImpl",
+        implLs1.getClass().getName());
     final DOMImplementation implLs2 = implLss.item(2);
-    assertEquals("com.sun.org.apache.xerces.internal.dom.PSVIDOMImplementationImpl", implLs2.getClass().getName());
+    assertEquals("com.sun.org.apache.xerces.internal.dom.PSVIDOMImplementationImpl",
+        implLs2.getClass().getName());
     final DOMImplementation implLs3 = implLss.item(3);
-    assertEquals("com.sun.org.apache.xerces.internal.impl.xs.XSImplementationImpl", implLs3.getClass().getName());
+    assertEquals("com.sun.org.apache.xerces.internal.impl.xs.XSImplementationImpl",
+        implLs3.getClass().getName());
   }
 }

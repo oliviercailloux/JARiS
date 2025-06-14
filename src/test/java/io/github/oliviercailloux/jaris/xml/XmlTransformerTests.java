@@ -73,7 +73,8 @@ class XmlTransformerTests {
   void testDocBookStyleOthers(KnownFactory factory) throws Exception {
     TransformerFactory underlying = factory.factory();
     underlying.setURIResolver(DocBookResources.RESOLVER);
-    assertDoesNotThrow(() -> XmlTransformerFactory.usingFactory(underlying).usingStylesheet(DocBookResources.XSLT_1_FO_URI));
+    assertDoesNotThrow(() -> XmlTransformerFactory.usingFactory(underlying)
+        .usingStylesheet(DocBookResources.XSLT_1_FO_URI));
   }
 
   @ParameterizedTest
@@ -82,8 +83,7 @@ class XmlTransformerTests {
     final URI myStyle = new URI("https://cdn.docbook.org/release/xsl/1.79.2/fo/docbook.xsl");
 
     final XmlTransformerFactory t = XmlTransformerFactory.usingFactory(factory.factory());
-    XmlException exc = assertThrows(XmlException.class,
-        () -> t.usingStylesheet(myStyle));
+    XmlException exc = assertThrows(XmlException.class, () -> t.usingStylesheet(myStyle));
     Throwable connExc = Throwables.getRootCause(exc);
     assertEquals(java.net.UnknownHostException.class, connExc.getClass());
   }

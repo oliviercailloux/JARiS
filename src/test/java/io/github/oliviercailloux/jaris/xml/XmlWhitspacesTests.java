@@ -41,7 +41,6 @@ public class XmlWhitspacesTests {
 
   @Test
   public void testKeepsWhitespacesDespiteAskingPolitely() throws Exception {
-    CharSource content = charSource("Article ns/Empty.xml");
     final DOMImplementationLS domImpl =
         (DOMImplementationLS) DOMImplementationRegistry.newInstance().getDOMImplementation("LS");
     LSParser deser = domImpl.createLSParser(DOMImplementationLS.MODE_SYNCHRONOUS, null);
@@ -55,6 +54,7 @@ public class XmlWhitspacesTests {
      */
     deser.getDomConfig().setParameter("element-content-whitespace", false);
     final LSInput input = domImpl.createLSInput();
+    CharSource content = charSource("Article ns/Empty.xml");
     input.setCharacterStream(new StringReader(content.read()));
     Document doc = deser.parse(input);
     doc.getDomConfig().setParameter("validate", true);
@@ -100,8 +100,9 @@ public class XmlWhitspacesTests {
   @EnumSource
   public void testRemovesWhitespaces(KnownFactory factory) throws Exception {
     CharSource input = charSource("Article ns/Empty.xml");
-    XmlTransformer t = XmlTransformerFactory.usingFactory(factory.factory())
-        .usingStylesheet(XmlTransformerFactory.STRIP_WHITESPACE_STYLESHEET, ImmutableMap.of(), OutputProperties.noIndent());
+    XmlTransformer t = XmlTransformerFactory.usingFactory(factory.factory()).usingStylesheet(
+        XmlTransformerFactory.STRIP_WHITESPACE_STYLESHEET, ImmutableMap.of(),
+        OutputProperties.noIndent());
     String noIndent = t.charsToChars(input);
     String expected = input.read().replaceAll("\n", "").replaceAll("    ", "");
     assertEquals(expected, noIndent);

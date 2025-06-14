@@ -1,4 +1,5 @@
 package io.github.oliviercailloux.jaris.xml;
+
 import static io.github.oliviercailloux.jaris.xml.Resourcer.charSource;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,13 +18,13 @@ public class XmlTransformerWithoutOptionalIT {
     final CharSource input = charSource("Article/Two authors.xml");
     final String expected = charSource("Article/Two authors.txt").read();
     XmlTransformerFactory f = XmlTransformerFactory.usingFactory(KnownFactory.JDK.factory());
-    assertEquals(expected, f.pedantic()
-        .usingStylesheet(style).charsToChars(input));
+    assertEquals(expected, f.pedantic().usingStylesheet(style).charsToChars(input));
   }
-  
+
   @ParameterizedTest
   @EnumSource(names = {"XALAN", "SAXON"})
   public void testMissingFactory(KnownFactory factory) throws Exception {
-    assertThrows(ClassNotFoundException.class, () -> XmlTransformerFactory.usingFactory(factory.factory()));
+    assertThrows(ClassNotFoundException.class,
+        () -> XmlTransformerFactory.usingFactory(factory.factory()));
   }
 }

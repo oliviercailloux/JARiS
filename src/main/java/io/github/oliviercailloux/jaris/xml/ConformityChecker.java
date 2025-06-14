@@ -26,6 +26,7 @@ import org.xml.sax.SAXException;
  * a fatalError upon validating a document.
  * </p>
  */
+@SuppressWarnings("checkstyle:OverloadMethodsDeclarationOrder")
 public class ConformityChecker {
 
   static ConformityChecker withSchema(Schema schema) {
