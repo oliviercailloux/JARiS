@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import javax.xml.namespace.QName;
 import org.junit.jupiter.api.Test;
+import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
@@ -14,11 +15,11 @@ import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 
 public class XercesSerializationTests {
-  static final String ARTICLE_NS = "https://example.com/article";
   @Test
   void testSerialize() throws Exception {
-    Document doc = DomHelper.domHelper().createDocument(new QName(ARTICLE_NS, "Article"));
     DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
+    final DOMImplementation implXml = registry.getDOMImplementation("XML");
+    final Document doc = implXml.createDocument(null, "Root", null);
     final DOMImplementationLS implLs = (DOMImplementationLS) registry.getDOMImplementation("LS");
     LSSerializer ser = implLs.createLSSerializer();
     ser.getDomConfig().setParameter("format-pretty-print", true);
@@ -29,7 +30,7 @@ public class XercesSerializationTests {
     output.setCharacterStream(writer);
     boolean res = ser.write(doc, output);
     verify(res, "Write failed");
-    assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-        + "<Article xmlns=\"" + ARTICLE_NS + "\"/>\n", writer.toString());
+    assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+        + "<Root/>\n", writer.toString());
   }
 }
