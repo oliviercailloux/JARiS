@@ -2,7 +2,9 @@ package io.github.oliviercailloux.jaris.xml.html;
 
 import static io.github.oliviercailloux.jaris.xml.Resourcer.byteSource;
 import static io.github.oliviercailloux.jaris.xml.Resourcer.charSource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -13,8 +15,6 @@ import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.xml.DomHelper;
 import io.github.oliviercailloux.jaris.xml.XmlException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParser;
