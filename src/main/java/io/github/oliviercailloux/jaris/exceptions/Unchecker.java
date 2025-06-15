@@ -55,6 +55,13 @@ public class Unchecker<X extends Exception, Y extends RuntimeException>
       Unchecker.wrappingWith(VerifyException::new);
       
   /**
+   * An object that accepts functional interfaces that throw anything; and that
+   * will throw {@link IllegalArgumentException} instances instead.
+   */
+  public static final Unchecker<Exception, IllegalArgumentException> ARGUMENT_CHECKER =
+      Unchecker.wrappingWith(IllegalArgumentException::new);
+      
+  /**
    * An object that accepts functional interfaces that throw {@link IOException} instances; and that
    * will throw {@link UncheckedIOException} instances instead.
    */
