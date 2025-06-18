@@ -6,68 +6,10 @@
     <artifactId>pom</artifactId>
     <version>0.0.25</version>
   </parent>
-  <artifactId>jaris</artifactId>
+  <artifactId>jarisbugs</artifactId>
   <version>0.0.40-SNAPSHOT</version>
-  <name>JARiS</name>
   <description>Various utilities that complement those found in Guava.</description>
   <properties>
     <github-repository>${project.name}</github-repository>
   </properties>
-  <dependencies>
-    <dependency>
-      <groupId>net.sf.saxon</groupId>
-      <artifactId>Saxon-HE</artifactId>
-      <version>12.4</version>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>xalan</groupId>
-      <artifactId>xalan</artifactId>
-      <version>2.7.3</version>
-      <optional>true</optional>
-    </dependency>
-
-    <dependency>
-      <groupId>org.junit-pioneer</groupId>
-      <artifactId>junit-pioneer</artifactId>
-      <version>2.3.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <version>4.0.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.relaxng</groupId>
-      <artifactId>jing</artifactId>
-      <version>20241231</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.jimfs</groupId>
-      <artifactId>jimfs</artifactId>
-      <version>1.3.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>xalan</groupId>
-      <artifactId>serializer</artifactId>
-      <version>2.7.3</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>nu.validator</groupId>
-      <artifactId>htmlparser</artifactId>
-      <version>1.4.16</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.github.oliviercailloux</groupId>
-      <artifactId>docbook</artifactId>
-      <version>0.0.4</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
 </project>
