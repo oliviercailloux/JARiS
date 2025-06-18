@@ -13,27 +13,6 @@
   <properties>
     <github-repository>${project.name}</github-repository>
   </properties>
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <version>3.5.3</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <classpathDependencyExcludes>
-            <classpathDependencyExclude>net.sf.saxon:Saxon-HE</classpathDependencyExclude>
-            <classpathDependencyExclude>xalan:xalan</classpathDependencyExclude>
-          </classpathDependencyExcludes>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
   <dependencies>
     <dependency>
       <groupId>net.sf.saxon</groupId>
