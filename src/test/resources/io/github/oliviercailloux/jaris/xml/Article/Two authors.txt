@@ -1,4 +1,0 @@
-Article - My Article
-Authors:
-- Mr. Foo
-- Mr. Bar
