@@ -6,7 +6,6 @@ import com.google.common.io.ByteSource;
 import com.google.common.io.CharSource;
 import com.google.common.io.MoreFiles;
 import com.google.common.io.Resources;
-import io.github.oliviercailloux.jaris.io.PathUtils;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -14,7 +13,7 @@ import java.nio.file.Path;
 
 public class Resourcer {
   public static ByteSource byteSource(String resourceName) {
-    return PathUtils.fromResource(Resourcer.class, resourceName).asByteSource();
+    return Resources.asByteSource(Resourcer.class.getResource(resourceName));
   }
 
   public static CharSource charSource(String resourceName) {
