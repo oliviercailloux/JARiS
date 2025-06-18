@@ -7,6 +7,7 @@ import com.google.common.io.MoreFiles;
 import com.google.common.io.RecursiveDeleteOption;
 import io.github.oliviercailloux.jaris.exceptions.Unchecker;
 import io.github.oliviercailloux.jaris.throwing.TPredicate;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
@@ -178,68 +179,5 @@ public class PathUtils {
         return FileVisitResult.CONTINUE;
       }
     });
-  }
-
-  /**
-   * Returns a path associated to the given URI, creating a file system automatically if necessary
-   * and if possible.
-   * 
-   * This works around some limitations of Path.of, which throws if the file system cannot be
-   * created automatically. This method tries (harder) to create the file system automatically and
-   * as a counterpart may require it to be closed after use. That is the reason why this method
-   * returns a {@link CloseablePath}.
-   * 
-   * This method is not suitable when multiple threads access the file system underlying the given
-   * URI.
-   *
-   * @param uri the URI to create the path from
-   * @return the path associated to the given URI
-   * @throws IOException if an I/O error occurs while trying to create the file system automatically
-   * @throws ProviderNotFoundException if a provider supporting the URI scheme is not installed
-   */
-  public static CloseablePath pathFromUri(URI uri) throws IOException, ProviderNotFoundException {
-    /*
-     * If multi thread and one opens a fs and another one does not then the first one closes the fs,
-     * the second one will not be able to use it.
-     */
-    return new UriCloseablePath(uri);
-  }
-
-  public static CloseablePath pathAsCloseable(Path path) {
-    return new WrapCloseablePath(path);
-  }
-
-  public static CloseablePathFactory fromResource(Class<?> clazz, String resourceName) {
-    URL resource = clazz.getResource(resourceName);
-    checkArgument(resource != null, "Resource from class %s name %s not found.", clazz,
-        resourceName);
-    final URI uri = URI.create(resource.toString());
-    return fromUri(uri);
-  }
-
-  public static CloseablePathFactory fromUri(URI uri) {
-    checkArgument(uri != null, "URI is null.");
-    return new CloseablePathFactory() {
-      @Override
-      public CloseablePath path() throws ProviderNotFoundException, IOException {
-        return new UriCloseablePath(uri);
-      }
-    };
-  }
-
-  public static CloseablePathFactory wrapping(Path path) {
-    checkArgument(path != null, "Path is null.");
-    return new CloseablePathFactory() {
-      @Override
-      public CloseablePath path() {
-        return new WrapCloseablePath(path);
-      }
-    };
-  }
-
-  public static String read(CloseablePathFactory path) throws IOException {
-    try (CloseablePath p = path.path()) {
-      return Files.readString(p.delegate());
-    }
   }
 }
