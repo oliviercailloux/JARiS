@@ -11,6 +11,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.xml.XmlTransformerFactory.OutputProperties;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -169,6 +171,19 @@ public class XmlWhitspacesTests {
             OutputProperties.noIndent());
     String stripped = t.charsToChars(input);
     CharSource nospace = charSource("Whitespace/Not spaced.xml");
+    assertEquals(nospace.read(), stripped);
+  }
+
+  @ParameterizedTest
+  @EnumSource
+  public void testForceRemoveWhitespacesHowto(KnownFactory factory) throws Exception {
+    CharSource input = charSource("DocBook/Howto.fo");
+    XmlTransformer t = XmlTransformerFactory.usingFactory(KnownFactory.SAXON.factory())
+        .usingStylesheet(XmlTransformerFactory.FORCE_STRIP_WHITESPACE_STYLESHEET, ImmutableMap.of(),
+            OutputProperties.noIndent());
+    String stripped = t.charsToChars(input);
+    // Files.writeString(Path.of("out.fo"), stripped);
+    CharSource nospace = charSource("DocBook/Howto not spaced.fo");
     assertEquals(nospace.read(), stripped);
   }
 }
