@@ -6,8 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.base.VerifyException;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
+import io.github.oliviercailloux.jaris.xml.XmlTransformerFactory.OutputProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -130,5 +133,34 @@ public class XmlTransformerCaptureTests {
     capturer.restore();
     assertTrue(capturer.out().isEmpty());
     assertTrue(capturer.err().isEmpty());
+  }
+
+  @ParameterizedTest
+  @EnumSource(names = {"XALAN", "SAXON"})
+  public void testAmbiguousRemoveWhitespacesSpaced(KnownFactory factory) throws Exception {
+    final OutputCapturer capturer = OutputCapturer.capturer();
+    capturer.capture();
+    CharSource style = charSource("Whitespace/Ambiguous strip whitespace.xsl");
+    CharSource input = charSource("Whitespace/Spaced.xml");
+    XmlTransformer t = XmlTransformerFactory.usingFactory(factory.factory()).usingStylesheet(style,
+        ImmutableMap.of(), OutputProperties.noIndent());
+    String stripped = t.charsToChars(input);
+    CharSource half = charSource("Whitespace/Half spaced.xml");
+    assertEquals(half.read(), stripped);
+    capturer.restore();
+    assertTrue(capturer.out().isEmpty());
+    assertTrue(capturer.err().isEmpty());
+  }
+
+  @ParameterizedTest
+  @EnumSource(names = {"XALAN", "SAXON"})
+  public void testAmbiguousRemoveWhitespacesSpacedPedantic(KnownFactory factory) throws Exception {
+    CharSource style = charSource("Whitespace/Ambiguous strip whitespace.xsl");
+    CharSource input = charSource("Whitespace/Spaced.xml");
+    // final CharSource style = charSource("Article/Messaging.xsl");
+    // final CharSource input = charSource("Article/Two authors.xml");
+    XmlTransformer t = XmlTransformerFactory.usingFactory(factory.factory()).pedantic().usingStylesheet(style,
+        ImmutableMap.of(), OutputProperties.noIndent());
+    assertThrows(XmlException.class, () -> t.charsToChars(input));
   }
 }
