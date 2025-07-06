@@ -11,6 +11,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.xml.XmlTransformerFactory.OutputProperties;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -104,6 +106,29 @@ public class XmlWhitspacesTests {
         XmlTransformerFactory.STRIP_WHITESPACE_STYLESHEET, ImmutableMap.of(),
         OutputProperties.noIndent());
     String noIndent = t.charsToChars(input);
+    String expected = input.read().replaceAll("\n", "").replaceAll("    ", "");
+    assertEquals(expected, noIndent);
+    Document output = t.charsToDom(input);
+    Element docE = output.getDocumentElement();
+    assertEquals("Article", docE.getNodeName());
+    ImmutableList<Node> children = DomHelper.toList(docE.getChildNodes());
+    assertEquals(1, children.size());
+    Node child = Iterables.getOnlyElement(children);
+    assertEquals(Node.ELEMENT_NODE, child.getNodeType());
+    assertEquals("k:Empty", child.getNodeName());
+  }
+
+  @ParameterizedTest
+  @EnumSource
+  public void testRemovesWhitespacesFailsPerhaps(KnownFactory factory) throws Exception {
+    CharSource input = charSource("Article ns/Howto shortened.fo");
+    XmlTransformer t = XmlTransformerFactory.usingFactory(factory.factory()).usingStylesheet(
+        XmlTransformerFactory.STRIP_WHITESPACE_STYLESHEET, ImmutableMap.of(),
+        OutputProperties.noIndent());
+    String noIndent = t.charsToChars(input);
+    Files.writeString(Path.of("out.xml"), noIndent);
+    //TODO this contains blanks then Jirka.
+    assertTrue(false);
     String expected = input.read().replaceAll("\n", "").replaceAll("    ", "");
     assertEquals(expected, noIndent);
     Document output = t.charsToDom(input);
