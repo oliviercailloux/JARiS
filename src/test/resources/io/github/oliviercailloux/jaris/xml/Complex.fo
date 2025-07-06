@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fo:root xmlns:fo="http://ploum">
+    <fo:block font-size="14.4pt" space-before="0.5em">
+        <fo:wrapper>
+            <fo:block>
+                Jirka Kosek 
+                <fo:inline font-family="monospace">
+                    <fo:inline hyphenate="false" keep-together.within-line="always">&lt;jirka@kosek.cz&gt;</fo:inline>
+                </fo:inline>
+            </fo:block>
+        </fo:wrapper>
+    </fo:block>
+</fo:root>

@@ -98,7 +98,7 @@ public class XmlWhitspacesTests {
 
   @ParameterizedTest
   @EnumSource
-  public void testRemovesWhitespaces(KnownFactory factory) throws Exception {
+  public void testRemovesWhitespacesEmpty(KnownFactory factory) throws Exception {
     CharSource input = charSource("Article ns/Empty.xml");
     XmlTransformer t = XmlTransformerFactory.usingFactory(factory.factory()).usingStylesheet(
         XmlTransformerFactory.STRIP_WHITESPACE_STYLESHEET, ImmutableMap.of(),
@@ -114,5 +114,61 @@ public class XmlWhitspacesTests {
     Node child = Iterables.getOnlyElement(children);
     assertEquals(Node.ELEMENT_NODE, child.getNodeType());
     assertEquals("k:Empty", child.getNodeName());
+  }
+
+  @ParameterizedTest
+  @EnumSource
+  public void testDoesNotRemoveWhitespacesSpaced(KnownFactory factory) throws Exception {
+    CharSource input = charSource("Whitespace/Spaced.xml");
+    DomHelper domHelper = DomHelper.domHelper();
+    {
+      Document inputDoc = domHelper.asDocument(input);
+      Element docE = inputDoc.getDocumentElement();
+      assertEquals("Root", docE.getNodeName());
+      ImmutableList<Node> children = DomHelper.toList(docE.getChildNodes());
+      assertEquals(3, children.size());
+      Element child = (Element) children.get(1);
+      assertEquals(Node.ELEMENT_NODE, child.getNodeType());
+      assertEquals("Entry", child.getNodeName());
+      ImmutableList<Node> childNodes = DomHelper.toList(child.getChildNodes());
+      assertEquals(1, childNodes.size());
+      Node childNode = Iterables.getOnlyElement(childNodes);
+      assertEquals(Node.TEXT_NODE, childNode.getNodeType());
+      assertEquals("\n    My Article\n  ", childNode.getTextContent());
+    }
+    XmlTransformer t = XmlTransformerFactory.usingFactory(factory.factory()).usingStylesheet(
+        XmlTransformerFactory.STRIP_WHITESPACE_STYLESHEET, ImmutableMap.of(),
+        OutputProperties.noIndent());
+    String stripped = t.charsToChars(input);
+    CharSource half = charSource("Whitespace/Half spaced.xml");
+    assertEquals(half.read(), stripped);
+  }
+
+  @ParameterizedTest
+  @EnumSource
+  public void testForceRemoveWhitespacesSpaced(KnownFactory factory) throws Exception {
+    CharSource input = charSource("Whitespace/Spaced.xml");
+    DomHelper domHelper = DomHelper.domHelper();
+    {
+      Document inputDoc = domHelper.asDocument(input);
+      Element docE = inputDoc.getDocumentElement();
+      assertEquals("Root", docE.getNodeName());
+      ImmutableList<Node> children = DomHelper.toList(docE.getChildNodes());
+      assertEquals(3, children.size());
+      Element child = (Element) children.get(1);
+      assertEquals(Node.ELEMENT_NODE, child.getNodeType());
+      assertEquals("Entry", child.getNodeName());
+      ImmutableList<Node> childNodes = DomHelper.toList(child.getChildNodes());
+      assertEquals(1, childNodes.size());
+      Node childNode = Iterables.getOnlyElement(childNodes);
+      assertEquals(Node.TEXT_NODE, childNode.getNodeType());
+      assertEquals("\n    My Article\n  ", childNode.getTextContent());
+    }
+    XmlTransformer t = XmlTransformerFactory.usingFactory(KnownFactory.SAXON.factory())
+        .usingStylesheet(XmlTransformerFactory.FORCE_STRIP_WHITESPACE_STYLESHEET, ImmutableMap.of(),
+            OutputProperties.noIndent());
+    String stripped = t.charsToChars(input);
+    CharSource nospace = charSource("Whitespace/Not spaced.xml");
+    assertEquals(nospace.read(), stripped);
   }
 }
