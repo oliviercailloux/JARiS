@@ -120,8 +120,8 @@ public class XmlWhitspacesTests {
 
   @ParameterizedTest
   @EnumSource
-  public void testRemovesWhitespacesFailsPerhaps(KnownFactory factory) throws Exception {
-    CharSource input = charSource("Article ns/Howto shortened.fo");
+  public void testRemovesWhitespacesComplex(KnownFactory factory) throws Exception {
+    CharSource input = charSource("Complex.fo");
     XmlTransformer t = XmlTransformerFactory.usingFactory(factory.factory()).usingStylesheet(
         XmlTransformerFactory.STRIP_WHITESPACE_STYLESHEET, ImmutableMap.of(),
         OutputProperties.noIndent());
