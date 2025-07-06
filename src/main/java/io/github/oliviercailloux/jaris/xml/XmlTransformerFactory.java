@@ -64,6 +64,10 @@ public class XmlTransformerFactory {
       Resources.getResource(XmlTransformerFactory.class, "Strip whitespace.xsl"),
       StandardCharsets.UTF_8);
 
+  public static final CharSource FORCE_STRIP_WHITESPACE_STYLESHEET = Resources.asCharSource(
+      Resources.getResource(XmlTransformerFactory.class, "Force strip whitespace.xsl"),
+      StandardCharsets.UTF_8);
+
   public static class OutputPropertyValue {
     private final Object value;
 
