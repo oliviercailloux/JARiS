@@ -120,18 +120,14 @@ public class XmlWhitspacesTests {
   @EnumSource
   public void testDoesNotRemoveWhitespacesSpaced(KnownFactory factory) throws Exception {
     CharSource input = charSource("Whitespace/Spaced.xml");
-    XmlTransformer t = XmlTransformerFactory.usingFactory(factory.factory()).usingStylesheet(
-        XmlTransformerFactory.STRIP_WHITESPACE_STYLESHEET, ImmutableMap.of(),
-        OutputProperties.noIndent());
-    String noIndent = t.charsToChars(input);
     DomHelper domHelper = DomHelper.domHelper();
     {
-      Document inputDoc = domHelper.asDocument(CharSource.wrap(noIndent));
+      Document inputDoc = domHelper.asDocument(input);
       Element docE = inputDoc.getDocumentElement();
       assertEquals("Root", docE.getNodeName());
-      ImmutableList<Element> children = DomHelper.toElements(docE.getChildNodes());
-      assertEquals(1, children.size());
-      Element child = Iterables.getOnlyElement(children);
+      ImmutableList<Node> children = DomHelper.toList(docE.getChildNodes());
+      assertEquals(3, children.size());
+      Element child = (Element) children.get(1);
       assertEquals(Node.ELEMENT_NODE, child.getNodeType());
       assertEquals("Entry", child.getNodeName());
       ImmutableList<Node> childNodes = DomHelper.toList(child.getChildNodes());
@@ -140,6 +136,12 @@ public class XmlWhitspacesTests {
       assertEquals(Node.TEXT_NODE, childNode.getNodeType());
       assertEquals("\n    My Article\n  ", childNode.getTextContent());
     }
+    XmlTransformer t = XmlTransformerFactory.usingFactory(factory.factory()).usingStylesheet(
+        XmlTransformerFactory.STRIP_WHITESPACE_STYLESHEET, ImmutableMap.of(),
+        OutputProperties.noIndent());
+    String stripped = t.charsToChars(input);
+    CharSource half = charSource("Whitespace/Half spaced.xml");
+    assertEquals(half.read(), stripped);
   }
 
   @ParameterizedTest
@@ -165,22 +167,8 @@ public class XmlWhitspacesTests {
     XmlTransformer t = XmlTransformerFactory.usingFactory(KnownFactory.SAXON.factory())
         .usingStylesheet(XmlTransformerFactory.FORCE_STRIP_WHITESPACE_STYLESHEET, ImmutableMap.of(),
             OutputProperties.noIndent());
-    String noIndent = t.charsToChars(input);
-    // Files.writeString(Path.of("out.xml"), noIndent);
-    {
-      Document inputDoc = domHelper.asDocument(CharSource.wrap(noIndent));
-      Element docE = inputDoc.getDocumentElement();
-      assertEquals("Root", docE.getNodeName());
-      ImmutableList<Node> children = DomHelper.toList(docE.getChildNodes());
-      assertEquals(1, children.size());
-      Element child = (Element) children.get(0);
-      assertEquals(Node.ELEMENT_NODE, child.getNodeType());
-      assertEquals("Entry", child.getNodeName());
-      ImmutableList<Node> childNodes = DomHelper.toList(child.getChildNodes());
-      assertEquals(1, childNodes.size());
-      Node childNode = Iterables.getOnlyElement(childNodes);
-      assertEquals(Node.TEXT_NODE, childNode.getNodeType());
-      assertEquals("My Article", childNode.getTextContent());
-    }
+    String stripped = t.charsToChars(input);
+    CharSource nospace = charSource("Whitespace/Not spaced.xml");
+    assertEquals(nospace.read(), stripped);
   }
 }
