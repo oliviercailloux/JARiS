@@ -3,6 +3,10 @@
  * <a href= "https://github.com/oliviercailloux/java-course/blob/master/DOM.adoc">Document Object
  * Model</a>, XSLT, or schema based validation.
  * <p>
+ * Following the DOM approach, this package also provides (small) support for HTML documents not in
+ * XML format.
+ * </p>
+ * <p>
  * The primary intended usage is with XML documents that are supposed to be valid, such as those in
  * the class path of a software or sent by web services. As a result, this class adopts the simplest
  * possible approach to deal with badly formed documents, by sending unchecked exceptions upon

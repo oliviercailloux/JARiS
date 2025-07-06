@@ -108,106 +108,28 @@ String transformed = XmlTransformerFactory.usingFactory(KnownFactory.XALAN).usin
 ----
 
 == HTML
-The `DomHelper` class does not support HTML files. For example, it cannot parse https://github.com/oliviercailloux/JARiS/blob/main/src/test/resources/io/github/oliviercailloux/jaris/xml/Html/Simple.html[this file] because it is not valid XML (`meta` is not closed), even though it is valid HTML.
+The `DomHelper` class provides (small) support for HTML files. Use Nu’s https://central.sonatype.com/artifact/net.sourceforge.nekohtml/nekohtml[HtmlDocumentBuilder]. For example, it can parse https://github.com/oliviercailloux/JARiS/blob/main/src/test/resources/io/github/oliviercailloux/jaris/xml/Html/Html%20is%20not%20Xml.html[this file] even though it is not valid XML (`meta` is not closed). See https://github.com/oliviercailloux/JARiS/blob/main/src/test/java/io/github/oliviercailloux/jaris/xml/html/DomHelperHtmlTests.java[these example uses].
 
 === Xerces-J
-Note that Apache Xerces-J implements https://xerces.apache.org/xerces2-j/dom3.html[DOM Level 3] and https://xerces.apache.org/xerces2-j/dom.html[DOM Level 1 HTML] (https://lists.apache.org/thread/rflbm50vv9jwsbf5tys2mskxcqmo4z2q[related discussion]).
-Thus, I suppose that it should support https://docs.oracle.com/en/java/javase/22/docs/api/java.xml/org/w3c/dom/bootstrap/DOMImplementationRegistry.html[bootstrapping] and using https://www.w3.org/TR/DOM-Level-1/level-one-core.html#ID-BBACDC08[DOMImplementation#hasFeature("HTML", "1.0")].
+Apache Xerces-J claims to implement https://xerces.apache.org/xerces2-j/dom3.html[DOM Level 3] and https://xerces.apache.org/xerces2-j/dom.html[DOM Level 1 HTML] (https://lists.apache.org/thread/rflbm50vv9jwsbf5tys2mskxcqmo4z2q[related discussion]).
+I suppose that it follows that it should support https://docs.oracle.com/en/java/javase/22/docs/api/java.xml/org/w3c/dom/bootstrap/DOMImplementationRegistry.html[bootstrapping] and using https://www.w3.org/TR/DOM-Level-1/level-one-core.html#ID-BBACDC08[DOMImplementation#hasFeature("HTML", "1.0")].
 And it should be able to read https://www.w3.org/TR/DOM-Level-1/introduction.html#ID-E7C3082[HTML non XML] files.
 https://xml.apache.org/xalan-j/faq.html#faq-N100EF[This] provides details that could be investigated.
 Also, I suppose that it lacks (some?) support for https://www.w3.org/TR/2000/CR-DOM-Level-2-20000510/introduction.html#ID-E7C30824[DOM Level 2 HTML], which seems to add support for https://www.w3.org/TR/2000/CR-DOM-Level-2-20000510/html.html[CSS] (and perhaps other aspects?).
+These questions about https://stackoverflow.com/questions/29041855/how-can-i-build-an-html-org-w3c-dom-document/[parsing HTML] and about https://stackoverflow.com/questions/11677572/dealing-with-xerces-hell-in-java-maven[Maven] provide more details (the first post looks incorrect).
 
-Version 2.12.2 was https://lists.apache.org/list?j-users@xerces.apache.org:2022-1:html[released] in 2022.
-These questions about https://stackoverflow.com/questions/29041855/how-can-i-build-an-html-org-w3c-dom-document/[parsing HTML] and about https://stackoverflow.com/questions/11677572/dealing-with-xerces-hell-in-java-maven[Maven] provide more details (the first post does not look entirely correct to me but these news were sufficiently discouraging to me that I gave up about Xerces-J for now).
-
-Aurélien Pupier https://issues.apache.org/jira/browse/XERCESJ-1735[published] a “basic” version (meaning, without xml schema 1.1) in early 2022.
-He opened another https://issues.apache.org/jira/browse/XERCESJ-1736[issue] about publishing “xercesImpl 2.12.2 xml schema 1.1 to Maven Central” but stopped there.
-Svante Schubert https://lists.apache.org/thread/f03j6wp2knpo0kf3xtc7st8dlgv1t1rz[tried] as well (Sep 2024).
-Related https://lists.apache.org/thread/wkg4qo0smrnq2q4oj64w083338m2543c[discussion] (Nov 2023).
-
-VS Code https://github.com/redhat-developer/vscode-xml/issues/222[discusses] using Xerces-J for its 1.1 schema support.
-https://github.com/eclipse-lemminx/lemminx/pull/515#issuecomment-1823025390[talks about Xerces-J and Maven].
-
-mrglavas (Michael Glavassevich), the PMC chair for Apache Xerces, https://github.com/redhat-developer/vscode-xml/issues/222#issuecomment-2176265779[mentions]: “Xerces' relationship with Maven is complicated. Maven has never been part of Xerces release process. Xerces is built with Ant and the developers never took an interest in anything about Maven. Other people from the Apache community have been responsible for uploading releases. So there has been a distribution (https://xerces.apache.org/mirrors.cgi#binary) of Xerces with XSD 1.1 support for many years, it is stable and complete, but it's possible no one ever publishes that to a Maven repository, perhaps because whomever has been publishing Xerces to Maven doesn't use it. I always challenged people asking for this stuff to get involved in the project and become committers. When they don't volunteer after making that request, nothing happens.” 
-https://github.com/apache/xerces-j/pull/8#issuecomment-2737435938[Also]: “when folks want something (specifically thinking about all those requests from the community about Xerces and Maven) and are asked to volunteer they don't step up”.
-
+Unfortunately, it seems that https://lists.apache.org/thread/64ohpqpvtdomy40lt1wnd0ym1hzpqp13[theory and practice differ]…
 See branch xerces-html, class `DomHelperHtmlTests`, for tests which illustrate failure of Xerces-J to parse HTML files that are not valid XML, and class `XercesSerializationTests` for the missing end of line after the xml declaration.
 
-=== HTML Tidy
-https://lists.apache.org/list.html?j-users@xerces.apache.org says to use HTML Tidy<https://www.html-tidy.org/> to convert an HTML file to valid XML that can then be parsed by Xerces.
+Version 2.12.2 was https://lists.apache.org/list?j-users@xerces.apache.org:2022-1:html[released] in 2022.
+Aurélien Pupier https://issues.apache.org/jira/browse/XERCESJ-1735[published] a “basic” version (meaning, without xml schema 1.1) in early 2022.
+He opened another https://issues.apache.org/jira/browse/XERCESJ-1736[issue] about publishing “xercesImpl 2.12.2 xml schema 1.1 to Maven Central” but stopped there.
+Svante Schubert https://lists.apache.org/thread/f03j6wp2knpo0kf3xtc7st8dlgv1t1rz[gave it a try] afterwards (Sep 2024).
+Related https://lists.apache.org/thread/wkg4qo0smrnq2q4oj64w083338m2543c[discussion] (Nov 2023).
+https://github.com/redhat-developer/vscode-xml/issues/222#issuecomment-2849419430[These] https://github.com/eclipse-lemminx/lemminx/pull/515#issuecomment-1823025390[places] https://github.com/apache/xerces-j/pull/8#issuecomment-2737435938[feature] discussions with mrglavas (Michael Glavassevich, the PMC chair for Apache Xerces) and others about Xerces-J and Maven.
 
-Newest official release 5.8.0, July 2021.
-https://github.com/htacg/tidy-html5 Jan 2022
-
-Not for me, is not Java
-
-=== NekoHTML
-https://lists.apache.org/list.html?j-users@xerces.apache.org says: have you tried NekoHTML?
-
-* https://nekohtml.sourceforge.net/
-* https://central.sonatype.com/artifact/net.sourceforge.nekohtml/nekohtml
-1.9.22	2015-04-17 2 vulnerabilities to be checked 20k depend on it
-
-https://ossindex.sonatype.org/vulnerability/CVE-2022-24839?component-type=maven&component-name=net.sourceforge.nekohtml/nekohtml
-org.cyberneko.html is an html parser written in Java. The fork of `org.cyberneko.html` used by Nokogiri (Rubygem) raises a `java.lang.OutOfMemoryError` exception when parsing ill-formed HTML markup. Users are advised to upgrade to `>= 1.9.22.noko2`. Note: The upstream library `org.cyberneko.html` is no longer maintained. Nokogiri uses its own fork of this library located at https://github.com/sparklemotion/nekohtml and this CVE applies only to that fork. Other forks of nekohtml may have a similar vulnerability.
-https://github.com/sparklemotion/nekohtml/compare/1.9.22...1.9.22.noko2
-org.nokogiri:nekohtml
-
-https://ossindex.sonatype.org/vulnerability/CVE-2024-23635?component-type=maven&component-name=net.sourceforge.nekohtml/nekohtml
-AntiSamy is a library for performing fast, configurable cleansing of HTML coming from untrusted sources. Prior to 1.7.5, there is a potential for a mutation XSS (mXSS) vulnerability in AntiSamy caused by flawed parsing of the HTML being sanitized. To be subject to this vulnerability the `preserveComments` directive must be enabled in your policy file. As a result, certain crafty inputs can result in elements in comment tags being interpreted as executable when using AntiSamy's sanitized output. Patched in AntiSamy 1.7.5 and later. 
-
-Tries to fix HTML by transforming it to XML. Apart from this, looks like does what I want elegantly (provides an HtmlDocument).
-
-=== TagSoup
-https://lists.apache.org/list.html?j-users@xerces.apache.org says: Using the TagSoup parser:
-
-* 
-https://web.archive.org/web/20160815081758/http://home.ccil.org/~cowan/XML/tagsoup/
-* https://central.sonatype.com/artifact/org.ccil.cowan.tagsoup/tagsoup
-1.2.1	2011-08-22 0 vulnerabilities 39k depend on it
-
-The following (non-Xerces-specific) appears to work for me:
-
-     import javax.xml.transform.Transformer;
-     import javax.xml.transform.TransformerFactory;
-     import javax.xml.transform.dom.DOMResult;
-     import javax.xml.transform.sax.SAXSource;
-
-     import org.xml.sax.InputSource;
-     import org.w3c.dom.Document;
-     import org.ccil.cowan.tagsoup.Parser;
-
-     public static void main(String[] args) throws Exception {
-         TransformerFactory tf = TransformerFactory.newInstance();
-         Transformer identity = tf.newTransformer();
-
-         SAXSource source = new SAXSource(new Parser(), new InputSource(
-  
-"https://raw.githubusercontent.com/oliviercailloux/JARiS/refs/heads/main/src/test/resources/io/github/oliviercailloux/jaris/xml/Html/Simple.html"));
-         DOMResult result = new DOMResult();
-         identity.transform(source, result);
-
-         Document doc = (Document) result.getNode();
-         System.out.println(doc.getDocumentElement().getTagName());
-         System.out.println(doc.getDocumentElement().getNamespaceURI());
-         System.out.println(doc
-                 .getElementsByTagName("meta").getLength());
-     }
-
-“allows standard XML tools to be applied to even the worst HTML.”
-
-=== jsoup
-https://jsoup.org/
-Right parsing approach but no W3C DOM
-
-=== XmlTransformer
-If you want HTML output, you'll need to specify <xsl:output method="html"/> in your stylesheet, says Claude. To be checked.
+VS Code https://github.com/redhat-developer/vscode-xml/issues/222[discusses] using Xerces-J for its 1.1 schema support. 
 
 === Nu validator
 I have some hopes of using the power of Nu validator to help with validation of HTML files (attempted https://github.com/oliviercailloux/JARiS/commit/a8bfc3d303d268ae844e95b99b0a63005f557050[here]), but this feature is currently blocked by https://github.com/validator/validator/issues/1504[this issue]. 
 Please consider thumbing it up.
-
-== TODO
-- Document whether can use a https://datatracker.ietf.org/doc/html/rfc3151[publicid URN] as stylesheet, or consider accepting a String (public identifiers used in XML catalogs are often in FPI format, such as -//OASIS//DTD DocBook XML V4.1.2//EN).
-- Change XmlTransformerFactory so that we can request one with given properties our so and add it to its state (permits: factory.withOutput(…).usingStylesheet(…)). Rename usingStylesheet to compile?
-
