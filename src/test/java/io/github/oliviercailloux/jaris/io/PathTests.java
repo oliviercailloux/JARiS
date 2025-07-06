@@ -38,13 +38,13 @@ public class PathTests {
     URL cat = getClass().getResource("/io/github/oliviercailloux/docbook/catalog.xml");
     assertNotNull(cat);
     URI uri = cat.toURI();
-    assertThrows(UnsupportedOperationException.class,
-        () -> Path.of(uri).getFileSystem().close());
+    assertThrows(FileSystemNotFoundException.class,
+        () -> Path.of(uri));
     try (FileSystem fs = FileSystems.newFileSystem(uri, ImmutableMap.of())) {
       Path path = Path.of(uri);
       assertTrue(Files.readString(path).contains("catalog"));
       ImmutableSet<Path> content =
-          Files.list(path).collect(ImmutableSet.toImmutableSet());
+          Files.list(path.getParent()).collect(ImmutableSet.toImmutableSet());
       ImmutableSet<URI> uris =
           content.stream().map(Path::toUri).collect(ImmutableSet.toImmutableSet());
       assertTrue(uris.stream().anyMatch(u -> u.toString().endsWith("catalog.xml")));
