@@ -108,7 +108,7 @@ String transformed = XmlTransformerFactory.usingFactory(KnownFactory.XALAN).usin
 ----
 
 == HTML
-The `DomHelper` class provides (small) support for HTML files. Use Nu’s https://central.sonatype.com/artifact/net.sourceforge.nekohtml/nekohtml[HtmlDocumentBuilder]. For example, it can parse https://github.com/oliviercailloux/JARiS/blob/main/src/test/resources/io/github/oliviercailloux/jaris/xml/Html/Html%20is%20not%20Xml.html[this file] even though it is not valid XML (`meta` is not closed). See https://github.com/oliviercailloux/JARiS/blob/main/src/test/java/io/github/oliviercailloux/jaris/xml/html/DomHelperHtmlTests.java[these example uses].
+The `DomHelper` class provides (small) support for HTML files. Use Nu’s https://central.sonatype.com/artifact/nu.validator/htmlparser/[HtmlDocumentBuilder]. For example, it can parse https://github.com/oliviercailloux/JARiS/blob/main/src/test/resources/io/github/oliviercailloux/jaris/xml/Html/Html%20is%20not%20Xml.html[this file] even though it is not valid XML (`meta` is not closed). See https://github.com/oliviercailloux/JARiS/blob/main/src/test/java/io/github/oliviercailloux/jaris/xml/html/DomHelperHtmlTests.java[these example uses].
 
 === Xerces-J
 Apache Xerces-J claims to implement https://xerces.apache.org/xerces2-j/dom3.html[DOM Level 3] and https://xerces.apache.org/xerces2-j/dom.html[DOM Level 1 HTML] (https://lists.apache.org/thread/rflbm50vv9jwsbf5tys2mskxcqmo4z2q[related discussion]).
