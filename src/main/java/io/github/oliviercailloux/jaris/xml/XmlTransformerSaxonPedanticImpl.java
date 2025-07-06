@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 class XmlTransformerSaxonPedanticImpl implements XmlTransformer {
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(XmlTransformerSaxonPedanticImpl.class);
 
   static XmlTransformerSaxonPedanticImpl using(TransformerImpl transformer) {
     return new XmlTransformerSaxonPedanticImpl(transformer);
