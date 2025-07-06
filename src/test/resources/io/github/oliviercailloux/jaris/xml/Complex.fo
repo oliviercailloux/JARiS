@@ -1,23 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format" font-family="serif,Symbol,ZapfDingbats" font-selection-strategy="character-by-character" font-size="10pt" language="en" line-height="normal" line-height-shift-adjustment="disregard-shifts" text-align="justify" writing-mode="lr-tb">
-    <fo:page-sequence force-page-count="no-force" format="1" hyphenate="true" hyphenation-character="-" hyphenation-push-character-count="2" hyphenation-remain-character-count="2" initial-page-number="1" language="en" master-reference="body" xmlns:axf="http://www.antennahouse.com/names/XSL/Extensions">
-        <fo:flow end-indent="0pt" flow-name="xsl-region-body" start-indent="4pc">
-            <fo:block id="d61e3">
-                <fo:block font-family="sans-serif,Symbol,ZapfDingbats">
-                    <fo:block start-indent="0pt" text-align="center">
-                        <fo:block font-size="14.4pt" space-before="0.5em">
-                            <fo:wrapper>
-                                <fo:block>
-                                    Jirka Kosek 
-                                    <fo:inline font-family="monospace">
-                                        <fo:inline hyphenate="false" keep-together.within-line="always">&lt;jirka@kosek.cz&gt;</fo:inline>
-                                    </fo:inline>
-                                </fo:block>
-                            </fo:wrapper>
-                        </fo:block>
-                    </fo:block>
-                </fo:block>
+<fo:root xmlns:fo="http://ploum">
+    <fo:block font-size="14.4pt" space-before="0.5em">
+        <fo:wrapper>
+            <fo:block>
+                Jirka Kosek 
+                <fo:inline font-family="monospace">
+                    <fo:inline hyphenate="false" keep-together.within-line="always">&lt;jirka@kosek.cz&gt;</fo:inline>
+                </fo:inline>
             </fo:block>
-        </fo:flow>
-    </fo:page-sequence>
+        </fo:wrapper>
+    </fo:block>
 </fo:root>
