@@ -202,8 +202,8 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a transformer that may be used to transform documents using the “identity”
-   * transform and a default “indented” output property.
+   * Returns a transformer that may be used to transform documents using the “identity” transform
+   * and a default “indented” output property.
    *
    * @return a transformer
    */
@@ -212,8 +212,7 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a transformer that may be used to transform documents using the “identity”
-   * transform.
+   * Returns a transformer that may be used to transform documents using the “identity” transform.
    *
    * @param outputProperties any properties to be used with the transformer.
    * @return a transformer
@@ -223,8 +222,8 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a transformer that may be used to transform documents using the provided
-   * stylesheet and a default “indented” output property.
+   * Returns a transformer that may be used to transform documents using the provided stylesheet and
+   * a default “indented” output property.
    * <p>
    * Equivalent to {@link #usingStylesheet(ByteSource, Map)} with an empty map of parameters.
    * </p>
@@ -239,8 +238,8 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a transformer that may be used to transform documents using the provided
-   * stylesheet and a default “indented” output property.
+   * Returns a transformer that may be used to transform documents using the provided stylesheet and
+   * a default “indented” output property.
    * <p>
    * Equivalent to {@link #usingStylesheet(CharSource, Map)} with an empty map of parameters.
    * </p>
@@ -255,8 +254,8 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a transformer that may be used to transform documents using the provided
-   * stylesheet and a default “indented” output property.
+   * Returns a transformer that may be used to transform documents using the provided stylesheet and
+   * a default “indented” output property.
    * <p>
    * Equivalent to {@link #usingStylesheet(ByteSource, Map)} with an empty map of parameters.
    * </p>
@@ -271,9 +270,8 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a transformer that may be used to transform documents using the provided
-   * stylesheet parameterized with the given parameters and using a default “indented” output
-   * property.
+   * Returns a transformer that may be used to transform documents using the provided stylesheet
+   * parameterized with the given parameters and using a default “indented” output property.
    *
    * @param stylesheet the stylesheet that indicates the transform to perform.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,
@@ -288,9 +286,8 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a transformer that may be used to transform documents using the provided
-   * stylesheet parameterized with the given parameters and using a default “indented” output
-   * property.
+   * Returns a transformer that may be used to transform documents using the provided stylesheet
+   * parameterized with the given parameters and using a default “indented” output property.
    *
    * @param stylesheet the stylesheet that indicates the transform to perform.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,
@@ -305,9 +302,8 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a transformer that may be used to transform documents using the provided
-   * stylesheet parameterized with the given parameters and using a default “indented” output
-   * property.
+   * Returns a transformer that may be used to transform documents using the provided stylesheet
+   * parameterized with the given parameters and using a default “indented” output property.
    *
    * @param stylesheet the stylesheet that indicates the transform to perform.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,
@@ -376,8 +372,8 @@ public class XmlTransformerFactory {
   }
 
   /**
-   * Returns a transformer that may be used to transform documents using the provided
-   * stylesheet parameterized with the given parameters.
+   * Returns a transformer that may be used to transform documents using the provided stylesheet
+   * parameterized with the given parameters.
    *
    * @param stylesheet the stylesheet that indicates the transform to perform.
    * @param parameters any string parameters to be used with the given stylesheet, may be empty,

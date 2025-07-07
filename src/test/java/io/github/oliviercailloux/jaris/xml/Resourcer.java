@@ -28,7 +28,7 @@ public class Resourcer {
   public static StreamSource streamSource(String resourceName) {
     return new StreamSource(url(resourceName).toString());
   }
-  
+
   public static CharSource charSource(URL source) {
     return Resources.asCharSource(source, StandardCharsets.UTF_8);
   }

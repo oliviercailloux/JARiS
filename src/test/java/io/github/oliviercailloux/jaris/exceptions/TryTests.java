@@ -362,8 +362,7 @@ class TryTests {
     }));
 
     @SuppressWarnings("unchecked")
-    final TConsumer<Exception, URISyntaxException> c =
-        Mockito.mock(TConsumer.class);
+    final TConsumer<Exception, URISyntaxException> c = Mockito.mock(TConsumer.class);
     try {
       t.ifFailed(c);
       Mockito.verify(c).accept(cause);

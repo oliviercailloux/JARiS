@@ -99,8 +99,8 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
      * @return an optional, containing the result if this instance is a success, empty otherwise
      * @throws Y if the consumer was invoked and threw an exception of type {@code Y}
      */
-    public <Y extends Exception> Optional<T>
-        orConsumeCause(TConsumer<? super X, Y> consumer) throws Y;
+    public <Y extends Exception> Optional<T> orConsumeCause(TConsumer<? super X, Y> consumer)
+        throws Y;
 
     /**
      * Returns the result contained in this instance if this instance is a success, or throws the
@@ -365,8 +365,8 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public <Y extends Exception> Optional<T>
-        orConsumeCause(TConsumer<? super X, Y> consumer) throws Y {
+    public <Y extends Exception> Optional<T> orConsumeCause(TConsumer<? super X, Y> consumer)
+        throws Y {
       return Optional.of(result);
     }
 
@@ -405,8 +405,8 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public <Y extends Exception> Optional<Object>
-        orConsumeCause(TConsumer<? super X, Y> consumer) throws Y {
+    public <Y extends Exception> Optional<Object> orConsumeCause(TConsumer<? super X, Y> consumer)
+        throws Y {
       consumer.accept(cause);
       return Optional.empty();
     }
@@ -533,8 +533,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public Try<T, Exception>
-        andConsume(TConsumer<? super T, ? extends Exception> consumer) {
+    public Try<T, Exception> andConsume(TConsumer<? super T, ? extends Exception> consumer) {
       return andRun(() -> consumer.accept(result));
     }
 
@@ -553,8 +552,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     @Override
     public <Y extends Exception, Z extends Exception, W extends Exception> Try<T, Z> or(
         TSupplier<? extends T, Y> supplier,
-        TBiFunction<? super Exception, ? super Y, ? extends Z, W> exceptionsMerger)
-        throws W {
+        TBiFunction<? super Exception, ? super Y, ? extends Z, W> exceptionsMerger) throws W {
       return cast();
     }
   }
@@ -597,8 +595,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public <U> Try<U, X>
-        andApply(TFunction<? super Object, ? extends U, ? extends X> mapper) {
+    public <U> Try<U, X> andApply(TFunction<? super Object, ? extends U, ? extends X> mapper) {
       return cast();
     }
 
@@ -632,8 +629,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public <T> Try<T, Exception>
-        andGet(TSupplier<? extends T, ? extends Exception> supplier) {
+    public <T> Try<T, Exception> andGet(TSupplier<? extends T, ? extends Exception> supplier) {
       return Try.get(supplier);
     }
 
@@ -686,8 +682,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
 
     @Override
     public <W extends Exception> TryCatchAll<T> or(TSupplier<? extends T, ?> supplier,
-        TBiFunction<? super Throwable, ? super Throwable, ? extends Throwable,
-            W> exceptionsMerger)
+        TBiFunction<? super Throwable, ? super Throwable, ? extends Throwable, W> exceptionsMerger)
         throws W {
       return this;
     }
@@ -732,9 +727,9 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     }
 
     @Override
-    public <W extends Exception> TryCatchAll<Object>
-        or(TSupplier<? extends Object, ?> supplier, TBiFunction<? super Throwable,
-            ? super Throwable, ? extends Throwable, W> exceptionsMerger) throws W {
+    public <W extends Exception> TryCatchAll<Object> or(TSupplier<? extends Object, ?> supplier,
+        TBiFunction<? super Throwable, ? super Throwable, ? extends Throwable, W> exceptionsMerger)
+        throws W {
       final TryCatchAll<Object> t2 = TryCatchAll.get(supplier);
       return t2.map(TryCatchAll::success, y -> {
         final Throwable merged = exceptionsMerger.apply(cause, y);

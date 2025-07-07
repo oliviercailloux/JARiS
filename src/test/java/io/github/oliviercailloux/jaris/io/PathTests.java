@@ -38,8 +38,7 @@ public class PathTests {
     URL cat = getClass().getResource("/io/github/oliviercailloux/docbook/catalog.xml");
     assertNotNull(cat);
     URI uri = cat.toURI();
-    assertThrows(FileSystemNotFoundException.class,
-        () -> Path.of(uri));
+    assertThrows(FileSystemNotFoundException.class, () -> Path.of(uri));
     try (FileSystem fs = FileSystems.newFileSystem(uri, ImmutableMap.of())) {
       Path path = Path.of(uri);
       assertTrue(Files.readString(path).contains("catalog"));

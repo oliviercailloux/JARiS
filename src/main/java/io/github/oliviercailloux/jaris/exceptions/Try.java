@@ -156,8 +156,7 @@ public interface Try<T, X extends Exception>
    * @throws NullPointerException if the mapper was applied and returned {@code null}
    */
   @Override
-  public abstract <U> Try<U, X>
-      andApply(TFunction<? super T, ? extends U, ? extends X> mapper);
+  public abstract <U> Try<U, X> andApply(TFunction<? super T, ? extends U, ? extends X> mapper);
 
   /**
    * Returns this instance if it is a success; otherwise, returns a success if the supplier returns

@@ -455,7 +455,7 @@ public class DomHelper {
     if (builder != null) {
       return asDocument(input.asByteSource(StandardCharsets.UTF_8));
     }
-    
+
     lazyInitDeser();
     final Document doc;
     final LSInput lsInput = implLs.createLSInput();

@@ -18,10 +18,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 public class XmlToDomTests {
-  
+
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlToDomTests.class);
-  
+
   private static final String ARTICLE_NS = "https://example.com/article";
   private static final String ARTICLE_NS_K = "https://example.com/article/k";
 

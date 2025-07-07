@@ -48,19 +48,19 @@ import java.util.function.Supplier;
 public class Unchecker<X extends Exception, Y extends RuntimeException>
     extends UncheckedImpl<X, Y> {
   /**
-   * An object that accepts functional interfaces that throw anything; and that
-   * will throw {@link VerifyException} instances instead.
+   * An object that accepts functional interfaces that throw anything; and that will throw
+   * {@link VerifyException} instances instead.
    */
   public static final Unchecker<Exception, VerifyException> VERIFIER =
       Unchecker.wrappingWith(VerifyException::new);
-      
+
   /**
-   * An object that accepts functional interfaces that throw anything; and that
-   * will throw {@link IllegalArgumentException} instances instead.
+   * An object that accepts functional interfaces that throw anything; and that will throw
+   * {@link IllegalArgumentException} instances instead.
    */
   public static final Unchecker<Exception, IllegalArgumentException> ARGUMENT_CHECKER =
       Unchecker.wrappingWith(IllegalArgumentException::new);
-      
+
   /**
    * An object that accepts functional interfaces that throw {@link IOException} instances; and that
    * will throw {@link UncheckedIOException} instances instead.
@@ -272,8 +272,8 @@ public class Unchecker<X extends Exception, Y extends RuntimeException>
    * @param function the instance that is delegated to
    * @return a delegating bi function
    */
-  public <F1, F2, T> BiFunction<F1, F2, T> wrapBiFunction(
-      TBiFunction<? super F1, ? super F2, ? extends T, ? extends X> function) {
+  public <F1, F2, T> BiFunction<F1, F2, T>
+      wrapBiFunction(TBiFunction<? super F1, ? super F2, ? extends T, ? extends X> function) {
     return (t, u) -> {
       try {
         return function.apply(t, u);
@@ -296,8 +296,7 @@ public class Unchecker<X extends Exception, Y extends RuntimeException>
    * @param operator the instance that is delegated to
    * @return a delegating binary operator
    */
-  public <F> BinaryOperator<F>
-      wrapBinaryOperator(TBinaryOperator<F, ? extends X> operator) {
+  public <F> BinaryOperator<F> wrapBinaryOperator(TBinaryOperator<F, ? extends X> operator) {
     return (t, u) -> {
       try {
         return operator.apply(t, u);
