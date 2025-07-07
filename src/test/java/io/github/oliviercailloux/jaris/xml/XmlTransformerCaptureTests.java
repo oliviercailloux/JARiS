@@ -24,6 +24,7 @@ import net.sf.saxon.jaxp.TransformerImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -189,7 +190,7 @@ public class XmlTransformerCaptureTests {
     TransformerImpl transformer = (TransformerImpl) factory.newTransformer(stylesheet);
     ErrorListener errorListener = Mockito.mock(ErrorListener.class);
     Mockito.doThrow(new TransformerException("ErrorListener called")).when(errorListener)
-        .warning(Mockito.any());
+        .warning(ArgumentMatchers.any());
     transformer.setErrorListener(errorListener);
 
     SaxonMessageHandler handler = SaxonMessageHandler.newInstance();
@@ -198,7 +199,7 @@ public class XmlTransformerCaptureTests {
     final StreamResult result = new StreamResult(resultWriter);
     assertDoesNotThrow(() -> transformer.transform(input, result));
     assertFalse(handler.hasBeenCalled());
-    Mockito.verify(errorListener, Mockito.times(1)).warning(Mockito.any());
+    Mockito.verify(errorListener, Mockito.times(1)).warning(ArgumentMatchers.any());
   }
 
   @Test
@@ -209,7 +210,7 @@ public class XmlTransformerCaptureTests {
     TransformerFactory factory = new org.apache.xalan.processor.TransformerFactoryImpl();
     ErrorListener errorListener = Mockito.mock(ErrorListener.class);
     Mockito.doThrow(new TransformerException("ErrorListener called")).when(errorListener)
-        .warning(Mockito.any());
+        .warning(ArgumentMatchers.any());
     factory.setErrorListener(errorListener);
     Transformer transformer = factory.newTransformer(stylesheet);
     transformer.setErrorListener(errorListener);
@@ -217,6 +218,6 @@ public class XmlTransformerCaptureTests {
     final StringWriter resultWriter = new StringWriter();
     final StreamResult result = new StreamResult(resultWriter);
     assertDoesNotThrow(() -> transformer.transform(input, result));
-    Mockito.verify(errorListener, Mockito.times(1)).warning(Mockito.any());
+    Mockito.verify(errorListener, Mockito.times(1)).warning(ArgumentMatchers.any());
   }
 }
