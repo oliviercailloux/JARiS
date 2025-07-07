@@ -8,7 +8,6 @@ import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
 import com.thaiopensource.relaxng.jaxp.XMLSyntaxSchemaFactory;
 import io.github.oliviercailloux.docbook.DocBookResources;
-import io.github.oliviercailloux.jaris.io.PathUtils;
 import javax.xml.XMLConstants;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;

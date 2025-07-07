@@ -1,7 +1,6 @@
 package io.github.oliviercailloux.jaris.xml;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.VerifyException;
 import com.google.common.io.ByteSource;

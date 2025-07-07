@@ -1,13 +1,9 @@
 package io.github.oliviercailloux.jaris.xml;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.base.VerifyException;
-import com.google.common.io.Resources;
 import io.github.oliviercailloux.docbook.DocBookResources;
-import java.net.URI;
-import java.net.URL;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import org.junit.jupiter.api.Test;
