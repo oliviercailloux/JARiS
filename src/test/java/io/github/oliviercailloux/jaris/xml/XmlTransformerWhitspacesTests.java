@@ -164,7 +164,7 @@ public class XmlTransformerWhitspacesTests {
       assertEquals(Node.TEXT_NODE, childNode.getNodeType());
       assertEquals("\n    My Article\n  ", childNode.getTextContent());
     }
-    XmlTransformer t = XmlTransformerFactory.usingFactory(KnownFactory.SAXON.factory())
+    XmlTransformer t = XmlTransformerFactory.usingFactory(factory.factory())
         .usingStylesheet(XmlTransformerFactory.FORCE_STRIP_WHITESPACE_STYLESHEET, ImmutableMap.of(),
             OutputProperties.noIndent());
     String stripped = t.charsToChars(input);
@@ -176,7 +176,7 @@ public class XmlTransformerWhitspacesTests {
   @EnumSource
   public void testForceRemoveWhitespacesHowto(KnownFactory factory) throws Exception {
     CharSource input = charSource("DocBook/Howto.fo");
-    XmlTransformer t = XmlTransformerFactory.usingFactory(KnownFactory.SAXON.factory())
+    XmlTransformer t = XmlTransformerFactory.usingFactory(factory.factory())
         .usingStylesheet(XmlTransformerFactory.FORCE_STRIP_WHITESPACE_STYLESHEET, ImmutableMap.of(),
             OutputProperties.noIndent());
     String stripped = t.charsToChars(input);
