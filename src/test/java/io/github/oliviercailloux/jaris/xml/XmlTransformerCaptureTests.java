@@ -1,19 +1,30 @@
 package io.github.oliviercailloux.jaris.xml;
 
 import static io.github.oliviercailloux.jaris.xml.Resourcer.charSource;
+import static io.github.oliviercailloux.jaris.xml.Resourcer.streamSource;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.testutils.OutputCapturer;
 import io.github.oliviercailloux.jaris.xml.XmlTransformerFactory.OutputProperties;
+import java.io.StringWriter;
+import javax.xml.transform.ErrorListener;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import net.sf.saxon.jaxp.TransformerImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,8 +170,48 @@ public class XmlTransformerCaptureTests {
     CharSource input = charSource("Whitespace/Spaced.xml");
     // final CharSource style = charSource("Article/Messaging.xsl");
     // final CharSource input = charSource("Article/Two authors.xml");
-    XmlTransformer t = XmlTransformerFactory.usingFactory(factory.factory()).pedantic().usingStylesheet(style,
-        ImmutableMap.of(), OutputProperties.noIndent());
+    XmlTransformer t = XmlTransformerFactory.usingFactory(factory.factory()).pedantic()
+        .usingStylesheet(style, ImmutableMap.of(), OutputProperties.noIndent());
     assertThrows(XmlException.class, () -> t.charsToChars(input));
+  }
+
+  @Test
+  public void testSaxonSwallowsException() throws Exception {
+    StreamSource stylesheet = streamSource("Whitespace/Ambiguous strip whitespace.xsl");
+    StreamSource input = streamSource("Whitespace/Spaced.xml");
+
+    TransformerFactory factory = new net.sf.saxon.TransformerFactoryImpl();
+    TransformerImpl transformer = (TransformerImpl) factory.newTransformer(stylesheet);
+    ErrorListener errorListener = Mockito.mock(ErrorListener.class);
+    Mockito.doThrow(new TransformerException("ErrorListener called")).when(errorListener)
+        .warning(Mockito.any());
+    transformer.setErrorListener(errorListener);
+
+    SaxonMessageHandler handler = SaxonMessageHandler.newInstance();
+    transformer.getUnderlyingXsltTransformer().setMessageHandler(handler);
+    final StringWriter resultWriter = new StringWriter();
+    final StreamResult result = new StreamResult(resultWriter);
+    assertDoesNotThrow(() -> transformer.transform(input, result));
+    assertFalse(handler.hasBeenCalled());
+    Mockito.verify(errorListener, Mockito.times(1)).warning(Mockito.any());
+  }
+
+  @Test
+  public void testXalanDoesNotWarnAboutAmbiguity() throws Exception {
+    StreamSource stylesheet = streamSource("Whitespace/Ambiguous strip whitespace.xsl");
+    StreamSource input = streamSource("Whitespace/Spaced.xml");
+
+    TransformerFactory factory = new org.apache.xalan.processor.TransformerFactoryImpl();
+    ErrorListener errorListener = Mockito.mock(ErrorListener.class);
+    Mockito.doThrow(new TransformerException("ErrorListener called")).when(errorListener)
+        .warning(Mockito.any());
+    factory.setErrorListener(errorListener);
+    Transformer transformer = factory.newTransformer(stylesheet);
+    transformer.setErrorListener(errorListener);
+
+    final StringWriter resultWriter = new StringWriter();
+    final StreamResult result = new StreamResult(resultWriter);
+    assertDoesNotThrow(() -> transformer.transform(input, result));
+    Mockito.verify(errorListener, Mockito.times(1)).warning(Mockito.any());
   }
 }
