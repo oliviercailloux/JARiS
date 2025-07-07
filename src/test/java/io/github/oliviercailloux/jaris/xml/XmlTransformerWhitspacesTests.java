@@ -25,7 +25,7 @@ import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSInput;
 import org.w3c.dom.ls.LSParser;
 
-public class XmlWhitspacesTests {
+public class XmlTransformerWhitspacesTests {
   @Test
   public void testKeepsWhitespaces() throws Exception {
     Document input = DomHelper.domHelper().asDocument(charSource("Article ns/Empty.xml"));
