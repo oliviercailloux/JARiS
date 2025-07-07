@@ -83,7 +83,7 @@ import org.slf4j.LoggerFactory;
  * }
  *
  * CredentialsReader<MyOwnCredentials> reader =
- *   CredentialsReader.using(MyOwnCredentials.class, 
+ *   CredentialsReader.using(MyOwnCredentials.class,
  *     MoreFiles.asCharSource("my file.txt", StandardCharsets.UTF_8));
  * MyOwnCredentials credentials = reader.getCredentials();
  * String valueReadCorrespondingToMyFirstKey = credentials.MY_FIRST_KEY();

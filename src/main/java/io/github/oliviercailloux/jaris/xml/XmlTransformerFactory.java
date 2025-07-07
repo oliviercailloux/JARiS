@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * logs information events and throws exceptions for problem events. If it is pedantic, it throws
  * exceptions for both information and problem events.
  * </p>
- * 
+ *
  * <p>
  * XSL
  * <a href="https://developer.mozilla.org/docs/Web/XML/XSLT/Reference/Element/message">messages</a>

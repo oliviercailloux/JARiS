@@ -73,13 +73,13 @@ public class PathUtils {
 
   /**
    * Copies recursively the given source to the given target.
-   * 
+   *
    * If the paths do not live in the same file system, each name element in the given source path
    * must be a valid single name element in the given target file system. If the source and target
    * live in the same file system, this condition is satisfied, but it may fail otherwise. For
    * example, it fails with the single name element “a\b” in a unix source file system and a windows
    * target file system. See https://github.com/google/jimfs/issues/112.
-   * 
+   *
    * Thanks to https://stackoverflow.com/a/60621544/.
    *
    * @param source the source to start the copy from
@@ -119,18 +119,18 @@ public class PathUtils {
   /*
    * A generalization of Path#resolve that works even if the paths do not live in the same file
    * system.
-   * 
+   *
    * If the paths live in the same file system, this method behaves like Path#resolve. If the paths
    * do not live in the same file system, and the given additional path is relative and has no root
    * component, its name elements are added to the given start path.
-   * 
+   *
    * @param start the path to start the resolution from
-   * 
+   *
    * @param addition the path to resolve, must be in the same file system as start, or be relative
    * and have no root.
-   * 
+   *
    * @return a path in the start file system
-   * 
+   *
    * @throws InvalidPathException if some element of the additional path do not constitute a
    * relative path with a single name element in the file system of the start path (either because
    * the element contains characters that cannot be converted to legal characters, or represents an
