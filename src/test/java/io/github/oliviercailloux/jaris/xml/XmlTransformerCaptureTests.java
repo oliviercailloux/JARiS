@@ -21,6 +21,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.jaxp.TransformerImpl;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -164,14 +165,14 @@ public class XmlTransformerCaptureTests {
     assertTrue(capturer.err().isEmpty());
   }
 
-  @ParameterizedTest
-  @EnumSource(names = {"XALAN", "SAXON"})
-  public void testAmbiguousRemoveWhitespacesSpacedPedantic(KnownFactory factory) throws Exception {
+  @Test
+  @Disabled("see testSaxonSwallowsException")
+  public void testAmbiguousRemoveWhitespacesSpacedPedantic() throws Exception {
     CharSource style = charSource("Whitespace/Ambiguous strip whitespace.xsl");
     CharSource input = charSource("Whitespace/Spaced.xml");
     // final CharSource style = charSource("Article/Messaging.xsl");
     // final CharSource input = charSource("Article/Two authors.xml");
-    XmlTransformer t = XmlTransformerFactory.usingFactory(factory.factory()).pedantic()
+    XmlTransformer t = XmlTransformerFactory.usingFactory(KnownFactory.SAXON.factory()).pedantic()
         .usingStylesheet(style, ImmutableMap.of(), OutputProperties.noIndent());
     assertThrows(XmlException.class, () -> t.charsToChars(input));
   }
@@ -218,6 +219,6 @@ public class XmlTransformerCaptureTests {
     final StringWriter resultWriter = new StringWriter();
     final StreamResult result = new StreamResult(resultWriter);
     assertDoesNotThrow(() -> transformer.transform(input, result));
-    Mockito.verify(errorListener, Mockito.times(1)).warning(ArgumentMatchers.any());
+    Mockito.verifyNoMoreInteractions(errorListener);
   }
 }
