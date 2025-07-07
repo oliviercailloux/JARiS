@@ -133,6 +133,3 @@ VS Code https://github.com/redhat-developer/vscode-xml/issues/222[discusses] usi
 === Nu validator
 I have some hopes of using the power of Nu validator to help with validation of HTML files (attempted https://github.com/oliviercailloux/JARiS/commit/a8bfc3d303d268ae844e95b99b0a63005f557050[here]), but this feature is currently blocked by https://github.com/validator/validator/issues/1504[this issue]. 
 Please consider thumbing it up.
-
-== TODO
-Saxon messaging does not reach listener, contrary to Xalan. Propose property to do so. Permits to stop processing, also, and get rid of the saxon specific message consumer (handler). https://saxonica.plan.io/boards/3/topics/9906 https://saxonica.plan.io/issues/6685 https://saxonica.plan.io/issues/2581 https://saxonica.plan.io/issues/4099 https://saxonica.plan.io/issues/2803
