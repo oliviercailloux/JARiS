@@ -135,5 +135,4 @@ I have some hopes of using the power of Nu validator to help with validation of 
 Please consider thumbing it up.
 
 == TODO
-Saxon does not stop when listener warning throws. https://saxonica.plan.io/issues/4099 https://saxonica.plan.io/issues/2803: https://saxonica.plan.io/issues/6857
-Saxon messaging does not reach listener, contrary to Xalan. Propose property to do so. Permits to stop processing, also, and get rid of the saxon specific message consumer (handler). https://saxonica.plan.io/boards/3/topics/9906 https://saxonica.plan.io/issues/6685 https://saxonica.plan.io/issues/2581
+Saxon messaging does not reach listener, contrary to Xalan. Propose property to do so. Permits to stop processing, also, and get rid of the saxon specific message consumer (handler). https://saxonica.plan.io/boards/3/topics/9906 https://saxonica.plan.io/issues/6685 https://saxonica.plan.io/issues/2581 https://saxonica.plan.io/issues/4099 https://saxonica.plan.io/issues/2803

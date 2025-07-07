@@ -175,6 +175,11 @@ public class XmlTransformerCaptureTests {
     assertThrows(XmlException.class, () -> t.charsToChars(input));
   }
 
+  /**
+   * Saxon does not stop when listener warning throws: https://saxonica.plan.io/issues/6857
+   *
+   * @throws Exception
+   */
   @Test
   public void testSaxonSwallowsException() throws Exception {
     StreamSource stylesheet = streamSource("Whitespace/Ambiguous strip whitespace.xsl");
