@@ -2,15 +2,24 @@ package io.github.oliviercailloux.jaris.xml;
 
 import static io.github.oliviercailloux.jaris.xml.Resourcer.charSource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.io.CharSource;
 import io.github.oliviercailloux.jaris.xml.XmlTransformerFactory.OutputProperties;
+import java.io.IOException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.w3c.dom.Document;
 
 public class XmlCopyTests {
+
+  private static String titleTwoAuthorsOneLine() throws IOException {
+    String textOneLine = charSource("Article ns/Title two authors.xml").read()
+        .replaceAll("(?m)^\\h+", "").replaceAll("\n", "");
+    assertTrue(textOneLine.contains("</k:Title><Authors><Author>Mr. Foo"), textOneLine);
+    return textOneLine;
+  }
 
   @Test
   void testJdk() throws Exception {
@@ -26,7 +35,7 @@ public class XmlCopyTests {
   @Test
   void testJdkNoStartIndent() throws Exception {
     final CharSource source = charSource("Article ns/Title two authors.xml");
-    String textOneLine = Resourcer.titleTwoAuthorsOneLine();
+    String textOneLine = titleTwoAuthorsOneLine();
     XmlTransformer copier =
         XmlTransformerFactory.usingFactory(KnownFactory.JDK.factory()).usingEmptyStylesheet();
     String resultFromOneLine = copier.charsToChars(CharSource.wrap(textOneLine));
@@ -55,7 +64,7 @@ public class XmlCopyTests {
   @EnumSource(names = {"XALAN", "SAXON"})
   void testIndependentFromStartIndent(KnownFactory factory) throws Exception {
     final CharSource source = charSource("Article ns/Title two authors.xml");
-    String textOneLine = Resourcer.titleTwoAuthorsOneLine();
+    String textOneLine = titleTwoAuthorsOneLine();
     XmlTransformer copier =
         XmlTransformerFactory.usingFactory(factory.factory()).usingEmptyStylesheet();
     String resultFromOriginal = copier.charsToChars(source);
@@ -66,7 +75,7 @@ public class XmlCopyTests {
   @ParameterizedTest
   @EnumSource
   void testNotPretty(KnownFactory factory) throws Exception {
-    String textOneLine = Resourcer.titleTwoAuthorsOneLine();
+    String textOneLine = titleTwoAuthorsOneLine();
     XmlTransformer copier = XmlTransformerFactory.usingFactory(factory.factory())
         .usingEmptyStylesheet(OutputProperties.noIndent());
     String directResult = copier.charsToChars(CharSource.wrap(textOneLine));
@@ -87,7 +96,7 @@ public class XmlCopyTests {
   @EnumSource
   void testThroughDomIndependentFromStartIndent(KnownFactory factory) throws Exception {
     final CharSource source = charSource("Article ns/Title two authors.xml");
-    String textOneLine = Resourcer.titleTwoAuthorsOneLine();
+    String textOneLine = titleTwoAuthorsOneLine();
     XmlTransformer copier =
         XmlTransformerFactory.usingFactory(factory.factory()).usingEmptyStylesheet();
     Document copyFromOriginal = copier.charsToDom(source);
