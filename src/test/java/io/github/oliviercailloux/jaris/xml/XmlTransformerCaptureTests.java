@@ -184,8 +184,8 @@ public class XmlTransformerCaptureTests {
    */
   @Test
   public void testSaxonSwallowsException() throws Exception {
-    StreamSource stylesheet = streamSource("Whitespace/Ambiguous strip whitespace.xsl");
-    StreamSource input = streamSource("Whitespace/Spaced.xml");
+    final StreamSource stylesheet = streamSource("Whitespace/Ambiguous strip whitespace.xsl");
+    final StreamSource input = streamSource("Whitespace/Spaced.xml");
 
     TransformerFactory factory = new net.sf.saxon.TransformerFactoryImpl();
     TransformerImpl transformer = (TransformerImpl) factory.newTransformer(stylesheet);
@@ -205,8 +205,8 @@ public class XmlTransformerCaptureTests {
 
   @Test
   public void testXalanDoesNotWarnAboutAmbiguity() throws Exception {
-    StreamSource stylesheet = streamSource("Whitespace/Ambiguous strip whitespace.xsl");
-    StreamSource input = streamSource("Whitespace/Spaced.xml");
+    final StreamSource stylesheet = streamSource("Whitespace/Ambiguous strip whitespace.xsl");
+    final StreamSource input = streamSource("Whitespace/Spaced.xml");
 
     TransformerFactory factory = new org.apache.xalan.processor.TransformerFactoryImpl();
     ErrorListener errorListener = Mockito.mock(ErrorListener.class);
