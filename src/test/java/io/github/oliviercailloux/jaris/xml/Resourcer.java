@@ -10,16 +10,25 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import javax.xml.transform.stream.StreamSource;
 
 public class Resourcer {
+  public static URL url(String resourceName) {
+    return Resources.getResource(Resourcer.class, resourceName);
+  }
+
   public static ByteSource byteSource(String resourceName) {
-    return Resources.asByteSource(Resourcer.class.getResource(resourceName));
+    return Resources.asByteSource(url(resourceName));
   }
 
   public static CharSource charSource(String resourceName) {
     return byteSource(resourceName).asCharSource(StandardCharsets.UTF_8);
   }
 
+  public static StreamSource streamSource(String resourceName) {
+    return new StreamSource(url(resourceName).toString());
+  }
+  
   public static CharSource charSource(URL source) {
     return Resources.asCharSource(source, StandardCharsets.UTF_8);
   }
