@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import javax.xml.transform.stream.StreamSource;
 
+@SuppressWarnings("checkstyle:OverloadMethodsDeclarationOrder")
 public class Resourcer {
   public static URL url(String resourceName) {
     return Resources.getResource(Resourcer.class, resourceName);
