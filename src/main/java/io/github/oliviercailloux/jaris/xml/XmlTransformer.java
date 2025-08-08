@@ -5,9 +5,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.io.ByteSource;
 import com.google.common.io.CharSink;
 import com.google.common.io.CharSource;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import javax.xml.transform.Source;
@@ -23,6 +25,14 @@ import org.w3c.dom.Document;
  */
 public interface XmlTransformer extends XmlToBytesTransformer {
 
+  public default String bytesToChars(byte[] document) throws XmlException {
+    try (ByteArrayInputStream is = new ByteArrayInputStream(document)) {
+      return sourceToChars(new StreamSource(is));
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
   /**
    * Transforms the provided document and returns the result as a string.
    *
@@ -35,6 +45,16 @@ public interface XmlTransformer extends XmlToBytesTransformer {
     try (InputStream is = document.openBufferedStream()) {
       return sourceToChars(new StreamSource(is));
     }
+  }
+
+  public default Document bytesToDom(byte[] document) throws XmlException {
+    DOMResult result = new DOMResult();
+    try (InputStream is = new ByteArrayInputStream(document)) {
+      sourceToResult(new StreamSource(is), result);
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+    return (Document) result.getNode();
   }
 
   public default Document bytesToDom(ByteSource document) throws XmlException, IOException {
@@ -52,6 +72,14 @@ public interface XmlTransformer extends XmlToBytesTransformer {
     }
   }
 
+  public default String charsToChars(String document) throws XmlException {
+    try (Reader r = new StringReader(document)) {
+      return sourceToChars(new StreamSource(r));
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
   /**
    * Transforms the provided document and returns the result as a string.
    *
@@ -64,6 +92,16 @@ public interface XmlTransformer extends XmlToBytesTransformer {
     try (Reader r = document.openBufferedStream()) {
       return sourceToChars(new StreamSource(r));
     }
+  }
+
+  public default Document charsToDom(String document) throws XmlException {
+    DOMResult result = new DOMResult();
+    try (Reader r = new StringReader(document)) {
+      sourceToResult(new StreamSource(r), result);
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+    return (Document) result.getNode();
   }
 
   public default Document charsToDom(CharSource document) throws XmlException, IOException {
@@ -82,7 +120,7 @@ public interface XmlTransformer extends XmlToBytesTransformer {
    * @throws XmlException iff an error occurs when transforming the document. Wraps a
    *         {@link TransformerException}.
    */
-  public default String sourceToChars(URI document) throws XmlException {
+  public default String sourceToChars(URI document) throws XmlException, IOException {
     final StringWriter resultWriter = new StringWriter();
     final StreamResult result = new StreamResult(resultWriter);
 
@@ -106,7 +144,7 @@ public interface XmlTransformer extends XmlToBytesTransformer {
    * @throws XmlException iff an error occurs when transforming the document. Wraps a
    *         {@link TransformerException}.
    */
-  public default String sourceToChars(Source document) throws XmlException {
+  public default String sourceToChars(Source document) throws XmlException, IOException {
     checkArgument(!document.isEmpty());
 
     final StringWriter resultWriter = new StringWriter();
@@ -124,13 +162,13 @@ public interface XmlTransformer extends XmlToBytesTransformer {
     }
   }
 
-  public default Document sourceToDom(URI document) throws XmlException {
+  public default Document sourceToDom(URI document) throws XmlException, IOException {
     DOMResult result = new DOMResult();
     sourceToResult(new StreamSource(document.toString()), result);
     return (Document) result.getNode();
   }
 
-  public default Document sourceToDom(Source document) throws XmlException {
+  public default Document sourceToDom(Source document) throws XmlException, IOException {
     DOMResult result = new DOMResult();
     sourceToResult(document, result);
     return (Document) result.getNode();

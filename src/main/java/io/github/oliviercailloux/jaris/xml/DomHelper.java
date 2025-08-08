@@ -156,13 +156,17 @@ public class DomHelper {
   }
 
   @SuppressWarnings("unused")
-  private static Document cloneDocument(Document doc) {
+  private static Document cloneDocument(Document doc) throws XmlException {
     // Thanks to https://stackoverflow.com/questions/5226852/cloning-dom-document-object .
     // As a DOMSource is not a StreamSource, I ignore how to (and perhaps cannot) use the LS API.
     // So, this should probably be moved to XmlTransformer.
     DOMResult result = new DOMResult();
-    XmlTransformerFactory.usingFactory(TransformerFactory.newDefaultInstance())
-        .usingEmptyStylesheet().sourceToResult(new DOMSource(doc), result);
+    try {
+      XmlTransformerFactory.usingFactory(TransformerFactory.newDefaultInstance())
+          .usingEmptyStylesheet().sourceToResult(new DOMSource(doc), result);
+    } catch (IOException e) {
+      throw new IllegalStateException("Unexpected IOException.", e);
+    }
     Document d = (Document) result.getNode();
     return d;
   }
