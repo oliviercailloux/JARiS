@@ -529,11 +529,7 @@ abstract class TryOptionalImpl<T, X extends Throwable> implements TryOptional<T,
     @Override
     public Try<T, Exception> andRun(TRunnable<? extends Exception> runnable) {
       final TryVoid<? extends Exception> ran = TryVoid.run(runnable);
-      /* Not sure that the following code makes sense. I had to change it to account for a bug in VS Code compiler. */
-      TSupplier<Try<T, Exception>, RuntimeException> supplier = () -> this;
-      TFunction<Exception, Try<T, Exception>, RuntimeException> causeTransformation =
-          x -> Try.failure(x);
-      return ran.map(supplier, causeTransformation);
+      return ran.map(() -> this, Try::failure);
     }
 
     @Override
