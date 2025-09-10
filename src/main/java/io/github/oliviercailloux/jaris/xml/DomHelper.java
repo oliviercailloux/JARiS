@@ -12,6 +12,7 @@ import com.google.common.io.CharSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -456,18 +457,24 @@ public class DomHelper {
    * @throws XmlException iff loading the XML document failed.
    */
   public Document asDocument(CharSource input) throws XmlException, IOException {
-    if (builder != null) {
-      return asDocument(input.asByteSource(StandardCharsets.UTF_8));
-    }
-
-    lazyInitDeser();
     final Document doc;
-    final LSInput lsInput = implLs.createLSInput();
-    try (Reader r = input.openStream()) {
-      lsInput.setCharacterStream(r);
-      doc = deser.parse(lsInput);
-    } catch (LSException e) {
-      throw new XmlException("Unable to parse the provided document.", e);
+    if (builder != null) {
+      builder.setErrorHandler(SaxErrorHandlers.THROWING_ERROR_HANDLER);
+      InputSource is = new InputSource(new StringReader(input.read()));
+      try {
+        doc = builder.parse(is);
+      } catch (SAXException e) {
+        throw new XmlException("Unable to parse the provided document.", e);
+      }
+    } else {
+      lazyInitDeser();
+      final LSInput lsInput = implLs.createLSInput();
+      try (Reader r = input.openStream()) {
+        lsInput.setCharacterStream(r);
+        doc = deser.parse(lsInput);
+      } catch (LSException e) {
+        throw new XmlException("Unable to parse the provided document.", e);
+      }
     }
     return doc;
   }
