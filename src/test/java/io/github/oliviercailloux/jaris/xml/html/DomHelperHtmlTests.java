@@ -16,6 +16,7 @@ import io.github.oliviercailloux.jaris.xml.DomHelper;
 import io.github.oliviercailloux.jaris.xml.Resourcer;
 import io.github.oliviercailloux.jaris.xml.XmlException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import nu.validator.htmlparser.dom.HtmlDocumentBuilder;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXParseException;
 
 public class DomHelperHtmlTests {
@@ -64,6 +66,17 @@ public class DomHelperHtmlTests {
     String str = h.toString(doc);
     // Files.writeString(Path.of("Simple.xhtml"), h.toString(doc));
     String expected = Resourcer.charSource("Xhtml/Simple.xhtml").read();
+    assertEquals(expected, str);
+  }
+
+  @Test
+  public void testHtmlIso() throws Exception {
+    DomHelper h = DomHelper.usingBuilder(new HtmlDocumentBuilder());
+    //TODO I actually expect the builder to throw because it warns about LATIN-1 encoding.
+    Document doc = h.asDocument(byteSource("Html/Encoding ISO.html"));
+    String str = h.toString(doc);
+    // Files.writeString(Path.of("Simple.xhtml"), h.toString(doc));
+    String expected = Resourcer.charSource("Xhtml/Simple.xhtml").read().replaceAll("charset=utf-8", "charset=iso-8859-1");
     assertEquals(expected, str);
   }
 
