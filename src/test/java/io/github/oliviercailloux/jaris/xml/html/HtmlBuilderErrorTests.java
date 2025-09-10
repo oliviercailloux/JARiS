@@ -40,8 +40,8 @@ public class HtmlBuilderErrorTests {
 
   @Test
   public void testHtmlIso() throws Exception {
-    URL resource = Resources.getResource(Resourcer.class, "Html/Encoding ISO.html");
-    String uri = resource.toString();
+    String uri = Resources.getResource(Resourcer.class, "Html/Encoding ISO.html").toString();
+    // String uri = "https://github.com/oliviercailloux/JARiS/raw/refs/heads/main/src/test/resources/io/github/oliviercailloux/jaris/xml/Html/Encoding%20ISO.html";
     HtmlDocumentBuilder builder = new HtmlDocumentBuilder();
     builder.setErrorHandler(new ThrowingErrorHandler());
     // logs no warning, does not throw
