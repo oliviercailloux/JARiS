@@ -1,12 +1,9 @@
 package io.github.oliviercailloux.jaris.xml.html;
 
-import com.google.common.io.ByteSource;
-import com.google.common.io.CharSource;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.google.common.io.Resources;
 import io.github.oliviercailloux.jaris.xml.Resourcer;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import nu.validator.htmlparser.dom.HtmlDocumentBuilder;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -47,7 +44,7 @@ public class HtmlBuilderErrorTests {
     // logs no warning, does not throw
     builder.parse(uri);
     builder.setErrorHandler(new ThrowingErrorHandler());
-    // logs a warning then throws
-    builder.parse(uri);
+    // logs a warning then throws, see https://github.com/validator/htmlparser/issues/98
+    assertThrows(SAXParseException.class, () -> builder.parse(uri));
   }
 }
