@@ -7,7 +7,7 @@
     <version>0.0.27</version>
   </parent>
   <artifactId>jaris</artifactId>
-  <version>0.0.42-SNAPSHOT</version>
+  <version>0.0.42</version>
   <name>JARiS</name>
   <description>Various utilities that complement those found in Guava.</description>
   <properties>
