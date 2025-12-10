@@ -72,11 +72,12 @@ public class DomHelperHtmlTests {
   @Test
   public void testHtmlIso() throws Exception {
     DomHelper h = DomHelper.usingBuilder(new HtmlDocumentBuilder());
-    //Should throw as the builder warns about LATIN-1 encoding. See related tests and issue.
+    // Should throw as the builder warns about LATIN-1 encoding. See related tests and issue.
     Document doc = h.asDocument(byteSource("Html/Encoding ISO.html"));
     String str = h.toString(doc);
     // Files.writeString(Path.of("Simple.xhtml"), h.toString(doc));
-    String expected = Resourcer.charSource("Xhtml/Simple.xhtml").read().replaceAll("charset=utf-8", "charset=iso-8859-1");
+    String expected = Resourcer.charSource("Xhtml/Simple.xhtml").read().replaceAll("charset=utf-8",
+        "charset=iso-8859-1");
     assertEquals(expected, str);
   }
 
